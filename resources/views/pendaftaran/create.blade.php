@@ -94,7 +94,7 @@
                             <div class="sm:col-span-2">
                                 <label class="block text-sm font-semibold mb-2 text-gray-700">Nama Lengkap (Sesuai KTP)
                                     <span class="text-red-500">*</span></label>
-                                <input type="text" name="nama_lengkap" value="{{ old('nama_lengkap') }}" maxlength="50"
+                                <input type="text" name="nama_lengkap" value="{{ old('nama_lengkap') }}" maxlength="255"
                                     placeholder="Nama lengkap Anda"
                                     class="w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-primary outline-none"
                                     required>
@@ -178,12 +178,10 @@
                                     required>{{ old('alamat_ktp') }}</textarea>
                             </div>
                             <div class="sm:col-span-2">
-                                <label class="block text-sm font-semibold mb-1 text-gray-700">Titik Koordinat (Google
-                                    Maps) <span class="text-red-500">*</span></label>
-                                <p class="text-xs text-gray-500 mb-2">Salin dan tempel (paste) tautan lokasi rumah Anda
-                                    dari Google Maps. Contoh: https://maps.google.com/...</p>
-                                <input type="url" name="google_maps_url" value="{{ old('google_maps_url') }}"
-                                    placeholder="https://maps.google.com/..."
+                                <label class="block text-sm font-semibold mb-1 text-gray-700">Titik Koordinat (Latitude, Longitude) <span class="text-red-500">*</span></label>
+                                <p class="text-xs text-gray-500 mb-2">Salin dan tempel (paste) titik koordinat lokasi rumah Anda dari Google Maps. Contoh: -8.043310, 112.277617</p>
+                                <input type="text" name="google_maps_url" value="{{ old('google_maps_url') }}"
+                                    placeholder="Contoh: -8.043310, 112.277617"
                                     class="w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-primary outline-none @error('google_maps_url') border-red-500 @enderror"
                                     required>
                             </div>
@@ -196,7 +194,7 @@
                                 <label class="block text-sm font-semibold mb-2 text-gray-700">Asal Perguruan Tinggi
                                     <span class="text-red-500">*</span></label>
                                 <input type="text" name="asal_perguruan_tinggi"
-                                    value="{{ old('asal_perguruan_tinggi') }}" maxlength="40"
+                                    value="{{ old('asal_perguruan_tinggi') }}" maxlength="255"
                                     placeholder="Contoh: Universitas Brawijaya"
                                     class="w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-primary outline-none"
                                     required>
@@ -205,20 +203,31 @@
                                 <label class="block text-sm font-semibold mb-2 text-gray-700">Fakultas / Jurusan <span
                                         class="text-red-500">*</span></label>
                                 <input type="text" name="program_studi" value="{{ old('program_studi') }}"
-                                    maxlength="20"
+                                    maxlength="255"
                                     class="w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-primary outline-none"
                                     required>
                             </div>
                             <div>
                                 <label class="block text-sm font-semibold mb-2 text-gray-700">Semester Saat Ini <span
                                         class="text-red-500">*</span></label>
-                                <input type="number" name="semester" value="{{ old('semester') }}" min="1" max="14"
-                                    oninput="if (this.value !== '') {this.value = Math.min(Math.max(parseInt(this.value), 1), 14);}"
+                                <input type="text" inputmode="numeric" pattern="[0-9]*" name="semester" value="{{ old('semester') }}"
+                                    placeholder="Contoh: 1"
+                                    oninput="this.value = this.value.replace(/\D/g, ''); if(this.value !== '') { let val = parseInt(this.value, 10); if(val > 14) this.value = 14; if(val < 1) this.value = 1; }"
                                     class="w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-primary outline-none"
                                     required>
                             </div>
                         </div>
+
                     </div>
+                </div>
+
+                <div x-show="step === 1" class="mt-4 flex justify-end gap-3">
+                    <button type="button" @click="nextStep()" :disabled="isCheckingNik" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm">
+                        <span x-show="!isCheckingNik" class="flex items-center gap-1">Selanjutnya <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+                        <span x-show="isCheckingNik" class="flex items-center gap-2" style="display: none;">
+                            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Memeriksa...
+                        </span>
+                    </button>
                 </div>
 
                 {{-- Step 2: Data Keluarga & Akademik --}}
@@ -419,7 +428,17 @@
                             </div>
 
                         </div>
+
                     </div>
+                </div>
+
+                <div x-show="step === 2" class="mt-4 flex justify-between gap-3">
+                    <button type="button" @click="history.back()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Sebelumnya
+                    </button>
+                    <button type="button" @click="nextStep()" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm">
+                        <span class="flex items-center gap-1">Selanjutnya <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+                    </button>
                 </div>
 
                 {{-- Step 3: Kriteria Penilaian --}}
@@ -474,7 +493,17 @@
                                 </div>
                             </div>
                         @endforeach
+
                     </div>
+                </div>
+
+                <div x-show="step === 3" class="mt-4 flex justify-between gap-3">
+                    <button type="button" @click="history.back()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Sebelumnya
+                    </button>
+                    <button type="button" @click="nextStep()" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm">
+                        <span class="flex items-center gap-1">Selanjutnya <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+                    </button>
                 </div>
 
                 {{-- Step 4: Dokumen --}}
@@ -531,7 +560,17 @@
                                     jalur ini.</p>
                             @endforelse
                         </div>
+
                     </div>
+                </div>
+
+                <div x-show="step === 4" class="mt-4 flex justify-between gap-3">
+                    <button type="button" @click="history.back()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Sebelumnya
+                    </button>
+                    <button type="button" @click="nextStep()" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm">
+                        <span class="flex items-center gap-1">Selanjutnya <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
+                    </button>
                 </div>
         </div>
 
@@ -581,10 +620,8 @@
                                     x-text="getFormVal('desa_id')"></span></div>
                             <div class="md:col-span-2"><span class="text-gray-500 block text-xs">Alamat KTP</span><span
                                     class="font-medium" x-text="getFormVal('alamat_ktp')"></span></div>
-                            <div class="md:col-span-2"><span class="text-gray-500 block text-xs">Titik Koordinat (Google
-                                    Maps)</span><a :href="getFormVal('google_maps_url') !== '-' ? getFormVal('google_maps_url') : '#'" target="_blank"
-                                    class="font-medium text-primary hover:underline break-all"
-                                    x-text="getFormVal('google_maps_url')"></a></div>
+                            <div class="md:col-span-2"><span class="text-gray-500 block text-xs">Titik Koordinat (Latitude, Longitude)</span><span
+                                    class="font-medium" x-text="getFormVal('google_maps_url')"></span></div>
                         </div>
                     </div>
 
@@ -708,36 +745,20 @@
                         </label>
                     </div>
                 </div>
+
             </div>
         </div>
 
-        {{-- Navigation Buttons --}}
-        <div class="mt-8 flex justify-between items-center px-2">
-            <button type="button" x-show="step > 1" @click="step--" class="btn btn-outline">
+        <div x-show="step === 5" class="mt-4 flex justify-between gap-3">
+            <button type="button" @click="history.back()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Sebelumnya
             </button>
-            <div x-show="step === 1"></div>
-
-            <button type="button" x-show="step < 5" @click="nextStep()" :disabled="isCheckingNik" class="btn btn-primary flex items-center gap-2">
-                <template x-if="!isCheckingNik">
-                    <span class="flex items-center gap-1">Selanjutnya <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
-                </template>
-                <template x-if="isCheckingNik">
-                    <span class="flex items-center gap-2">
-                        <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Memeriksa NIK...
-                    </span>
-                </template>
-            </button>
-            <button type="button" @click="submitForm($event)" x-show="step === 5" :disabled="!persetujuan"
-                class="btn btn-primary flex items-center gap-2"
-                :class="!persetujuan ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'">
+            <button type="button" @click="submitForm($event)" :disabled="!persetujuan" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm" :class="!persetujuan ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'">
                 <i data-lucide="send" class="w-4 h-4"></i> Kirim Pendaftaran
             </button>
         </div>
+
+
         </form>
     </div>
     </div>
@@ -761,6 +782,95 @@
                     reviewTick: 0,
 
                     init() {
+                        const form = document.getElementById('pendaftaran-form');
+
+                        // Sinkronisasi tombol back browser dengan form menggunakan Hash (#step-X)
+                        if (!window.location.hash) {
+                            history.replaceState(null, '', '#step-' + this.step);
+                        } else {
+                            const match = window.location.hash.match(/#step-(\d+)/);
+                            if (match) {
+                                this.step = parseInt(match[1]);
+                            }
+                        }
+
+                        window.addEventListener('hashchange', () => {
+                            const match = window.location.hash.match(/#step-(\d+)/);
+                            if (match) {
+                                this.step = parseInt(match[1]);
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                        });
+
+                        // Load draft dari localStorage
+                        const saved = localStorage.getItem('draft_pendaftaran');
+                        if (saved && form) {
+                            try {
+                                const data = JSON.parse(saved);
+                                // Hanya load jika program_slug cocok (mencegah salah jalur)
+                                if (data.program_slug === '{{ $program->slug }}') {
+                                    // Kembalikan state Alpine
+                                    if (data.alpine) {
+                                        this.kecamatan_id = data.alpine.kecamatan_id || '';
+                                        this.desa_id = data.alpine.desa_id || '';
+                                        this.oldDesaId = data.alpine.desa_id || '';
+                                        this.nik = data.alpine.nik || '';
+                                        this.persetujuan = data.alpine.persetujuan || false;
+                                    }
+                                    
+                                    // Kembalikan value DOM
+                                    if (data.form) {
+                                        // Delay sedikit agar Alpine selesai inisialisasi DOM (terutama x-show dan template)
+                                        setTimeout(() => {
+                                            Object.keys(data.form).forEach(key => {
+                                                const el = form.elements[key];
+                                                if (el && el.type !== 'file') {
+                                                    if (el instanceof RadioNodeList || (el.length && el[0] && el[0].type === 'radio')) {
+                                                        Array.from(el).forEach(r => r.checked = (r.value === data.form[key]));
+                                                    } else if (el.type === 'checkbox') {
+                                                        el.checked = (data.form[key] === 'on' || data.form[key] === true);
+                                                    } else {
+                                                        el.value = data.form[key];
+                                                    }
+                                                }
+                                            });
+                                        }, 100);
+                                    }
+                                }
+                            } catch(e) {
+                                console.error('Gagal meload draft', e);
+                            }
+                        }
+
+                        // Save draft tiap kali ada perubahan form (DOM event delegation)
+                        if (form) {
+                            form.addEventListener('input', () => {
+                                const formData = new FormData(form);
+                                const formObj = {};
+                                formData.forEach((value, key) => {
+                                    if(value instanceof File) return;
+                                    formObj[key] = value;
+                                });
+                                
+                                const toSave = {
+                                    program_slug: '{{ $program->slug }}',
+                                    alpine: {
+                                        kecamatan_id: this.kecamatan_id,
+                                        desa_id: this.desa_id,
+                                        nik: this.nik,
+                                        persetujuan: this.persetujuan
+                                    },
+                                    form: formObj
+                                };
+                                localStorage.setItem('draft_pendaftaran', JSON.stringify(toSave));
+                            });
+                        }
+
+                        // Fallback trigger save saat state Alpine berubah (seperti checkbox persetujuan)
+                        this.$watch('$data', (val) => {
+                            if (form) form.dispatchEvent(new Event('input'));
+                        });
+
                         this.$watch('kecamatan_id', (value) => {
                             this.fetchDesa();
                         });
@@ -831,18 +941,27 @@
                         const elements = form.querySelectorAll(`[x-show="step === ${this.step}"] input, [x-show="step === ${this.step}"] select, [x-show="step === ${this.step}"] textarea`);
 
                         let valid = true;
+                        let firstInvalidEl = null;
                         for (let el of elements) {
                             if (!el.checkValidity()) {
                                 valid = false;
                                 el.classList.add('border-red-500', 'bg-red-50');
-                                el.reportValidity();
-                                break;
+                                if (!firstInvalidEl) firstInvalidEl = el;
                             } else {
                                 el.classList.remove('border-red-500', 'bg-red-50');
                             }
                         }
 
-                        if (!valid) return;
+                        if (!valid) {
+                            if (firstInvalidEl) {
+                                firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                setTimeout(() => {
+                                    alert('Peringatan: Terdapat form yang belum diisi atau formatnya salah. Silakan periksa kolom yang ditandai dengan warna merah.');
+                                    firstInvalidEl.reportValidity();
+                                }, 300);
+                            }
+                            return;
+                        }
 
                         // Cek penguncian NIK saat di Step 1
                         if (this.step === 1) {
@@ -959,6 +1078,8 @@
                         this.step++;
                         this.reviewTick++;
                         window.scrollTo({ top: 0, behavior: 'smooth' });
+                        // Tambahkan state baru ke history via URL Hash agar tombol back browser bekerja 100%
+                        window.location.hash = 'step-' + this.step;
                     },
 
                     submitForm(e) {
@@ -980,13 +1101,17 @@
                                     this.reviewTick++;
                                     setTimeout(() => {
                                         if (firstInvalidEl.tagName !== 'INPUT' || firstInvalidEl.type !== 'file') {
+                                            firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                             firstInvalidEl.focus();
                                         }
+                                        alert('Peringatan: Terdapat form yang belum diisi atau formatnya salah. Mohon lengkapi sebelum mengirim pendaftaran.');
                                         firstInvalidEl.reportValidity();
-                                    }, 200);
+                                    }, 400);
                                 }
                             }
                         } else {
+                            // Hapus draft saat sukses submit agar pendaftaran berikutnya bersih
+                            localStorage.removeItem('draft_pendaftaran');
                             HTMLFormElement.prototype.submit.call(form);
                         }
                     },

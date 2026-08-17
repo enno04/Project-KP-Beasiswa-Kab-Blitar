@@ -29,10 +29,8 @@
             <div class="flex justify-between h-16 items-center">
                 {{-- Logo --}}
                 <a href="{{ route('home') }}" class="flex items-center gap-3 group">
-                    <div class="flex items-center justify-center overflow-hidden">
-                        <img src="{{ asset('images/logo.png') }}" alt="Logo Beasiswa Blitar Mengabdi"
-                            class="w-80 h-80 object-contain">
-                    </div>
+                    <img src="{{ asset('images/logo.png') }}" alt="Logo Beasiswa Blitar Mengabdi"
+                        class="h-12 sm:h-16 w-auto object-contain">
                 </a>
 
                 {{-- Desktop Nav --}}

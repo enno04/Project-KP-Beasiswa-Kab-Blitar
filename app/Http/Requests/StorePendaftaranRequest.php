@@ -22,7 +22,7 @@ class StorePendaftaranRequest extends FormRequest
             'tanggal_lahir' => 'required|date',
             'jenis_kelamin' => 'required|in:L,P',
             'alamat_ktp' => 'required|string',
-            'google_maps_url' => 'required|url|max:255',
+            'google_maps_url' => 'required|string|max:255',
             'desa_id' => 'required|exists:desa,id',
             'kecamatan_id' => 'required|exists:kecamatan,id',
             'no_hp' => 'required|string|max:20',
