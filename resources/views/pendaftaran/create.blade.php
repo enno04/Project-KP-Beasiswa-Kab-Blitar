@@ -17,7 +17,7 @@
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
             {{-- Progress Steps --}}
-            <div class="mb-8">
+            <div class="mb-4 sm:mb-8">
                 <div class="flex items-center justify-between relative">
                     <div class="absolute left-0 top-1/2 -translate-y-1/2 w-full h-1 bg-slate-200 rounded-full z-0">
                     </div>
@@ -35,6 +35,12 @@
                                 :class="step >= i ? 'text-primary-dark' : 'text-slate-400'" x-text="stepNames[i-1]"></span>
                         </div>
                     </template>
+                </div>
+                
+                {{-- Mobile Step Indicator --}}
+                <div class="mt-4 text-center sm:hidden">
+                    <span class="text-xs font-extrabold text-primary uppercase tracking-wider block mb-0.5">Langkah <span x-text="step"></span> dari 5</span>
+                    <h2 class="text-base font-bold text-gray-800" x-text="stepNames[step-1]"></h2>
                 </div>
             </div>
 
@@ -289,7 +295,8 @@
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-semibold mb-1 text-gray-700">Alamat <span
                                                 class="text-red-500">*</span></label>
-                                        <textarea name="alamat_ayah" rows="2" maxlength="100"
+                                        <textarea name="alamat_ayah" rows="2" maxlength="100" autocomplete="off"
+                                            oninput="document.querySelector('[name=alamat_ibu]').value = this.value; document.querySelector('[name=alamat_ibu]').dispatchEvent(new Event('input'))"
                                             class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-1 focus:ring-primary"
                                             required>{{ old('alamat_ayah') }}</textarea>
                                     </div>
@@ -297,7 +304,7 @@
                                         <label class="block text-xs font-semibold mb-1 text-gray-700">No. Telp / HP / WA
                                             <span class="text-red-500">*</span></label>
                                         <input type="text" name="no_hp_ayah" value="{{ old('no_hp_ayah') }}"
-                                            maxlength="14" placeholder="08xxxxxxxxxx"
+                                            maxlength="14" placeholder="08xxxxxxxxxx" autocomplete="off"
                                             oninput="this.value = this.value.replace(/\D/g, '').slice(0,14)"
                                             class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-1 focus:ring-primary"
                                             required>
@@ -353,7 +360,7 @@
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-semibold mb-1 text-gray-700">Alamat <span
                                                 class="text-red-500">*</span></label>
-                                        <textarea name="alamat_ibu" rows="2" maxlength="100"
+                                        <textarea name="alamat_ibu" rows="2" maxlength="100" autocomplete="off"
                                             class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-1 focus:ring-primary"
                                             required>{{ old('alamat_ibu') }}</textarea>
                                     </div>
@@ -361,7 +368,7 @@
                                         <label class="block text-xs font-semibold mb-1 text-gray-700">No. Telp / HP / WA
                                             <span class="text-red-500">*</span></label>
                                         <input type="text" name="no_hp_ibu" value="{{ old('no_hp_ibu') }}"
-                                            maxlength="14" placeholder="08xxxxxxxxxx"
+                                            maxlength="14" placeholder="08xxxxxxxxxx" autocomplete="off"
                                             oninput="this.value = this.value.replace(/\D/g, '').slice(0,14)"
                                             class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-1 focus:ring-primary"
                                             required>
@@ -413,14 +420,14 @@
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-semibold mb-1 text-gray-700">Alamat</label>
-                                        <textarea name="alamat_wali" rows="2" maxlength="100"
+                                        <textarea name="alamat_wali" rows="2" maxlength="100" autocomplete="off"
                                             class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-1 focus:ring-primary">{{ old('alamat_wali') }}</textarea>
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label class="block text-xs font-semibold mb-1 text-gray-700">No. Telp / HP /
                                             WA</label>
                                         <input type="text" name="no_hp_wali" value="{{ old('no_hp_wali') }}"
-                                            maxlength="14" placeholder="08xxxxxxxxxx"
+                                            maxlength="14" placeholder="08xxxxxxxxxx" autocomplete="off"
                                             oninput="this.value = this.value.replace(/\D/g, '').slice(0,14)"
                                             class="w-full px-4 py-2.5 rounded-lg border text-sm outline-none focus:ring-1 focus:ring-primary">
                                     </div>
@@ -459,34 +466,40 @@
                                 <h3 class="font-bold text-lg text-gray-900 mb-4">{{ $kelompok->nama }}</h3>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     @foreach($kelompok->kriterias as $kriteria)
-                                        <div class="sm:col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-200">
-                                            <label class="block text-sm font-bold mb-1 text-gray-800">
+                                        <div class="sm:col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-200 overflow-hidden">
+                                            <label class="block text-sm font-bold mb-1 text-gray-800 break-words">
                                                 {{ $kriteria->nama }} <span class="text-red-500">*</span>
                                             </label>
                                             @if($kriteria->keterangan)
-                                                <p class="text-xs text-gray-500 mb-3">{{ $kriteria->keterangan }}</p>
+                                                <p class="text-xs text-gray-500 mb-3 break-words">{{ $kriteria->keterangan }}</p>
                                             @endif
 
                                             @if($kriteria->isPilihan())
                                                 {{-- Dropdown Pilihan --}}
                                                 <select name="kriteria_{{ $kriteria->id }}"
-                                                    class="w-full px-4 py-2.5 rounded-lg border text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
+                                                    class="w-full max-w-full px-4 py-2.5 rounded-lg border text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
                                                     required>
                                                     <option value="">-- Pilih Jawaban --</option>
                                                     @foreach($kriteria->pilihans as $pil)
-                                                        <option value="{{ $pil->id }}" {{ old('kriteria_' . $kriteria->id) == $pil->id ? 'selected' : '' }}>
+                                                        <option value="{{ $pil->id }}" {{ old('kriteria_' . $kriteria->id) == $pil->id ? 'selected' : '' }} class="truncate whitespace-normal">
                                                             {{ $pil->label }}
                                                         </option>
                                                     @endforeach
                                                 </select>
                                             @else
-                                                {{-- Input Numerik Langsung --}}
+                                                {{-- Input Numerik Langsung dengan Auto-Clamp JS --}}
                                                 <input type="number" step="0.01" name="kriteria_{{ $kriteria->id }}"
                                                     value="{{ old('kriteria_' . $kriteria->id) }}"
-                                                    placeholder="Masukkan angka (Min: {{ $kriteria->nilai_min }}, Max: {{ $kriteria->nilai_max }})"
+                                                    placeholder="Isi angka (Min: {{ $kriteria->nilai_min }}, Max: {{ $kriteria->nilai_max }})"
                                                     min="{{ $kriteria->nilai_min }}" max="{{ $kriteria->nilai_max }}"
-                                                    class="w-full px-4 py-2.5 rounded-lg border text-sm focus:ring-2 focus:ring-primary outline-none"
+                                                    oninput="if(this.value.length > 6) this.value = this.value.slice(0,6); if(this.value !== '') { let m = parseFloat(this.max); let v = parseFloat(this.value); if(!isNaN(m) && v > m) this.value = m; }"
+                                                    onblur="if(this.value !== '') { let m = parseFloat(this.min); let v = parseFloat(this.value); if(!isNaN(m) && v < m) this.value = m; }"
+                                                    class="peer w-full max-w-full px-4 py-2.5 rounded-lg border text-sm focus:ring-2 focus:ring-primary outline-none transition-colors"
                                                     required>
+                                                <p class="mt-2 text-xs text-red-600 font-bold hidden peer-invalid:flex items-center gap-1 bg-red-50 p-2 rounded-lg border border-red-200">
+                                                    <i data-lucide="alert-circle" class="w-3.5 h-3.5 shrink-0"></i> 
+                                                    <span>Nilai wajib diisi sesuai batas ({{ $kriteria->nilai_min }} - {{ $kriteria->nilai_max }}).</span>
+                                                </p>
                                             @endif
                                         </div>
                                     @endforeach
@@ -544,8 +557,8 @@
                                         </div>
                                     </div>
                                     <div class="md:w-1/2 w-full shrink-0">
-                                        <input type="file" name="dokumen_{{ $dok->id }}"
-                                            @change="uploadedFiles[{{ $dok->id }}] = $event.target.files.length ? $event.target.files[0].name : ''"
+                                        <input type="file" name="dokumen_{{ $dok->id }}" id="dokumen_{{ $dok->id }}"
+                                            @change="handleFileUpload($event, {{ $dok->id }})"
                                             accept=".{{ str_replace(',', ',.', $dok->format_file) }}"
                                             class="block w-full text-sm text-gray-500
                                                                                         file:mr-4 file:py-2 file:px-4
@@ -553,6 +566,49 @@
                                                                                         file:text-sm file:font-semibold
                                                                                         file:bg-primary file:text-white
                                                                                         hover:file:bg-primary-dark transition-colors" {{ $dok->wajib ? 'required' : '' }}>
+                                        
+                                        {{-- File Preview Area --}}
+                                        <template x-if="filePreviews[{{ $dok->id }}]">
+                                            <div class="mt-3" x-data="{ showPreview: false }">
+                                                <button type="button" @click="showPreview = !showPreview" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-sm transition-colors">
+                                                    <i data-lucide="eye" class="w-3.5 h-3.5" :class="showPreview ? 'text-primary' : ''"></i> 
+                                                    <span x-text="showPreview ? 'Tutup Pratinjau' : 'Lihat Pratinjau'"></span>
+                                                </button>
+
+                                                <div x-show="showPreview" x-transition class="mt-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
+                                                    <template x-if="filePreviews[{{ $dok->id }}].type === 'image'">
+                                                        <div class="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group">
+                                                            <img :src="filePreviews[{{ $dok->id }}].url" class="object-contain w-full h-full bg-white" alt="Preview Gambar">
+                                                            <a :href="filePreviews[{{ $dok->id }}].url" :download="filePreviews[{{ $dok->id }}].name" class="absolute inset-0 bg-black/20 flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                                <span class="bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow"><i data-lucide="download" class="w-3.5 h-3.5"></i> Buka / Unduh</span>
+                                                            </a>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="filePreviews[{{ $dok->id }}].type === 'pdf'">
+                                                        <div class="flex items-center gap-3 p-1">
+                                                            <div class="w-10 h-10 rounded bg-red-50 flex items-center justify-center shrink-0 border border-red-100">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                                            </div>
+                                                            <div class="flex-1 min-w-0">
+                                                                <p class="text-xs font-bold text-gray-800 truncate" x-text="filePreviews[{{ $dok->id }}].name"></p>
+                                                                <a :href="filePreviews[{{ $dok->id }}].url" :download="filePreviews[{{ $dok->id }}].name" class="text-[10px] text-primary hover:text-primary-dark hover:underline font-semibold flex items-center gap-1 mt-0.5"><i data-lucide="download" class="w-3 h-3"></i> Buka / Unduh PDF</a>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                    <template x-if="filePreviews[{{ $dok->id }}].type === 'other'">
+                                                        <div class="flex items-center gap-3 p-1">
+                                                            <div class="w-10 h-10 rounded bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+                                                                <i data-lucide="file" class="w-5 h-5 text-slate-500"></i>
+                                                            </div>
+                                                            <div class="flex-1 min-w-0">
+                                                                <p class="text-xs font-bold text-gray-800 truncate" x-text="filePreviews[{{ $dok->id }}].name"></p>
+                                                                <p class="text-[10px] text-slate-500 mt-0.5">Dokumen siap diunggah</p>
+                                                            </div>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </template>
                                     </div>
                                 </div>
                             @empty
@@ -575,7 +631,7 @@
         </div>
 
         {{-- Step 5: Review & Submit --}}
-        <div x-show="step === 5" x-transition.opacity.duration.300ms style="display: none;" class="card">
+        <div x-show="step === 5" x-transition.opacity.duration.300ms style="display: none;" class="card max-w-3xl mx-auto">
             <div class="card-header flex items-center gap-2">
                 <i data-lucide="check-square" class="w-5 h-5 text-primary"></i>
                 <span class="font-bold text-lg text-primary-dark">Review Pendaftaran</span>
@@ -711,21 +767,66 @@
                         </div>
                         <div class="grid grid-cols-1 gap-y-3 text-sm">
                             @forelse($dokumens as $dok)
-                                <div class="flex justify-between items-center bg-white p-3 border rounded-lg">
-                                    <div>
-                                        <div class="font-medium text-gray-800">{{ $dok->nama }}</div>
-                                        <div class="text-xs text-primary truncate max-w-[200px] md:max-w-md"
-                                            x-text="uploadedFiles[{{ $dok->id }}] || 'Belum dipilih'"></div>
+                                <div x-data="{ showPreview: false }" class="bg-white border rounded-lg overflow-hidden">
+                                    <div class="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-3 sm:gap-2 p-3">
+                                        <div>
+                                            <div class="font-medium text-gray-800">{{ $dok->nama }}</div>
+                                            <div class="text-xs text-primary truncate max-w-[200px] md:max-w-md"
+                                                x-text="uploadedFiles[{{ $dok->id }}] || 'Belum dipilih'"></div>
+                                        </div>
+                                        <template x-if="uploadedFiles[{{ $dok->id }}]">
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-2 py-1 bg-green-100 text-green-700 text-[11px] font-bold rounded flex items-center gap-1">
+                                                    <i data-lucide="check" class="w-3 h-3"></i> Diunggah
+                                                </span>
+                                                <template x-if="filePreviews[{{ $dok->id }}]">
+                                                    <button type="button" @click="showPreview = !showPreview" class="px-2 py-1 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 text-[11px] font-bold rounded flex items-center gap-1 transition-colors shadow-sm">
+                                                        <i data-lucide="eye" class="w-3 h-3" :class="showPreview ? 'text-primary' : ''"></i> 
+                                                        <span x-text="showPreview ? 'Tutup' : 'Lihat'"></span>
+                                                    </button>
+                                                </template>
+                                            </div>
+                                        </template>
+                                        <template x-if="!uploadedFiles[{{ $dok->id }}]">
+                                            <span class="px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded">Kosong</span>
+                                        </template>
                                     </div>
-                                    <template x-if="uploadedFiles[{{ $dok->id }}]">
-                                        <span
-                                            class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded flex items-center gap-1"><i
-                                                data-lucide="check" class="w-3 h-3"></i> Sudah Diunggah</span>
-                                    </template>
-                                    <template x-if="!uploadedFiles[{{ $dok->id }}]">
-                                        <span
-                                            class="px-2 py-1 bg-gray-100 text-gray-500 text-xs font-bold rounded">Kosong</span>
-                                    </template>
+                                    <div x-show="showPreview" x-transition class="p-3 border-t bg-slate-50">
+                                        <template x-if="filePreviews[{{ $dok->id }}]">
+                                            <div>
+                                                <template x-if="filePreviews[{{ $dok->id }}].type === 'image'">
+                                                    <div class="relative w-full h-40 bg-gray-100 rounded-lg overflow-hidden border border-gray-200 group">
+                                                        <img :src="filePreviews[{{ $dok->id }}].url" class="object-contain w-full h-full bg-white" alt="Preview Gambar">
+                                                        <a :href="filePreviews[{{ $dok->id }}].url" :download="filePreviews[{{ $dok->id }}].name" class="absolute inset-0 bg-black/20 flex items-center justify-center sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                                            <span class="bg-white text-gray-800 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 shadow"><i data-lucide="download" class="w-3.5 h-3.5"></i> Buka / Unduh</span>
+                                                        </a>
+                                                    </div>
+                                                </template>
+                                                <template x-if="filePreviews[{{ $dok->id }}].type === 'pdf'">
+                                                    <div class="flex items-center gap-3 p-1">
+                                                        <div class="w-10 h-10 rounded bg-red-50 flex items-center justify-center shrink-0 border border-red-100">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                            <p class="text-xs font-bold text-gray-800 truncate" x-text="filePreviews[{{ $dok->id }}].name"></p>
+                                                            <a :href="filePreviews[{{ $dok->id }}].url" :download="filePreviews[{{ $dok->id }}].name" class="text-[10px] text-primary hover:text-primary-dark hover:underline font-semibold flex items-center gap-1 mt-0.5"><i data-lucide="download" class="w-3 h-3"></i> Buka / Unduh PDF</a>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <template x-if="filePreviews[{{ $dok->id }}].type === 'other'">
+                                                    <div class="flex items-center gap-3 p-1">
+                                                        <div class="w-10 h-10 rounded bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+                                                            <i data-lucide="file" class="w-5 h-5 text-slate-500"></i>
+                                                        </div>
+                                                        <div class="flex-1 min-w-0">
+                                                            <p class="text-xs font-bold text-gray-800 truncate" x-text="filePreviews[{{ $dok->id }}].name"></p>
+                                                            <p class="text-[10px] text-slate-500 mt-0.5">Dokumen siap diunggah</p>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </div>
                             @empty
                                 <p class="text-gray-500 italic text-xs">Belum ada dokumen.</p>
@@ -738,10 +839,7 @@
                         <label class="flex items-start gap-3 cursor-pointer">
                             <input type="checkbox" x-model="persetujuan"
                                 class="mt-1 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary">
-                            <span class="text-sm text-yellow-900">Saya menyatakan bahwa seluruh data dan dokumen yang
-                                saya unggah adalah <strong>BENAR</strong> dan dapat dipertanggungjawabkan keasliannya.
-                                Apabila di kemudian hari terbukti ada pemalsuan, saya bersedia menerima sanksi yang
-                                berlaku dan status pendaftaran saya dibatalkan.</span>
+                            <span class="text-sm text-yellow-900">Saya telah membaca, memahami, dan menyetujui Kebijakan Privasi dan Pelindungan Data Pribadi program <strong>Beasiswa Blitar Mengabdi</strong>. Saya memberikan persetujuan kepada pihak <strong>Beasiswa Blitar Mengabdi</strong> untuk mengumpulkan, menggunakan, dan memproses data pribadi saya sesuai dengan ketentuan tersebut.</span>
                         </label>
                     </div>
                 </div>
@@ -749,7 +847,7 @@
             </div>
         </div>
 
-        <div x-show="step === 5" class="mt-4 flex justify-between gap-3">
+        <div x-show="step === 5" class="mt-4 flex justify-between gap-3 max-w-3xl mx-auto">
             <button type="button" @click="history.back()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Sebelumnya
             </button>
@@ -779,7 +877,135 @@
                     oldDesaId: '{{ old('desa_id') }}',
                     desaList: [],
                     uploadedFiles: {},
+                    filePreviews: {},
                     reviewTick: 0,
+                    fileStorage: null,
+
+                    initIndexedDB() {
+                        return new Promise((resolve, reject) => {
+                            try {
+                                const request = indexedDB.open('PendaftaranFilesDB', 1);
+                                request.onupgradeneeded = e => {
+                                    if (!e.target.result.objectStoreNames.contains('files')) {
+                                        e.target.result.createObjectStore('files');
+                                    }
+                                };
+                                request.onsuccess = e => {
+                                    this.fileStorage = e.target.result;
+                                    resolve();
+                                };
+                                request.onerror = e => reject(e);
+                            } catch (e) {
+                                reject(e);
+                            }
+                        });
+                    },
+
+                    restoreFiles() {
+                        if (!this.fileStorage) return;
+                        try {
+                            const tx = this.fileStorage.transaction('files', 'readonly');
+                            const store = tx.objectStore('files');
+                            const req = store.getAllKeys();
+                            
+                            req.onsuccess = () => {
+                                req.result.forEach(key => {
+                                    const getReq = store.get(key);
+                                    getReq.onsuccess = () => {
+                                        const file = getReq.result;
+                                        if (file) {
+                                            const id = key.replace('doc_', '');
+                                            
+                                            // Validasi ukuran maksimal 2MB saat restore
+                                            if (file.size > 2 * 1024 * 1024) {
+                                                console.warn(`File ${file.name} melebihi 2MB, menghapus dari IndexedDB.`);
+                                                try {
+                                                    const delTx = this.fileStorage.transaction('files', 'readwrite');
+                                                    delTx.objectStore('files').delete(key);
+                                                } catch(e) {}
+                                                return; // Jangan restore file ini
+                                            }
+                                            
+                                            const input = document.getElementById('dokumen_' + id);
+                                            if (input) {
+                                                const dt = new DataTransfer();
+                                                dt.items.add(file);
+                                                input.files = dt.files;
+                                                this.uploadedFiles[id] = file.name;
+                                                this.generatePreview(file, id);
+                                            }
+                                        }
+                                    }
+                                });
+                            };
+                        } catch (e) {
+                            console.error("Gagal merestore file dari IndexedDB", e);
+                        }
+                    },
+
+                    generatePreview(file, id) {
+                        // Bersihkan memori URL yang lama jika ada
+                        if (this.filePreviews[id] && this.filePreviews[id].url) {
+                            URL.revokeObjectURL(this.filePreviews[id].url);
+                        }
+                        
+                        if (file.type.startsWith('image/')) {
+                            this.filePreviews[id] = { type: 'image', url: URL.createObjectURL(file), name: file.name };
+                        } else if (file.type === 'application/pdf') {
+                            this.filePreviews[id] = { type: 'pdf', url: URL.createObjectURL(file), name: file.name };
+                        } else {
+                            this.filePreviews[id] = { type: 'other', url: null, name: file.name };
+                        }
+
+                        // Render ulang icon Lucide setelah Alpine.js menampilkan DOM baru
+                        setTimeout(() => {
+                            if (typeof lucide !== 'undefined') {
+                                lucide.createIcons();
+                            }
+                        }, 50);
+                    },
+
+                    handleFileUpload(event, id) {
+                        const file = event.target.files[0];
+                        if (file) {
+                            // Validasi ukuran maksimal 2MB (2048 KB = 2 * 1024 * 1024 bytes)
+                            if (file.size > 2 * 1024 * 1024) {
+                                alert(`Gagal menambahkan file:\nUkuran file "${file.name}" terlalu besar!\nMaksimal ukuran file yang diizinkan adalah 2 MB.`);
+                                event.target.value = ''; // Reset input browser
+                                this.uploadedFiles[id] = '';
+                                if (this.filePreviews[id] && this.filePreviews[id].url) {
+                                    URL.revokeObjectURL(this.filePreviews[id].url);
+                                }
+                                this.filePreviews[id] = null;
+                                return; // Hentikan proses
+                            }
+
+                            this.uploadedFiles[id] = file.name;
+                            this.generatePreview(file, id);
+                            if (this.fileStorage) {
+                                try {
+                                    const tx = this.fileStorage.transaction('files', 'readwrite');
+                                    tx.objectStore('files').put(file, 'doc_' + id);
+                                } catch (e) {
+                                    console.error("Gagal menyimpan file ke IndexedDB", e);
+                                }
+                            }
+                        } else {
+                            this.uploadedFiles[id] = '';
+                            if (this.filePreviews[id] && this.filePreviews[id].url) {
+                                URL.revokeObjectURL(this.filePreviews[id].url);
+                            }
+                            this.filePreviews[id] = null;
+                            if (this.fileStorage) {
+                                try {
+                                    const tx = this.fileStorage.transaction('files', 'readwrite');
+                                    tx.objectStore('files').delete('doc_' + id);
+                                } catch (e) {
+                                    // Abaikan error delete
+                                }
+                            }
+                        }
+                    },
 
                     init() {
                         const form = document.getElementById('pendaftaran-form');
@@ -802,6 +1028,13 @@
                             }
                         });
 
+                        // Inisialisasi IndexedDB untuk file
+                        this.initIndexedDB().then(() => {
+                            this.restoreFiles();
+                        }).catch(e => {
+                            console.warn("IndexedDB tidak didukung atau diblokir:", e);
+                        });
+
                         // Load draft dari localStorage
                         const saved = localStorage.getItem('draft_pendaftaran');
                         if (saved && form) {
@@ -809,11 +1042,11 @@
                                 const data = JSON.parse(saved);
                                 // Hanya load jika program_slug cocok (mencegah salah jalur)
                                 if (data.program_slug === '{{ $program->slug }}') {
-                                    // Kembalikan state Alpine
                                     if (data.alpine) {
                                         this.kecamatan_id = data.alpine.kecamatan_id || '';
                                         this.desa_id = data.alpine.desa_id || '';
                                         this.oldDesaId = data.alpine.desa_id || '';
+                                        this.savedDesaId = data.alpine.desa_id || ''; // Perlindungan khusus agar tidak dihapus x-model
                                         this.nik = data.alpine.nik || '';
                                         this.persetujuan = data.alpine.persetujuan || false;
                                     }
@@ -834,6 +1067,9 @@
                                                     }
                                                 }
                                             });
+                                            
+                                            // Paksa Alpine untuk me-render ulang data review setelah DOM berhasil diisi
+                                            this.reviewTick++;
                                         }, 100);
                                     }
                                 }
@@ -883,6 +1119,12 @@
                     getFormVal(name) {
                         // Accessing reviewTick ensures re-evaluation ONLY when step changes, avoiding re-render loops!
                         const _tick = this.reviewTick;
+                        
+                        // Perlakuan khusus untuk dropdown dinamis agar tidak terkena jeda render DOM Alpine
+                        if (name === 'desa_id' && this.desa_id && this.desaList) {
+                            const desa = this.desaList.find(d => d.id == this.desa_id);
+                            if (desa) return desa.nama_desa;
+                        }
 
                         const form = document.getElementById('pendaftaran-form');
                         if (!form) return '-';
@@ -919,8 +1161,13 @@
                             .then(data => {
                                 if (Array.isArray(data)) {
                                     this.desaList = data;
-                                    if (this.oldDesaId && data.some(d => d.id == this.oldDesaId)) {
-                                        this.desa_id = this.oldDesaId;
+                                    
+                                    // Gunakan desa_id dari state (localStorage), savedDesaId (perlindungan), atau oldDesaId dari Laravel
+                                    let targetDesa = this.desa_id || this.savedDesaId || this.oldDesaId;
+                                    
+                                    if (targetDesa && data.some(d => d.id == targetDesa)) {
+                                        this.desa_id = targetDesa;
+                                        this.savedDesaId = null; // Hapus perlindungan setelah berhasil dipakai
                                     } else {
                                         this.desa_id = '';
                                     }
@@ -928,6 +1175,11 @@
                                     this.desaList = [];
                                     this.desa_id = '';
                                 }
+                                
+                                // Paksa re-render teks review setelah dropdown desa terisi
+                                setTimeout(() => {
+                                    this.reviewTick++;
+                                }, 100); // Beri sedikit waktu untuk Alpine me-render <option>
                             })
                             .catch(err => {
                                 console.error('Fetch desa error:', err);
@@ -1117,6 +1369,14 @@
                     },
                 }
             }
+
+            // Mencegah bfcache menampilkan ulang form ini setelah sukses pendaftaran
+            window.addEventListener('pageshow', function (event) {
+                if (sessionStorage.getItem('pendaftaran_success') === 'true') {
+                    sessionStorage.removeItem('pendaftaran_success');
+                    window.location.replace("{{ route('home') }}");
+                }
+            });
         </script>
     @endpush
 </x-layouts.public>

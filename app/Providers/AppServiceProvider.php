@@ -20,6 +20,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Force HTTPS jika diakses melalui Ngrok atau koneksi yang di-forward HTTPS
+        if (request()->header('x-forwarded-proto') === 'https' || str_contains(request()->getHost(), 'ngrok-free.app') || str_contains(request()->getHost(), 'ngrok.io')) {
+            URL::forceScheme('https');
+        }
+
         // Global Query Builder Macro for Searching
         \Illuminate\Database\Eloquent\Builder::macro('search', function ($attributes, ?string $searchTerm) {
             $this->where(function (\Illuminate\Database\Eloquent\Builder $query) use ($attributes, $searchTerm) {

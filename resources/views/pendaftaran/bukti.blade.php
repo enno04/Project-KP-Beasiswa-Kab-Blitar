@@ -1,8 +1,8 @@
-<x-layouts.public :title="'Bukti Pendaftaran — ' . ($pendaftaran->identitas->nama_lengkap ?? 'Beasiswa')">
+<x-layouts.public :title="'Bukti Pendaftaran - ' . ($pendaftaran->identitas->nama_lengkap ?? 'Beasiswa')">
     {{-- Page Hero --}}
     <section class="bg-gradient-to-br from-slate-50 via-primary-light/30 to-white border-b border-slate-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 text-center">
-            <p class="text-sm font-bold text-green-600 uppercase tracking-widest mb-2">✓ Berhasil</p>
+            <p class="text-sm font-bold text-green-600 uppercase tracking-widest mb-2">&check; Berhasil</p>
             <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Tanda Bukti Pendaftaran</h1>
         </div>
     </section>
@@ -22,9 +22,9 @@
 
                     {{-- Nomor & Waktu --}}
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 p-5 rounded-xl bg-primary-light border border-primary-light border-dashed">
-                        <div>
+                        <div class="max-w-full">
                             <p class="text-[11px] font-bold uppercase tracking-widest text-primary-dark mb-1">Nomor Registrasi</p>
-                            <p class="text-2xl font-extrabold font-mono text-primary-dark">{{ $pendaftaran->nomor_pendaftaran }}</p>
+                            <p class="text-2xl font-extrabold font-mono text-primary-dark break-all sm:break-normal">{{ $pendaftaran->nomor_pendaftaran }}</p>
                         </div>
                         <div class="sm:text-right">
                             <p class="text-[11px] font-bold uppercase tracking-widest text-primary-dark mb-1">Waktu Pendaftaran</p>
@@ -37,11 +37,13 @@
                         <h3 class="font-bold text-lg mb-4 flex items-center gap-2 border-b border-slate-100 pb-2 text-slate-800">
                             <i data-lucide="award" class="w-5 h-5 text-primary"></i> Informasi Beasiswa
                         </h3>
-                        <table class="w-full text-sm">
-                            <tr><td class="py-2.5 w-1/3 text-slate-400 font-medium">Program</td><td class="py-2.5 font-bold text-slate-900">{{ $pendaftaran->program->nama ?? '-' }}</td></tr>
-                            <tr><td class="py-2.5 w-1/3 text-slate-400 font-medium">Jalur</td><td class="py-2.5 font-semibold text-slate-800">{{ $pendaftaran->jalur->nama ?? '-' }}</td></tr>
-                            <tr><td class="py-2.5 w-1/3 text-slate-400 font-medium">Status</td><td class="py-2.5"><span class="badge {{ $pendaftaran->status_color }}">{{ $pendaftaran->status_label }}</span></td></tr>
-                        </table>
+                        <div class="overflow-hidden">
+                            <table class="w-full text-sm break-words">
+                                <tr><td class="py-2.5 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">Program</td><td class="py-2.5 font-bold text-slate-900 align-top">{{ $pendaftaran->program->nama ?? '-' }}</td></tr>
+                                <tr><td class="py-2.5 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">Jalur</td><td class="py-2.5 font-semibold text-slate-800 align-top">{{ $pendaftaran->jalur->nama ?? '-' }}</td></tr>
+                                <tr><td class="py-2.5 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">Status</td><td class="py-2.5 align-top"><span class="badge {{ $pendaftaran->status_color }}">{{ $pendaftaran->status_label }}</span></td></tr>
+                            </table>
+                        </div>
                     </div>
 
                     {{-- Data Diri --}}
@@ -49,20 +51,22 @@
                         <h3 class="font-bold text-lg mb-4 flex items-center gap-2 border-b border-slate-100 pb-2 text-slate-800">
                             <i data-lucide="user" class="w-5 h-5 text-primary"></i> Data Diri
                         </h3>
-                        <table class="w-full text-sm">
-                            <tr><td class="py-2 w-1/3 text-slate-400 font-medium">NIK</td><td class="py-2 font-bold font-mono">{{ $pendaftaran->identitas->nik ?? '-' }}</td></tr>
-                            <tr><td class="py-2 w-1/3 text-slate-400 font-medium">Nama Lengkap</td><td class="py-2 font-bold text-slate-900">{{ $pendaftaran->identitas->nama_lengkap ?? '-' }}</td></tr>
-                            <tr><td class="py-2 w-1/3 text-slate-400 font-medium">TTL</td><td class="py-2 font-medium">{{ $pendaftaran->identitas->tempat_lahir ?? '-' }}, {{ $pendaftaran->identitas->tanggal_lahir ? $pendaftaran->identitas->tanggal_lahir->format('d-m-Y') : '-' }}</td></tr>
-                            <tr><td class="py-2 w-1/3 text-slate-400 font-medium">Alamat</td><td class="py-2 font-medium">{{ $pendaftaran->identitas->alamat ?? '-' }}</td></tr>
-                            <tr><td class="py-2 w-1/3 text-slate-400 font-medium">Wilayah</td><td class="py-2 font-medium">Desa {{ $pendaftaran->identitas->desa->nama_desa ?? '-' }}, Kec. {{ $pendaftaran->identitas->kecamatan->nama_kecamatan ?? '-' }}</td></tr>
-                            <tr><td class="py-2 w-1/3 text-slate-400 font-medium">No. HP</td><td class="py-2 font-medium">{{ $pendaftaran->identitas->no_hp ?? '-' }}</td></tr>
-                            @if($pendaftaran->identitas->asal_perguruan_tinggi)
-                            <tr><td class="py-2 w-1/3 text-slate-400 font-medium">Perguruan Tinggi</td><td class="py-2 font-medium">{{ $pendaftaran->identitas->asal_perguruan_tinggi }}</td></tr>
-                            @endif
-                            @if($pendaftaran->identitas->program_studi)
-                            <tr><td class="py-2 w-1/3 text-slate-400 font-medium">Program Studi</td><td class="py-2 font-medium">{{ $pendaftaran->identitas->program_studi }}</td></tr>
-                            @endif
-                        </table>
+                        <div class="overflow-hidden">
+                            <table class="w-full text-sm break-words">
+                                <tr><td class="py-2 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">NIK</td><td class="py-2 font-bold font-mono align-top break-all sm:break-normal">{{ $pendaftaran->identitas->nik ?? '-' }}</td></tr>
+                                <tr><td class="py-2 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">Nama Lengkap</td><td class="py-2 font-bold text-slate-900 align-top">{{ $pendaftaran->identitas->nama_lengkap ?? '-' }}</td></tr>
+                                <tr><td class="py-2 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">TTL</td><td class="py-2 font-medium align-top">{{ $pendaftaran->identitas->tempat_lahir ?? '-' }}, {{ $pendaftaran->identitas->tanggal_lahir ? $pendaftaran->identitas->tanggal_lahir->format('d-m-Y') : '-' }}</td></tr>
+                                <tr><td class="py-2 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">Alamat</td><td class="py-2 font-medium align-top">{{ $pendaftaran->identitas->alamat_ktp ?? '-' }}</td></tr>
+                                <tr><td class="py-2 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">Wilayah</td><td class="py-2 font-medium align-top">Desa {{ $pendaftaran->identitas->desa->nama_desa ?? '-' }}, Kec. {{ $pendaftaran->identitas->kecamatan->nama_kecamatan ?? '-' }}</td></tr>
+                                <tr><td class="py-2 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">No. HP</td><td class="py-2 font-medium align-top">{{ $pendaftaran->identitas->no_hp ?? '-' }}</td></tr>
+                                @if($pendaftaran->identitas->asal_perguruan_tinggi)
+                                <tr><td class="py-2 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">Perguruan Tinggi</td><td class="py-2 font-medium align-top">{{ $pendaftaran->identitas->asal_perguruan_tinggi }}</td></tr>
+                                @endif
+                                @if($pendaftaran->identitas->program_studi)
+                                <tr><td class="py-2 w-1/3 sm:w-1/4 text-slate-400 font-medium align-top">Program Studi</td><td class="py-2 font-medium align-top">{{ $pendaftaran->identitas->program_studi }}</td></tr>
+                                @endif
+                            </table>
+                        </div>
                     </div>
 
                     {{-- Dokumen --}}
@@ -80,12 +84,12 @@
                         </div>
                     </div>
 
-                    {{-- Warning --}}
-                    <div class="alert alert-warning">
-                        <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0"></i>
+                    {{-- Info --}}
+                    <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 flex gap-3 text-blue-800">
+                        <i data-lucide="info" class="w-5 h-5 shrink-0 mt-0.5"></i>
                         <div>
-                            <p class="font-semibold">Simpan Tanda Bukti Ini!</p>
-                            <p class="text-sm mt-0.5">Simpan atau cetak sebagai referensi. Cek status melalui menu <strong>Cek Status</strong> di halaman utama.</p>
+                            <p class="font-semibold text-blue-900">Informasi Penting</p>
+                            <p class="text-sm mt-1 text-blue-800/90">Anda dapat menyimpan atau mencetak halaman ini sebagai referensi jika diperlukan. Hasil seleksi beasiswa nantinya dapat dicek secara berkala setelah masa pengumuman tiba melalui menu <strong>Cek Status</strong> di Halaman Utama.</p>
                         </div>
                     </div>
                 </div>
@@ -93,7 +97,7 @@
 
             {{-- Actions --}}
             <div class="mt-8 flex flex-col sm:flex-row justify-center gap-4 no-print">
-                <button onclick="window.print()" class="btn btn-primary btn-lg justify-center">
+                <button type="button" onclick="window.print()" class="btn btn-primary btn-lg justify-center">
                     <i data-lucide="printer" class="w-5 h-5"></i> Cetak / Simpan PDF
                 </button>
                 <a href="{{ route('home') }}" class="btn btn-outline btn-lg justify-center">
@@ -102,8 +106,6 @@
             </div>
         </div>
     </section>
-
-    @push('scripts')
     <style>
         @media print {
             body { background-color: white !important; }
@@ -111,7 +113,14 @@
             #print-area { box-shadow: none !important; border: none !important; padding: 0 !important; }
         }
     </style>
-    @endpush
+    <script>
+        // Mengamankan dari tombol 'Back' browser dengan menandai session
+        sessionStorage.setItem('pendaftaran_success', 'true');
+        
+        history.pushState(null, null, location.href);
+        window.addEventListener('popstate', function () {
+            window.location.replace("{{ route('home') }}");
+        });
+    </script>
 </x-layouts.public>
-< s c r i p t > l o c a l S t o r a g e . r e m o v e I t e m ( ' d r a f t P e n d a f t a r a n _ S D S S ' ) ; < / s c r i p t >  
- 
+<script>localStorage.removeItem('draft_pendaftaran');</script>

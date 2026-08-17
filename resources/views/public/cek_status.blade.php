@@ -18,7 +18,7 @@
                         @csrf
                         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div class="sm:col-span-2">
-                                <x-form-input name="nik" label="Nomor Induk Kependudukan (NIK)" :required="true" :value="request('nik') ?? old('nik')" placeholder="Masukkan 16 digit NIK" />
+                                <x-form-input name="nik" label="Nomor Induk Kependudukan (NIK)" :required="true" :value="request('nik') ?? old('nik')" placeholder="Masukkan 16 digit NIK" maxlength="16" pattern="[0-9]{16}" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 16);" />
                             </div>
                             <div>
                                 <x-form-select name="tahun" label="Tahun Pendaftaran" :required="true" :options="$tahunOptions ?? []" :value="request('tahun') ?? old('tahun') ?? ($tahunAktif ?? date('Y'))" placeholder="Pilih Tahun" />

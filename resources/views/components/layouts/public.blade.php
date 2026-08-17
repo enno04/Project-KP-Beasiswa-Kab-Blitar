@@ -1,10 +1,10 @@
 @props(['title' => 'Beasiswa Blitar Mengabdi'])
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="overflow-x-hidden w-full">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <meta name="description" content="Sistem Beasiswa Blitar Mengabdi - Program beasiswa Pemerintah Kabupaten Blitar">
     <title>{{ $title }}</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo-kab-blitar.png') }}">
@@ -18,9 +18,64 @@
     <script src="https://unpkg.com/lenis@1.1.20/dist/lenis.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <script>
+        // Mencegah preloader muncul saat pindah halaman biasa (hanya muncul saat Reload/F5)
+        if (performance.getEntriesByType('navigation')[0]?.type !== 'reload') {
+            document.documentElement.classList.add('skip-preloader');
+        }
+    </script>
+    <style>
+        [x-cloak] { display: none !important; }
+        .skip-preloader #global-preloader { display: none !important; }
+    </style>
 </head>
 
-<body class="min-h-screen flex flex-col" x-data="{ mobileMenu: false }">
+<body class="min-h-screen flex flex-col overflow-x-hidden" x-data="{ 
+    mobileMenu: false, 
+    loaded: false,
+    initPreloader() {
+        if (document.documentElement.classList.contains('skip-preloader')) {
+            this.loaded = true;
+            return;
+        }
+        if (document.readyState === 'complete') { 
+            setTimeout(() => this.loaded = true, 200); 
+        } else { 
+            window.addEventListener('load', () => setTimeout(() => this.loaded = true, 200)); 
+        }
+    }
+}" x-init="initPreloader()"
+   @pageshow.window="if ($event.persisted) loaded = true"
+   @submit.document="if ($event.target && $event.target.target !== '_blank') loaded = false">
+
+    {{-- ═══ PRELOADER ═══ --}}
+    <div id="global-preloader" x-show="!loaded" 
+         x-transition:leave="transition-opacity duration-700 ease-in-out" 
+         x-transition:leave-start="opacity-100" 
+         x-transition:leave-end="opacity-0" 
+         class="fixed inset-0 flex items-center justify-center bg-white/80 backdrop-blur-md"
+         style="z-index: 100;">
+        <div class="flex flex-col items-center gap-6">
+            <!-- Animation Wrapper -->
+            <div class="relative flex items-center justify-center w-24 h-24">
+                <!-- Outer glowing ring (Pulse) -->
+                <div class="absolute inset-0 rounded-full animate-ping" style="background-color: rgba(225, 235, 245, 0.6); animation-duration: 2s;"></div>
+                <!-- Inner spinning dashed ring -->
+                <div class="absolute inset-[-8px] rounded-full border-dashed border-blue-600" style="border-width: 3px; animation: spin 3s linear infinite;"></div>
+                <!-- Center Logo -->
+                <img src="{{ asset('images/logo-kab-blitar.png') }}" class="w-14 h-14 object-contain relative z-10 animate-pulse" alt="Loading">
+            </div>
+            <!-- Loading Text -->
+            <div class="flex flex-col items-center gap-1.5 mt-2">
+                <p class="text-xs font-extrabold text-blue-900 uppercase animate-pulse" style="letter-spacing: 0.25em;">Memuat Halaman</p>
+                <div class="flex gap-1.5 mt-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0s"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0.15s"></div>
+                    <div class="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style="animation-delay: 0.3s"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     {{-- ═══ NAVBAR ═══ --}}
     <nav class="sticky top-0 z-50 bg-white border-b border-slate-200/80"
@@ -30,7 +85,7 @@
                 {{-- Logo --}}
                 <a href="{{ route('home') }}" class="flex items-center gap-3 group">
                     <img src="{{ asset('images/logo.png') }}" alt="Logo Beasiswa Blitar Mengabdi"
-                        class="h-12 sm:h-16 w-auto object-contain">
+                        class="h-12 sm:h-12 lg:h-12 w-auto object-contain">
                 </a>
 
                 {{-- Desktop Nav --}}
@@ -281,6 +336,7 @@
             });
         });
     </script>
+
     @stack('scripts')
 </body>
 

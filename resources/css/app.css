@@ -129,10 +129,19 @@ textarea:focus {
     padding: 10px 14px;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    font-size: 14px;
+    /* 16px prevents iOS Safari from automatically zooming in */
+    font-size: 16px; 
     color: var(--color-text);
     background-color: var(--color-surface);
     transition: border-color 150ms, box-shadow 150ms;
+}
+
+@media (min-width: 640px) {
+    .form-input,
+    .form-select,
+    .form-textarea {
+        font-size: 14px;
+    }
 }
 
 .form-input:focus,
