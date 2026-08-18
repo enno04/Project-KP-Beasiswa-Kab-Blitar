@@ -15,6 +15,12 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'role' => \App\Http\Middleware\RoleMiddleware::class,
         ]);
+        // TODO: PENTING! Hapus pengecualian CSRF ini sebelum project di-deploy ke server resmi (Production)
+        // Ini hanya untuk mencegah error 419 saat testing menggunakan IP lokal di HP
+        $middleware->validateCsrfTokens(except: [
+            'pendaftaran',
+            'pendaftaran/*',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

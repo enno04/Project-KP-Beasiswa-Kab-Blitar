@@ -970,7 +970,12 @@
                         if (file) {
                             // Validasi ukuran maksimal 2MB (2048 KB = 2 * 1024 * 1024 bytes)
                             if (file.size > 2 * 1024 * 1024) {
-                                alert(`Gagal menambahkan file:\nUkuran file "${file.name}" terlalu besar!\nMaksimal ukuran file yang diizinkan adalah 2 MB.`);
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Ukuran File Terlalu Besar',
+                                    text: `File "${file.name}" melebihi batas maksimal 2 MB.`,
+                                    confirmButtonColor: '#3b82f6'
+                                });
                                 event.target.value = ''; // Reset input browser
                                 this.uploadedFiles[id] = '';
                                 if (this.filePreviews[id] && this.filePreviews[id].url) {
@@ -1153,7 +1158,13 @@
                             return;
                         }
 
-                        fetch(`/api/desa/${this.kecamatan_id}`)
+                        fetch(`/api/desa/${this.kecamatan_id}`, {
+                            headers: {
+                                'ngrok-skip-browser-warning': '69420',
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
                             .then(res => {
                                 if (!res.ok) throw new Error('API Error');
                                 return res.json();
@@ -1208,7 +1219,23 @@
                             if (firstInvalidEl) {
                                 firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 setTimeout(() => {
-                                    alert('Peringatan: Terdapat form yang belum diisi atau formatnya salah. Silakan periksa kolom yang ditandai dengan warna merah.');
+                                    let fieldName = '';
+                                    const container = firstInvalidEl.closest('div');
+                                    if (container) {
+                                        const labelEl = container.querySelector('label');
+                                        if (labelEl) fieldName = labelEl.innerText.replace('*', '').replace('(Latitude, Longitude)', '').trim();
+                                    }
+                                    if (!fieldName) {
+                                        fieldName = firstInvalidEl.getAttribute('name') || 'Kolom tersebut';
+                                        fieldName = fieldName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                    }
+
+                                    Swal.fire({
+                                        icon: 'warning',
+                                        title: 'Periksa Kembali',
+                                        text: `Mohon lengkapi atau perbaiki format pengisian pada kolom: "${fieldName}"`,
+                                        confirmButtonColor: '#3b82f6'
+                                    });
                                     firstInvalidEl.reportValidity();
                                 }, 300);
                             }
@@ -1270,9 +1297,71 @@
                             let parentValid = true;
 
                             const nikPendaftar = form.querySelector('input[name="nik"]')?.value.trim() || '';
+                            
+                            // Ambil field Ayah
+                            const namaAyah = form.querySelector('input[name="nama_ayah"]')?.value.trim() || '';
                             const nikAyah = form.querySelector('input[name="nik_ayah"]')?.value.trim() || '';
+                            const tempatLahirAyah = form.querySelector('input[name="tempat_lahir_ayah"]')?.value.trim() || '';
+                            const tanggalLahirAyah = form.querySelector('input[name="tanggal_lahir_ayah"]')?.value.trim() || '';
+                            const alamatAyah = form.querySelector('textarea[name="alamat_ayah"]')?.value.trim() || '';
+                            const noHpAyah = form.querySelector('input[name="no_hp_ayah"]')?.value.trim() || '';
+
+                            // Ambil field Ibu
+                            const namaIbu = form.querySelector('input[name="nama_ibu"]')?.value.trim() || '';
                             const nikIbu = form.querySelector('input[name="nik_ibu"]')?.value.trim() || '';
+                            const tempatLahirIbu = form.querySelector('input[name="tempat_lahir_ibu"]')?.value.trim() || '';
+                            const tanggalLahirIbu = form.querySelector('input[name="tanggal_lahir_ibu"]')?.value.trim() || '';
+                            const alamatIbu = form.querySelector('textarea[name="alamat_ibu"]')?.value.trim() || '';
+                            const noHpIbu = form.querySelector('input[name="no_hp_ibu"]')?.value.trim() || '';
+
+                            // Ambil field Wali
+                            const namaWali = form.querySelector('input[name="nama_wali"]')?.value.trim() || '';
                             const nikWali = form.querySelector('input[name="nik_wali"]')?.value.trim() || '';
+                            const tempatLahirWali = form.querySelector('input[name="tempat_lahir_wali"]')?.value.trim() || '';
+                            const tanggalLahirWali = form.querySelector('input[name="tanggal_lahir_wali"]')?.value.trim() || '';
+                            const pekerjaanWali = form.querySelector('input[name="pekerjaan_wali"]')?.value.trim() || '';
+                            const alamatWali = form.querySelector('textarea[name="alamat_wali"]')?.value.trim() || '';
+                            const noHpWali = form.querySelector('input[name="no_hp_wali"]')?.value.trim() || '';
+
+                            // Validasi jika user tidak sengaja mengisi kolom wali padahal tidak berniat menggunakan wali
+                            if (!namaWali && (nikWali || tempatLahirWali || tanggalLahirWali || pekerjaanWali || alamatWali || noHpWali)) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Perhatian!',
+                                    html: 'Anda belum mengisi <b>Nama Wali</b>, namun terdapat isian pada kolom data Wali lainnya.<br><br>Jika Anda tidak menggunakan data Wali, mohon hapus isi teks yang tidak sengaja terketik pada kolom-kolom Wali tersebut.',
+                                    confirmButtonColor: '#3b82f6'
+                                });
+                                return; // Berhenti dan tetap di Step 2
+                            }
+
+                            // Validasi kelengkapan data jika Nama diisi
+                            if (namaAyah && (!nikAyah || !tempatLahirAyah || !tanggalLahirAyah || !alamatAyah || !noHpAyah)) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Data Ayah Belum Lengkap',
+                                    text: 'Anda sudah mengisi Nama Ayah, namun masih ada kolom pendukung yang kosong. Mohon lengkapi seluruh data Ayah sebelum melanjutkan.',
+                                    confirmButtonColor: '#3b82f6'
+                                });
+                                return;
+                            }
+                            if (namaIbu && (!nikIbu || !tempatLahirIbu || !tanggalLahirIbu || !alamatIbu || !noHpIbu)) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Data Ibu Belum Lengkap',
+                                    text: 'Anda sudah mengisi Nama Ibu, namun masih ada kolom pendukung yang kosong. Mohon lengkapi seluruh data Ibu sebelum melanjutkan.',
+                                    confirmButtonColor: '#3b82f6'
+                                });
+                                return;
+                            }
+                            if (namaWali && (!nikWali || !tempatLahirWali || !tanggalLahirWali || !pekerjaanWali || !alamatWali || !noHpWali)) {
+                                Swal.fire({
+                                    icon: 'warning',
+                                    title: 'Data Wali Belum Lengkap',
+                                    text: 'Anda sudah mengisi Nama Wali, namun masih ada kolom pendukung yang kosong. Mohon lengkapi seluruh data Wali sebelum melanjutkan.',
+                                    confirmButtonColor: '#3b82f6'
+                                });
+                                return;
+                            }
 
                             // Validasi format 16 digit
                             if (nikAyah.length !== 16) {
@@ -1356,12 +1445,35 @@
                                             firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                             firstInvalidEl.focus();
                                         }
-                                        alert('Peringatan: Terdapat form yang belum diisi atau formatnya salah. Mohon lengkapi sebelum mengirim pendaftaran.');
+                                        let fieldName = '';
+                                        const container = firstInvalidEl.closest('div');
+                                        if (container) {
+                                            const labelEl = container.querySelector('label');
+                                            if (labelEl) fieldName = labelEl.innerText.replace('*', '').replace('(Latitude, Longitude)', '').trim();
+                                        }
+                                        if (!fieldName) {
+                                            fieldName = firstInvalidEl.getAttribute('name') || 'Kolom tersebut';
+                                            fieldName = fieldName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                        }
+
+                                        Swal.fire({
+                                            icon: 'warning',
+                                            title: 'Pendaftaran Belum Lengkap',
+                                            text: `Ada isian yang masih kosong atau formatnya salah pada: "${fieldName}". Mohon perbaiki sebelum mengirim.`,
+                                            confirmButtonColor: '#3b82f6'
+                                        });
                                         firstInvalidEl.reportValidity();
                                     }, 400);
                                 }
                             }
                         } else {
+                            // Munculkan animasi loading global (layar penuh)
+                            document.documentElement.classList.remove('skip-preloader');
+                            const globalPreloader = document.getElementById('global-preloader');
+                            if (globalPreloader) {
+                                globalPreloader.style.setProperty('display', 'flex', 'important');
+                            }
+
                             // Hapus draft saat sukses submit agar pendaftaran berikutnya bersih
                             localStorage.removeItem('draft_pendaftaran');
                             HTMLFormElement.prototype.submit.call(form);

@@ -28,6 +28,8 @@
         [x-cloak] { display: none !important; }
         .skip-preloader #global-preloader { display: none !important; }
     </style>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body class="min-h-screen flex flex-col overflow-x-hidden" x-data="{ 
