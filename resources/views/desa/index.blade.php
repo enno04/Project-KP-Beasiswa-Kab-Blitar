@@ -9,16 +9,23 @@
     <div class="card mb-6">
         <div class="card-body py-4">
             <form method="GET" class="flex flex-col sm:flex-row gap-3 items-end">
-                <div class="w-full sm:w-48">
+                <div class="w-full sm:w-64">
+                    <label class="form-label">Cari Pendaftar</label>
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-input w-full" style="padding-left: 2.5rem !important;" placeholder="Nama/NIK...">
+                    </div>
+                </div>
+                <div class="w-full sm:w-32">
                     <label class="form-label">Tahun</label>
                     <select name="tahun" class="form-select" onchange="this.form.submit()">
-                        <option value="">Semua Tahun</option>
+                        <option value="">Semua</option>
                         @for($i = date('Y'); $i >= 2024; $i--)
                             <option value="{{ $i }}" {{ request('tahun') == $i ? 'selected' : '' }}>{{ $i }}</option>
                         @endfor
                     </select>
                 </div>
-                <div class="w-full sm:w-64">
+                <div class="w-full sm:w-48">
                     <label class="form-label">Status</label>
                     <select name="status" class="form-select" onchange="this.form.submit()">
                         <option value="">Semua Status</option>
@@ -31,9 +38,20 @@
                         <option value="tidak_lulus" {{ request('status') === 'tidak_lulus' ? 'selected' : '' }}>Tidak Lulus</option>
                     </select>
                 </div>
-                @if(request()->hasAny(['tahun', 'status']))
-                    <a href="{{ url()->current() }}" class="btn btn-sm btn-outline"><i data-lucide="x" class="w-3.5 h-3.5"></i> Reset</a>
-                @endif
+                <div class="w-full sm:w-48">
+                    <label class="form-label">Urutkan</label>
+                    <select name="sort" class="form-select" onchange="this.form.submit()">
+                        <option value="">Default (Peringkat)</option>
+                        <option value="terbaru" {{ request('sort') === 'terbaru' ? 'selected' : '' }}>Terbaru</option>
+                        <option value="nilai_tertinggi" {{ request('sort') === 'nilai_tertinggi' ? 'selected' : '' }}>Nilai Tertinggi</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <button type="submit" class="btn btn-primary"><i data-lucide="filter" class="w-4 h-4"></i> Filter</button>
+                    @if(request()->hasAny(['tahun', 'status', 'search', 'sort']))
+                        <a href="{{ url()->current() }}" class="btn btn-outline" title="Reset"><i data-lucide="x" class="w-4 h-4"></i></a>
+                    @endif
+                </div>
             </form>
         </div>
     </div>
@@ -47,16 +65,62 @@
                 <p class="text-xs text-slate-400 mt-1">Kalkulasi nilai dan ranking untuk pendaftar yang lolos verifikasi OPD.</p>
             </div>
             <div class="flex items-center gap-2">
-                <form action="{{ route('desa.penilaian.hitung') }}" method="POST" onsubmit="return confirm('Proses penilaian & perangkingan pendaftar?');">
-                    @csrf
-                    <input type="hidden" name="jalur_id" value="{{ $jalur->id }}">
-                    <input type="hidden" name="periode_id" value="{{ $periodeAktif->id }}">
-                    <button type="submit" class="btn btn-sm btn-primary"><i data-lucide="calculator" class="w-4 h-4"></i> Hitung Penilaian & Ranking</button>
-                </form>
+                @php
+                    $tutup = $program->tanggal_tutup ?? ($periodeAktif ? $periodeAktif->tanggal_selesai : null);
+                @endphp
+                @if($program && $program->kunci_hitung_nilai && $tutup && \Carbon\Carbon::now()->startOfDay()->lte(\Carbon\Carbon::parse($tutup)->endOfDay()))
+                    <div class="text-sm text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-200">
+                        <i data-lucide="lock" class="w-4 h-4 inline-block mr-1"></i> Penilaian terkunci. Dibuka setelah pendaftaran ditutup pada <strong>{{ \Carbon\Carbon::parse($tutup)->format('d M Y') }}</strong>.
+                    </div>
+                @elseif(isset($sudahDitetapkan) && $sudahDitetapkan)
+                    <div class="text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-200">
+                        <i data-lucide="check-circle" class="w-4 h-4 inline-block mr-1"></i> Perwakilan telah ditetapkan. Penilaian dikunci.
+                    </div>
+                @elseif(isset($sudahDinilai) && $sudahDinilai && !$belumDinilai)
+                    <div class="text-sm text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-200">
+                        <i data-lucide="check-circle" class="w-4 h-4 inline-block mr-1"></i> Seluruh pendaftar lolos verifikasi dari desa Anda sudah dinilai.
+                    </div>
+                @else
+                    <form id="form-hitung-penilaian" action="{{ route('desa.penilaian.hitung') }}" method="POST">
+                        @csrf
+                        <input type="hidden" name="jalur_id" value="{{ $jalur->id }}">
+                        <input type="hidden" name="periode_id" value="{{ $periodeAktif->id }}">
+                        <button type="button" onclick="konfirmasiHitung()" class="btn btn-sm btn-primary"><i data-lucide="calculator" class="w-4 h-4"></i> Hitung Penilaian & Ranking</button>
+                    </form>
+                @endif
             </div>
         </div>
     </div>
     @endif
+
+    @push('scripts')
+    <script>
+        function konfirmasiHitung() {
+            Swal.fire({
+                title: 'Proses Penilaian & Ranking?',
+                text: "Sistem akan mengkalkulasi ulang seluruh nilai pendaftar yang lolos verifikasi dari desa Anda.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#059669',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: '<i class="fas fa-calculator mr-1"></i> Ya, Hitung Sekarang!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        text: 'Mohon tunggu, sistem sedang menghitung nilai.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    document.getElementById('form-hitung-penilaian').submit();
+                }
+            });
+        }
+    </script>
+    @endpush
 
     {{-- Table --}}
     <div class="card overflow-hidden">
@@ -64,6 +128,7 @@
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th>No.</th>
                         <th>No. Pendaftaran</th>
                         <th>Nama Lengkap</th>
                         <th>Skor & Rank</th>
@@ -73,16 +138,21 @@
                 </thead>
                 <tbody>
                     @forelse($pendaftar as $p)
-                        <tr>
+                        <tr class="{{ $p->ranking === 1 && $p->total_nilai > 0 ? 'bg-amber-50' : '' }}">
+                            <td><span class="text-slate-500 font-medium">{{ $pendaftar->firstItem() + $loop->index }}</span></td>
                             <td><span class="font-bold text-primary-dark">{{ $p->nomor_pendaftaran }}</span></td>
                             <td>
                                 <p class="font-semibold text-slate-900">{{ $p->identitas->nama_lengkap ?? '-' }}</p>
                                 <p class="text-xs text-slate-400">NIK: {{ $p->identitas->nik ?? '-' }}</p>
                             </td>
                             <td>
-                                @if($p->total_nilai !== null)
+                                @if($p->total_nilai > 0)
                                     <span class="font-bold text-primary-dark">{{ number_format($p->total_nilai, 4) }}</span>
-                                    <p class="text-xs text-slate-400">Rank: {{ $p->ranking ?? '-' }}</p>
+                                    @if($p->ranking === 1)
+                                        <p class="text-xs font-bold text-amber-600">Rank: {{ $p->ranking ?? '-' }} (Peringkat 1)</p>
+                                    @else
+                                        <p class="text-xs text-slate-400">Rank: {{ $p->ranking ?? '-' }}</p>
+                                    @endif
                                 @else
                                     <span class="text-xs italic text-slate-400">Belum dinilai</span>
                                 @endif
@@ -90,24 +160,28 @@
                             <td><span class="badge {{ $p->status_color }}">{{ $p->status_label }}</span></td>
                             <td class="text-right">
                                 <div class="flex justify-end gap-2">
-                                    @if($program->isSdss() && $p->ranking && in_array($p->status, ['lolos_verifikasi', 'menunggu_penetapan']))
-                                        <form action="{{ route('desa.tetapkan', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Tetapkan sebagai perwakilan Desa?');">
-                                            @csrf
-                                            <button type="submit" class="btn btn-xs btn-success"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Tetapkan</button>
-                                        </form>
+                                    @if($program->isSdss() && $p->ranking === 1 && $p->status === 'lolos_verifikasi' && $p->total_nilai > 0)
+                                        @if(!$p->rekomendasiDesa)
+                                            <form action="{{ route('desa.tetapkan', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Tetapkan sebagai perwakilan Desa?');">
+                                                @csrf
+                                                <button type="submit" class="btn btn-xs btn-success"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Tetapkan</button>
+                                            </form>
+                                            <a href="{{ route('desa.show', $p->id) }}" class="btn btn-xs btn-outline"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Detail</a>
+                                        @else
+                                            <a href="{{ route('desa.show', $p->id) }}#form-rekomendasi" class="btn btn-xs btn-primary bg-indigo-600 hover:bg-indigo-700 text-white border-none"><i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i> Unggah Rekomendasi</a>
+                                        @endif
+                                    @else
+                                        <a href="{{ route('desa.show', $p->id) }}" class="btn btn-xs btn-outline"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Detail</a>
                                     @endif
-                                    <a href="{{ route('desa.show', $p->id) }}" class="btn btn-xs btn-outline"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Detail</a>
                                 </div>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="5"><x-empty-state icon="folder-open" title="Tidak Ada Data" text="Tidak ada data pendaftar pada filter ini." /></td></tr>
+                        <tr><td colspan="6"><x-empty-state icon="folder-open" title="Tidak Ada Data" text="Tidak ada data pendaftar pada filter ini." /></td></tr>
                     @endforelse
                 </tbody>
             </table>
         </div>
-        @if($pendaftar->hasPages())
-            <div class="card-footer">{{ $pendaftar->links() }}</div>
-        @endif
+        <div class="card-footer">{{ $pendaftar->links() }}</div>
     </div>
 </x-layouts.admin>

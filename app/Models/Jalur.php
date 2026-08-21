@@ -64,6 +64,11 @@ class Jalur extends Model
         return $this->hasMany(Pendaftaran::class);
     }
 
+    public function customFields()
+    {
+        return $this->hasMany(CustomField::class)->orderBy('penempatan')->orderBy('urutan');
+    }
+
     // === Scope ===
 
     public function scopeAktif($query)

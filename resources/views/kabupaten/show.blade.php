@@ -43,6 +43,7 @@
                             <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1">Alamat</span>
                             <div class="font-medium text-sm text-slate-900">{{ $pendaftaran->identitas->alamat_ktp ?? '-' }}<br><span class="text-slate-500">Desa {{ $pendaftaran->identitas->desa->nama_desa ?? '-' }}, Kec. {{ $pendaftaran->identitas->kecamatan->nama_kecamatan ?? '-' }}</span></div>
                         </div>
+                        <x-custom-fields-detail :pendaftaran="$pendaftaran" penempatan="identitas_diri" title="Informasi Tambahan (Identitas)"/>
                     </div>
                 </div>
 
@@ -53,6 +54,7 @@
                         <div class="md:col-span-2"><span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1">Perguruan Tinggi</span><div class="font-medium text-sm">{{ $pendaftaran->identitas->asal_perguruan_tinggi ?? '-' }}</div></div>
                         <div><span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1">Program Studi</span><div class="font-medium text-sm">{{ $pendaftaran->identitas->program_studi ?? '-' }}</div></div>
                         <div><span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1">Semester</span><div class="font-medium text-sm">{{ $pendaftaran->identitas->semester ?? '-' }}</div></div>
+                        <x-custom-fields-detail :pendaftaran="$pendaftaran" penempatan="akademik" title="Informasi Tambahan (Akademik)"/>
                     </div>
                 </div>
 
@@ -80,6 +82,43 @@
                             <div class="text-xs text-slate-500 mt-1">NIK: {{ $pendaftaran->orangtua->nik_wali ?? '-' }} · HP: {{ $pendaftaran->orangtua->no_hp_wali ?? '-' }}</div>
                         </div>
                         @endif
+                        <x-custom-fields-detail :pendaftaran="$pendaftaran" penempatan="orang_tua" title="Informasi Tambahan (Orang Tua)"/>
+                    </div>
+                </div>
+                @endif
+
+                {{-- Penilaian --}}
+                @if($pendaftaran->penilaians->isNotEmpty() || $pendaftaran->total_nilai !== null)
+                <div class="card overflow-hidden">
+                    <div class="card-header flex items-center gap-2">
+                        <i data-lucide="calculator" class="w-5 h-5 text-slate-400"></i>
+                        <span class="font-bold text-lg">Penilaian & Ranking</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="text-center p-4 bg-primary-light rounded-xl">
+                                <div class="text-xs font-bold text-slate-500 uppercase">Total Nilai</div>
+                                <div class="text-2xl font-extrabold text-primary-dark">{{ $pendaftaran->total_nilai !== null ? number_format($pendaftaran->total_nilai, 4) : '-' }}</div>
+                            </div>
+                            <div class="text-center p-4 bg-amber-50 rounded-xl">
+                                <div class="text-xs font-bold text-slate-500 uppercase">Ranking {{ $pendaftaran->program->isSdss() ? 'Desa' : '' }}</div>
+                                <div class="text-2xl font-extrabold text-amber-700">{{ $pendaftaran->ranking ? '#' . $pendaftaran->ranking : '-' }}</div>
+                            </div>
+                        </div>
+                        @if($pendaftaran->penilaians->isNotEmpty())
+                        <table class="data-table">
+                            <thead><tr><th>Kriteria</th><th class="text-right">Skor</th><th class="text-right">Nilai Terbobot</th></tr></thead>
+                            <tbody>
+                                @foreach($pendaftaran->penilaians as $penilaian)
+                                <tr>
+                                    <td class="font-medium">{{ $penilaian->kriteria->nama ?? '-' }}</td>
+                                    <td class="text-right">{{ number_format($penilaian->skor, 2) }}</td>
+                                    <td class="text-right font-semibold text-primary-dark">{{ number_format($penilaian->nilai_terbobot, 4) }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                        @endif
                     </div>
                 </div>
                 @endif
@@ -99,7 +138,7 @@
                                     @if($jawaban->kriteria->tipe_input === 'pilihan')
                                         <span class="font-medium">{{ $jawaban->pilihanKriteria->label ?? '-' }}</span>
                                     @else
-                                        <span class="font-medium font-mono text-primary">{{ $jawaban->nilai_angka }}</span>
+                                        <span class="font-medium font-mono text-primary">{{ $jawaban->nilai_input ?? '-' }}</span>
                                     @endif
                                 </td>
                             </tr>
@@ -107,6 +146,24 @@
                         </tbody>
                     </table>
                 </div>
+
+                {{-- Informasi Tambahan (General) --}}
+                @if($pendaftaran->customFieldAnswers->where('customField.penempatan', 'tambahan')->count() > 0)
+                <div class="card overflow-hidden mt-6">
+                    <div class="card-header flex items-center gap-2 bg-amber-50 border-b border-amber-100">
+                        <i data-lucide="info" class="w-5 h-5 text-amber-500"></i>
+                        <span class="font-bold text-lg text-amber-800">Informasi Tambahan Lainnya</span>
+                    </div>
+                    <div class="card-body grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach($pendaftaran->customFieldAnswers->where('customField.penempatan', 'tambahan') as $answer)
+                        <div>
+                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-1">{{ $answer->customField->nama_field }}</span>
+                            <div class="font-medium text-sm text-slate-900">{{ $answer->jawaban ?? '-' }}</div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
             </div>
 
             {{-- Berkas Column --}}

@@ -76,6 +76,12 @@ class StorePendaftaranRequest extends FormRequest
                 foreach ($dokumens as $dok) {
                     $rules["dokumen_{$dok->id}"] = ($dok->wajib ? 'required' : 'nullable') . '|file|mimes:' . $dok->format_file . '|max:' . $dok->max_size_kb;
                 }
+
+                // Custom Fields
+                $customFields = $jalur->customFields()->aktif()->get();
+                foreach ($customFields as $field) {
+                    $rules["custom_fields.{$field->id}"] = $field->is_required ? 'required' : 'nullable';
+                }
             }
         }
 

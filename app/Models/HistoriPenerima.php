@@ -12,5 +12,13 @@ class HistoriPenerima extends Model
         'nama_lengkap',
         'asal_perguruan_tinggi',
         'jenis_beasiswa',
+        'sumber_data',
+        'nomor_pendaftaran',
+        'jalur_beasiswa',
+        'ipk_nilai',
+        'asal_sekolah',
+        'kecamatan',
+        'desa',
+        'waktu_penetapan',
     ];
 }

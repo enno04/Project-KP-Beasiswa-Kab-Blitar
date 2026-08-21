@@ -1,4 +1,10 @@
 <x-layouts.public :title="'Pendaftaran ' . $program->nama">
+    @php
+        $hasTambahan = $customFields->where('penempatan', 'tambahan')->count() > 0;
+        $stepDokumen = $hasTambahan ? 5 : 4;
+        $stepReview = $hasTambahan ? 6 : 5;
+        $totalSteps = $stepReview;
+    @endphp
     {{-- Hero --}}
     <section class="bg-cover bg-center bg-no-repeat border-b border-slate-200"
         style="background-image: url('{{ asset('images/header_pendaftaran.png') }}');">
@@ -23,9 +29,9 @@
                     </div>
                     <div class="absolute left-0 top-1/2 -translate-y-1/2 h-1 rounded-full z-0 transition-all duration-500"
                         style="background: linear-gradient(135deg, #2B5C92, #0C1446);"
-                        :style="'width: ' + ((step - 1) / 4 * 100) + '%'"></div>
+                        :style="'width: ' + ((step - 1) / ({{ $totalSteps }} - 1) * 100) + '%'"></div>
 
-                    <template x-for="i in 5" :key="i">
+                    <template x-for="i in {{ $totalSteps }}" :key="i">
                         <div class="relative z-10 flex flex-col items-center">
                             <div class="w-10 h-10 rounded-full flex items-center justify-center font-extrabold text-sm transition-all duration-300 border-4 border-white shadow-sm"
                                 :class="step >= i ? 'text-white shadow-lg' : 'bg-slate-200 text-slate-400'"
@@ -39,7 +45,7 @@
                 
                 {{-- Mobile Step Indicator --}}
                 <div class="mt-4 text-center sm:hidden">
-                    <span class="text-xs font-extrabold text-primary uppercase tracking-wider block mb-0.5">Langkah <span x-text="step"></span> dari 5</span>
+                    <span class="text-xs font-extrabold text-primary uppercase tracking-wider block mb-0.5">Langkah <span x-text="step"></span> dari {{ $totalSteps }}</span>
                     <h2 class="text-base font-bold text-gray-800" x-text="stepNames[step-1]"></h2>
                 </div>
             </div>
@@ -144,7 +150,7 @@
                             <div>
                                 <label class="block text-sm font-semibold mb-2 text-gray-700">Kecamatan <span
                                         class="text-red-500">*</span></label>
-                                <select name="kecamatan_id" id="kecamatan" x-model="kecamatan_id"
+                                <select name="kecamatan_id" id="kecamatan" x-model="kecamatan_id" @change="fetchDesa()"
                                     class="w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
                                     required>
                                     <option value="">Pilih Kecamatan</option>
@@ -156,9 +162,8 @@
                             <div>
                                 <label class="block text-sm font-semibold mb-2 text-gray-700">Desa/Kelurahan <span
                                         class="text-red-500">*</span></label>
-                                <select name="desa_id" id="desa" x-model="desa_id"
-                                    class="w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-primary outline-none bg-white"
-                                    :disabled="desaList.length === 0" required>
+                                <select name="desa_id" id="desa" x-model="desa_id" @focus="if(desaList.length === 0 && document.getElementById('kecamatan').value) { kecamatan_id = document.getElementById('kecamatan').value; fetchDesa(); }"
+                                    class="w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-primary outline-none bg-white" required>
                                     <option value="">Pilih Desa</option>
                                     <template x-for="d in desaList" :key="d.id">
                                         <option :value="d.id" x-text="d.nama_desa" :selected="oldDesaId == d.id">
@@ -192,6 +197,14 @@
                                     required>
                             </div>
 
+                            {{-- Field Dinamis: Identitas Diri --}}
+                            @if($customFields->where('penempatan', 'identitas_diri')->count() > 0)
+                                <div class="sm:col-span-2 border-t pt-4 mt-2">
+                                    <h3 class="font-bold text-gray-800 mb-4">Informasi Tambahan (Identitas)</h3>
+                                </div>
+                                @include('pendaftaran.partials.custom_fields', ['penempatan' => 'identitas_diri'])
+                            @endif
+
                             {{-- Akademik pindah ke Step 1 --}}
                             <div class="sm:col-span-2 border-t pt-4 mt-2">
                                 <h3 class="font-bold text-gray-800 mb-4">Informasi Akademik</h3>
@@ -222,12 +235,23 @@
                                     class="w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-primary outline-none"
                                     required>
                             </div>
+                            
+                            {{-- Field Dinamis: Akademik --}}
+                            @if($customFields->where('penempatan', 'akademik')->count() > 0)
+                                <div class="sm:col-span-2 border-t pt-4 mt-2">
+                                    <h3 class="font-bold text-gray-800 mb-4">Formulir Tambahan (Akademik)</h3>
+                                </div>
+                                @include('pendaftaran.partials.custom_fields', ['penempatan' => 'akademik'])
+                            @endif
                         </div>
 
                     </div>
                 </div>
 
-                <div x-show="step === 1" class="mt-4 flex justify-end gap-3">
+                <div x-show="step === 1" class="mt-4 flex justify-between gap-3">
+                    <a href="{{ route('pendaftaran.index') }}" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+                    </a>
                     <button type="button" @click="nextStep()" :disabled="isCheckingNik" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm">
                         <span x-show="!isCheckingNik" class="flex items-center gap-1">Selanjutnya <i data-lucide="arrow-right" class="w-4 h-4"></i></span>
                         <span x-show="isCheckingNik" class="flex items-center gap-2" style="display: none;">
@@ -433,6 +457,18 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            {{-- Field Dinamis: Orang Tua --}}
+                            @if($customFields->where('penempatan', 'orang_tua')->count() > 0)
+                                <div class="bg-gray-50 p-5 rounded-xl border border-gray-200 mt-6">
+                                    <h3 class="font-bold text-gray-800 mb-4 border-b pb-2 uppercase tracking-wide text-sm">
+                                        Data Tambahan Orang Tua
+                                    </h3>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        @include('pendaftaran.partials.custom_fields', ['penempatan' => 'orang_tua'])
+                                    </div>
+                                </div>
+                            @endif
 
                         </div>
 
@@ -440,7 +476,7 @@
                 </div>
 
                 <div x-show="step === 2" class="mt-4 flex justify-between gap-3">
-                    <button type="button" @click="history.back()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                    <button type="button" @click="prevStep()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i> Sebelumnya
                     </button>
                     <button type="button" @click="nextStep()" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm">
@@ -511,7 +547,7 @@
                 </div>
 
                 <div x-show="step === 3" class="mt-4 flex justify-between gap-3">
-                    <button type="button" @click="history.back()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                    <button type="button" @click="prevStep()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i> Sebelumnya
                     </button>
                     <button type="button" @click="nextStep()" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm">
@@ -519,8 +555,32 @@
                     </button>
                 </div>
 
-                {{-- Step 4: Dokumen --}}
+                                @if($hasTambahan)
+                {{-- Step 4: Informasi Tambahan (Jika Ada) --}}
                 <div x-show="step === 4" x-transition.opacity.duration.300ms style="display: none;" class="card">
+                    <div class="card-header flex items-center gap-2">
+                        <i data-lucide="info" class="w-5 h-5 text-amber-500"></i>
+                        <span class="font-bold text-lg">Informasi Tambahan</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 bg-amber-50/30 p-5 rounded-xl border border-amber-100">
+                            @include('pendaftaran.partials.custom_fields', ['penempatan' => 'tambahan'])
+                        </div>
+                    </div>
+                </div>
+                
+                <div x-show="step === 4" class="mt-4 flex justify-between gap-3">
+                    <button type="button" @click="prevStep()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> Sebelumnya
+                    </button>
+                    <button type="button" @click="nextStep()" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm">
+                        Selanjutnya <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                @endif
+
+                {{-- Step Dokumen --}}
+                <div x-show="step === {{ $stepDokumen }}" x-transition.opacity.duration.300ms style="display: none;" class="card">
                     <div class="card-header flex items-center gap-2">
                         <i data-lucide="files" class="w-5 h-5 text-slate-400"></i>
                         <span class="font-bold text-lg">Berkas Persyaratan</span>
@@ -558,6 +618,7 @@
                                     </div>
                                     <div class="md:w-1/2 w-full shrink-0">
                                         <input type="file" name="dokumen_{{ $dok->id }}" id="dokumen_{{ $dok->id }}"
+                                            data-nama="{{ $dok->nama }}"
                                             @change="handleFileUpload($event, {{ $dok->id }})"
                                             accept=".{{ str_replace(',', ',.', $dok->format_file) }}"
                                             class="block w-full text-sm text-gray-500
@@ -573,6 +634,9 @@
                                                 <button type="button" @click="showPreview = !showPreview" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-sm transition-colors">
                                                     <i data-lucide="eye" class="w-3.5 h-3.5" :class="showPreview ? 'text-primary' : ''"></i> 
                                                     <span x-text="showPreview ? 'Tutup Pratinjau' : 'Lihat Pratinjau'"></span>
+                                                </button>
+                                                <button type="button" @click="removeFile({{ $dok->id }})" class="inline-flex items-center gap-1.5 px-3 py-1.5 ml-2 text-xs font-semibold text-red-600 bg-white hover:bg-red-50 border border-red-200 rounded-lg shadow-sm transition-colors">
+                                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Hapus
                                                 </button>
 
                                                 <div x-show="showPreview" x-transition class="mt-3 p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
@@ -620,8 +684,8 @@
                     </div>
                 </div>
 
-                <div x-show="step === 4" class="mt-4 flex justify-between gap-3">
-                    <button type="button" @click="history.back()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
+                <div x-show="step === {{ $stepDokumen }}" class="mt-4 flex justify-between gap-3">
+                    <button type="button" @click="prevStep()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
                         <i data-lucide="arrow-left" class="w-4 h-4"></i> Sebelumnya
                     </button>
                     <button type="button" @click="nextStep()" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm">
@@ -630,18 +694,24 @@
                 </div>
         </div>
 
-        {{-- Step 5: Review & Submit --}}
-        <div x-show="step === 5" x-transition.opacity.duration.300ms style="display: none;" class="card max-w-3xl mx-auto">
+        {{-- Step Review & Submit --}}
+        <div x-show="step === {{ $stepReview }}" x-transition.opacity.duration.300ms style="display: none;" class="card max-w-3xl mx-auto">
             <div class="card-header flex items-center gap-2">
                 <i data-lucide="check-square" class="w-5 h-5 text-primary"></i>
                 <span class="font-bold text-lg text-primary-dark">Review Pendaftaran</span>
             </div>
             <div class="card-body">
 
-                <div class="mb-6 p-4 rounded-xl border bg-primary-light border-primary-light text-primary-dark text-sm">
-                    Silakan periksa kembali data yang telah Anda isikan. Jika terdapat kesalahan, Anda dapat kembali ke
-                    tahap sebelumnya menggunakan tombol "Ubah Data". Jika sudah benar, centang kotak persetujuan dan
-                    klik "Kirim Pendaftaran".
+                <div class="mb-6 p-4 rounded-xl border border-red-200 bg-red-50 shadow-sm">
+                    <div class="flex gap-3 items-start">
+                        <i data-lucide="alert-triangle" class="w-6 h-6 text-red-600 shrink-0 mt-0.5"></i>
+                        <div class="text-sm text-red-800">
+                            <strong class="block mb-1 font-extrabold text-red-900 text-base">PERHATIAN: TAHAP AKHIR PENDAFTARAN!</strong>
+                            Silakan periksa kembali seluruh data dan dokumen yang telah Anda isikan. Jika terdapat kesalahan, Anda masih dapat kembali ke tahap sebelumnya menggunakan tombol "Ubah Data". 
+                            <br><br>
+                            <span class="font-semibold text-red-900">PENTING: Setelah Anda mencentang kotak persetujuan dan mengklik "Kirim Pendaftaran", seluruh data akan dikunci secara permanen dan TIDAK DAPAT diubah kembali dengan alasan apapun.</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="space-y-6">
@@ -649,25 +719,25 @@
                     <div class="border rounded-xl p-5 bg-gray-50">
                         <div class="flex justify-between items-center mb-4 border-b pb-2">
                             <h3 class="font-bold text-lg text-gray-800">A. Identitas Diri</h3>
-                            <button type="button" @click="step = 1; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                            <button type="button" @click="goToStep(1)"
                                 class="text-xs font-semibold text-primary hover:text-primary-dark flex items-center gap-1">
                                 <i data-lucide="edit" class="w-3 h-3"></i> Ubah Data
                             </button>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                            <div><span class="text-gray-500 block text-xs">NIK</span><span class="font-medium"
-                                    x-text="getFormVal('nik')"></span></div>
                             <div><span class="text-gray-500 block text-xs">Nama Lengkap</span><span class="font-medium"
                                     x-text="getFormVal('nama_lengkap')"></span></div>
+                            <div><span class="text-gray-500 block text-xs">NIK</span><span class="font-medium"
+                                    x-text="getFormVal('nik')"></span></div>
                             <div><span class="text-gray-500 block text-xs">Tempat, Tgl Lahir</span><span
                                     class="font-medium"
                                     x-text="getFormVal('tempat_lahir') + ', ' + getFormVal('tanggal_lahir')"></span>
                             </div>
+                            <div><span class="text-gray-500 block text-xs">No. HP/WA</span><span class="font-medium"
+                                    x-text="getFormVal('no_hp')"></span></div>
                             <div><span class="text-gray-500 block text-xs">Jenis Kelamin</span><span class="font-medium"
                                     x-text="getFormVal('jenis_kelamin')"></span>
                             </div>
-                            <div><span class="text-gray-500 block text-xs">No. HP/WA</span><span class="font-medium"
-                                    x-text="getFormVal('no_hp')"></span></div>
                             <div><span class="text-gray-500 block text-xs">Email</span><span class="font-medium"
                                     x-text="getFormVal('email')"></span></div>
                             <div><span class="text-gray-500 block text-xs">Kecamatan</span><span class="font-medium"
@@ -678,6 +748,10 @@
                                     class="font-medium" x-text="getFormVal('alamat_ktp')"></span></div>
                             <div class="md:col-span-2"><span class="text-gray-500 block text-xs">Titik Koordinat (Latitude, Longitude)</span><span
                                     class="font-medium" x-text="getFormVal('google_maps_url')"></span></div>
+                            @if($customFields->where('penempatan', 'identitas_diri')->count() > 0)
+                                <div class="md:col-span-2 mt-2"><h4 class="font-bold text-gray-700 text-sm border-b pb-1">Tambahan Identitas</h4></div>
+                                @include('pendaftaran.partials.custom_fields_review', ['penempatan' => 'identitas_diri'])
+                            @endif
                         </div>
                     </div>
 
@@ -685,7 +759,7 @@
                     <div class="border rounded-xl p-5 bg-gray-50">
                         <div class="flex justify-between items-center mb-4 border-b pb-2">
                             <h3 class="font-bold text-lg text-gray-800">B. Data Orang Tua / Wali</h3>
-                            <button type="button" @click="step = 2; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                            <button type="button" @click="goToStep(2)"
                                 class="text-xs font-semibold text-primary hover:text-primary-dark flex items-center gap-1">
                                 <i data-lucide="edit" class="w-3 h-3"></i> Ubah Data
                             </button>
@@ -713,6 +787,12 @@
                                             class="font-medium" x-text="getFormVal('no_hp_ibu')"></span></div>
                                 </div>
                             </div>
+                            @if($customFields->where('penempatan', 'orang_tua')->count() > 0)
+                                <div class="md:col-span-2 mt-2"><h4 class="font-bold text-gray-700 text-sm border-b pb-1">Tambahan Data Orang Tua</h4></div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:col-span-2">
+                                    @include('pendaftaran.partials.custom_fields_review', ['penempatan' => 'orang_tua'])
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -720,7 +800,7 @@
                     <div class="border rounded-xl p-5 bg-gray-50">
                         <div class="flex justify-between items-center mb-4 border-b pb-2">
                             <h3 class="font-bold text-lg text-gray-800">C. Kriteria Penilaian (SPK)</h3>
-                            <button type="button" @click="step = 3; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                            <button type="button" @click="goToStep(3)"
                                 class="text-xs font-semibold text-primary hover:text-primary-dark flex items-center gap-1">
                                 <i data-lucide="edit" class="w-3 h-3"></i> Ubah Data
                             </button>
@@ -735,13 +815,15 @@
                                 @endforeach
                             @endforeach
                         </div>
+                        
+
                     </div>
 
                     {{-- D. Data Akademik --}}
                     <div class="border rounded-xl p-5 bg-gray-50">
                         <div class="flex justify-between items-center mb-4 border-b pb-2">
                             <h3 class="font-bold text-lg text-gray-800">D. Data Akademik</h3>
-                            <button type="button" @click="step = 1; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                            <button type="button" @click="goToStep(1)"
                                 class="text-xs font-semibold text-primary hover:text-primary-dark flex items-center gap-1">
                                 <i data-lucide="edit" class="w-3 h-3"></i> Ubah Data
                             </button>
@@ -753,14 +835,33 @@
                                     class="font-medium" x-text="getFormVal('program_studi')"></span></div>
                             <div><span class="text-gray-500 block text-xs">Semester</span><span class="font-medium"
                                     x-text="getFormVal('semester')"></span></div>
+                            @if($customFields->where('penempatan', 'akademik')->count() > 0)
+                                <div class="md:col-span-3 mt-2"><h4 class="font-bold text-gray-700 text-sm border-b pb-1">Tambahan Data Akademik</h4></div>
+                                @include('pendaftaran.partials.custom_fields_review', ['penempatan' => 'akademik'])
+                            @endif
                         </div>
                     </div>
 
-                    {{-- E. Berkas Persyaratan --}}
+                    @if($customFields->where('penempatan', 'tambahan')->count() > 0)
+                        <div class="border rounded-xl p-5 bg-amber-50">
+                            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                                <h3 class="font-bold text-lg text-amber-800">E. Informasi Tambahan</h3>
+                                <button type="button" @click="goToStep({{ $stepDokumen }})"
+                                    class="text-xs font-semibold text-amber-600 hover:text-amber-800 flex items-center gap-1">
+                                    <i data-lucide="edit" class="w-3 h-3"></i> Ubah Data
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @include('pendaftaran.partials.custom_fields_review', ['penempatan' => 'tambahan'])
+                            </div>
+                        </div>
+                    @endif
+
+                    {{-- Berkas Persyaratan --}}
                     <div class="border rounded-xl p-5 bg-gray-50">
                         <div class="flex justify-between items-center mb-4 border-b pb-2">
                             <h3 class="font-bold text-lg text-gray-800">E. Dokumen</h3>
-                            <button type="button" @click="step = 4; window.scrollTo({ top: 0, behavior: 'smooth' })"
+                            <button type="button" @click="goToStep({{ $stepDokumen }})"
                                 class="text-xs font-semibold text-primary hover:text-primary-dark flex items-center gap-1">
                                 <i data-lucide="edit" class="w-3 h-3"></i> Ubah Berkas
                             </button>
@@ -847,8 +948,8 @@
             </div>
         </div>
 
-        <div x-show="step === 5" class="mt-4 flex justify-between gap-3 max-w-3xl mx-auto">
-            <button type="button" @click="history.back()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
+        <div x-show="step === {{ $stepReview }}" class="mt-4 flex justify-between gap-3 max-w-3xl mx-auto">
+            <button type="button" @click="prevStep()" class="btn bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 px-6 py-2.5 rounded-lg font-semibold transition-colors flex items-center gap-2 shadow-sm">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i> Sebelumnya
             </button>
             <button type="button" @click="submitForm($event)" :disabled="!persetujuan" class="btn btn-primary flex items-center gap-2 px-6 py-2.5 shadow-sm" :class="!persetujuan ? 'opacity-50 cursor-not-allowed' : 'hover:shadow-md'">
@@ -866,7 +967,7 @@
             function pendaftaranForm() {
                 return {
                     step: {{ $errors->any() ? 1 : 1 }},
-                    stepNames: ['Identitas Diri', 'Akademik & Keluarga', 'Kriteria Penilaian', 'Upload Dokumen', 'Review & Submit'],
+                    stepNames: {!! $hasTambahan ? "['Identitas Diri', 'Identitas Keluarga', 'Kriteria Penilaian', 'Informasi Tambahan', 'Upload Dokumen', 'Review & Submit']" : "['Identitas Diri', 'Identitas Keluarga', 'Kriteria Penilaian', 'Upload Dokumen', 'Review & Submit']" !!},
                     persetujuan: false,
                     isCheckingNik: false,
                     nikError: '',
@@ -965,6 +1066,29 @@
                         }, 50);
                     },
 
+                    removeFile(id) {
+                        this.uploadedFiles[id] = '';
+                        if (this.filePreviews[id] && this.filePreviews[id].url) {
+                            URL.revokeObjectURL(this.filePreviews[id].url);
+                        }
+                        this.filePreviews[id] = null;
+                        
+                        // Hapus file dari DOM input file browser
+                        const fileInput = document.getElementById('dokumen_' + id);
+                        if (fileInput) {
+                            fileInput.value = '';
+                        }
+
+                        if (this.fileStorage) {
+                            try {
+                                const tx = this.fileStorage.transaction('files', 'readwrite');
+                                tx.objectStore('files').delete('doc_' + id);
+                            } catch (e) {
+                                // Abaikan error delete
+                            }
+                        }
+                    },
+
                     handleFileUpload(event, id) {
                         const file = event.target.files[0];
                         if (file) {
@@ -1029,7 +1153,6 @@
                             const match = window.location.hash.match(/#step-(\d+)/);
                             if (match) {
                                 this.step = parseInt(match[1]);
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
                             }
                         });
 
@@ -1199,6 +1322,18 @@
                             });
                     },
 
+                                        goToStep(targetStep) {
+                        this.step = targetStep;
+                        window.location.hash = 'step-' + this.step;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    },
+                    prevStep() {
+                        if (this.step > 1) {
+                            this.step--;
+                            window.location.hash = 'step-' + this.step;
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    },
                     async nextStep() {
                         const form = document.getElementById('pendaftaran-form');
                         const elements = form.querySelectorAll(`[x-show="step === ${this.step}"] input, [x-show="step === ${this.step}"] select, [x-show="step === ${this.step}"] textarea`);
@@ -1215,15 +1350,27 @@
                             }
                         }
 
+                        // Custom validation untuk memastikan Desa terpilih, mencegah lolos saat select disabled / fetch delay
+                        if (this.step === 1 && !this.desa_id) {
+                            valid = false;
+                            const desaEl = document.getElementById('desa');
+                            if (desaEl) {
+                                desaEl.classList.add('border-red-500', 'bg-red-50');
+                                if (!firstInvalidEl) firstInvalidEl = desaEl;
+                            }
+                        }
+
                         if (!valid) {
                             if (firstInvalidEl) {
                                 firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 setTimeout(() => {
-                                    let fieldName = '';
-                                    const container = firstInvalidEl.closest('div');
-                                    if (container) {
-                                        const labelEl = container.querySelector('label');
-                                        if (labelEl) fieldName = labelEl.innerText.replace('*', '').replace('(Latitude, Longitude)', '').trim();
+                                    let fieldName = firstInvalidEl.getAttribute('data-nama') || '';
+                                    if (!fieldName) {
+                                        const container = firstInvalidEl.closest('div');
+                                        if (container) {
+                                            const labelEl = container.querySelector('label');
+                                            if (labelEl) fieldName = labelEl.innerText.replace('*', '').replace('(Latitude, Longitude)', '').trim();
+                                        }
                                     }
                                     if (!fieldName) {
                                         fieldName = firstInvalidEl.getAttribute('name') || 'Kolom tersebut';
@@ -1405,6 +1552,30 @@
                                 }
                             }
 
+                            // Validasi Nomor HP tidak boleh sama dengan pendaftar
+                            if (parentValid) {
+                                const noHpPendaftar = form.querySelector('input[name="no_hp"]')?.value.trim() || '';
+                                let hpError = '';
+                                
+                                if (noHpAyah && noHpAyah === noHpPendaftar) {
+                                    hpError = 'Nomor HP Ayah';
+                                } else if (noHpIbu && noHpIbu === noHpPendaftar) {
+                                    hpError = 'Nomor HP Ibu';
+                                } else if (noHpWali && noHpWali === noHpPendaftar) {
+                                    hpError = 'Nomor HP Wali';
+                                }
+                                
+                                if (hpError) {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Nomor HP Kembar',
+                                        text: `${hpError} tidak boleh persis sama dengan Nomor HP Pendaftar. Mohon gunakan nomor telepon/WA lain yang valid agar panitia dapat menghubungi pihak orang tua/wali jika diperlukan.`,
+                                        confirmButtonColor: '#ef4444'
+                                    });
+                                    return;
+                                }
+                            }
+
                             if (!parentValid) {
                                 // Scroll ke error pertama
                                 const firstErr = Object.keys(this.nikParentErrors).find(k => this.nikParentErrors[k]);
@@ -1414,6 +1585,29 @@
                                 }
                                 return;
                             }
+                        }
+
+                        if (this.step === {{ $stepDokumen }}) {
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Tahap Review & Kirim',
+                                html: 'Anda akan masuk ke halaman terakhir.<br><br>Pastikan seluruh data dan dokumen pendukung Anda sudah benar. <b>Data yang sudah dikirim tidak dapat diubah kembali!</b>',
+                                confirmButtonText: 'Ya, Lanjut ke Review',
+                                confirmButtonColor: '#3b82f6',
+                                showCancelButton: true,
+                                cancelButtonText: 'Cek Kembali',
+                                reverseButtons: true
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    this.step++;
+                                    this.reviewTick++;
+                                    window.location.hash = 'step-' + this.step;
+                                    setTimeout(() => {
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }, 300);
+                                }
+                            });
+                            return;
                         }
 
                         this.step++;
@@ -1445,11 +1639,13 @@
                                             firstInvalidEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                             firstInvalidEl.focus();
                                         }
-                                        let fieldName = '';
-                                        const container = firstInvalidEl.closest('div');
-                                        if (container) {
-                                            const labelEl = container.querySelector('label');
-                                            if (labelEl) fieldName = labelEl.innerText.replace('*', '').replace('(Latitude, Longitude)', '').trim();
+                                        let fieldName = firstInvalidEl.getAttribute('data-nama') || '';
+                                        if (!fieldName) {
+                                            const container = firstInvalidEl.closest('div');
+                                            if (container) {
+                                                const labelEl = container.querySelector('label');
+                                                if (labelEl) fieldName = labelEl.innerText.replace('*', '').replace('(Latitude, Longitude)', '').trim();
+                                            }
                                         }
                                         if (!fieldName) {
                                             fieldName = firstInvalidEl.getAttribute('name') || 'Kolom tersebut';
@@ -1467,16 +1663,30 @@
                                 }
                             }
                         } else {
-                            // Munculkan animasi loading global (layar penuh)
-                            document.documentElement.classList.remove('skip-preloader');
-                            const globalPreloader = document.getElementById('global-preloader');
-                            if (globalPreloader) {
-                                globalPreloader.style.setProperty('display', 'flex', 'important');
-                            }
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Konfirmasi Pengiriman',
+                                html: 'Apakah Anda yakin semua data sudah benar?<br><br>Data yang telah dikirim <b>TIDAK DAPAT DIUBAH</b> dan akan langsung diproses oleh sistem.',
+                                showCancelButton: true,
+                                confirmButtonColor: '#3b82f6',
+                                cancelButtonColor: '#64748b',
+                                confirmButtonText: 'Ya, Kirim Sekarang!',
+                                cancelButtonText: 'Batal',
+                                reverseButtons: true
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    // Munculkan animasi loading global (layar penuh)
+                                    document.documentElement.classList.remove('skip-preloader');
+                                    const globalPreloader = document.getElementById('global-preloader');
+                                    if (globalPreloader) {
+                                        globalPreloader.style.setProperty('display', 'flex', 'important');
+                                    }
 
-                            // Hapus draft saat sukses submit agar pendaftaran berikutnya bersih
-                            localStorage.removeItem('draft_pendaftaran');
-                            HTMLFormElement.prototype.submit.call(form);
+                                    // Hapus draft saat sukses submit agar pendaftaran berikutnya bersih
+                                    localStorage.removeItem('draft_pendaftaran');
+                                    HTMLFormElement.prototype.submit.call(form);
+                                }
+                            });
                         }
                     },
                 }

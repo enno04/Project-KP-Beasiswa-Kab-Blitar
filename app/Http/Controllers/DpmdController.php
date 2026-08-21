@@ -23,8 +23,8 @@ class DpmdController extends Controller
         // DPMD melihat semua pendaftar SDSS se-Kabupaten yang sudah diteruskan ke kecamatan/DPMD
         $pendaftaranQuery = Pendaftaran::whereHas('program', fn($q) => $q->where('kode', 'sdss'))
             ->whereIn('status', [
-                'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd',
-                'lolos_verifikasi', 'menunggu_penetapan', 'lulus', 'tidak_lulus',
+                'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd', 'proses_seleksi',
+                'menunggu_penetapan', 'lulus', 'tidak_lulus',
             ]);
 
         $stats = [
@@ -45,8 +45,8 @@ class DpmdController extends Controller
         $aktivitasTerbaru = Pendaftaran::with(['program', 'jalur', 'identitas.desa', 'identitas.kecamatan', 'rekomendasiDesa'])
             ->whereHas('program', fn($q) => $q->where('kode', 'sdss'))
             ->whereIn('status', [
-                'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd',
-                'lolos_verifikasi', 'menunggu_penetapan', 'lulus', 'tidak_lulus',
+                'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd', 'proses_seleksi',
+                'menunggu_penetapan', 'lulus', 'tidak_lulus',
             ])
             ->latest()->take(10)->get();
 
@@ -57,8 +57,8 @@ class DpmdController extends Controller
             ->join('programs', 'pendaftarans.program_id', '=', 'programs.id')
             ->where('programs.kode', 'sdss')
             ->whereIn('pendaftarans.status', [
-                'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd',
-                'lolos_verifikasi', 'menunggu_penetapan', 'lulus', 'tidak_lulus',
+                'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd', 'proses_seleksi',
+                'menunggu_penetapan', 'lulus', 'tidak_lulus',
             ])
             ->select(
                 'kecamatan.nama_kecamatan',
@@ -90,13 +90,31 @@ class DpmdController extends Controller
         $query = Pendaftaran::with(['identitas.desa', 'identitas.kecamatan', 'jalur', 'rekomendasiDesa'])
             ->where('program_id', $program->id)
             ->whereIn('status', [
-                'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd',
-                'lolos_verifikasi', 'menunggu_penetapan', 'lulus', 'tidak_lulus',
+                'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd', 'proses_seleksi',
+                'menunggu_penetapan', 'lulus', 'tidak_lulus',
             ]);
 
         if ($jalur) $query->where('jalur_id', $jalur->id);
         if ($request->tahun) $query->where('tahun', $request->tahun);
         if ($request->status) $query->where('status', $request->status);
+
+        // Filter search
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('nomor_pendaftaran', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('identitas', function($q2) use ($request) {
+                      $q2->where('nama_lengkap', 'like', '%' . $request->search . '%');
+                  });
+            });
+        }
+
+        // Filter wilayah
+        if ($request->kecamatan_id) {
+            $query->whereHas('identitas', fn($q) => $q->where('kecamatan_id', $request->kecamatan_id));
+        }
+        if ($request->desa_id) {
+            $query->whereHas('identitas', fn($q) => $q->where('desa_id', $request->desa_id));
+        }
 
         // Filter khusus DPMD: hanya yang belum diverifikasi DPMD
         if ($request->filter_dpmd === 'belum') {
@@ -108,7 +126,11 @@ class DpmdController extends Controller
         }
 
         $pendaftar = $query->latest()->paginate(20)->withQueryString();
-        return view('dpmd.index', compact('pendaftar', 'program', 'jalur'));
+        
+        $kecamatanList = \App\Models\Kecamatan::orderBy('nama_kecamatan')->get();
+        $desaList = \App\Models\Desa::orderBy('nama_desa')->get();
+
+        return view('dpmd.index', compact('pendaftar', 'program', 'jalur', 'kecamatanList', 'desaList'));
     }
 
     /**
@@ -146,26 +168,66 @@ class DpmdController extends Controller
             'dpmd_verified_at' => now(),
         ]);
 
-        if ($request->keputusan === 'disetujui') {
-            // Cek apakah Kecamatan juga sudah menyetujui (mekanisme paralel)
-            $fullyApproved = $recommendationService->cekPersetujuanParalel($pendaftaran);
-            if ($fullyApproved) {
-                $message = 'Rekomendasi disetujui oleh DPMD. Kecamatan juga sudah menyetujui. Pendaftaran diteruskan ke Kabupaten.';
-            } else {
-                $message = 'Rekomendasi disetujui oleh DPMD. Menunggu persetujuan Kecamatan.';
-            }
+        // Cek apakah Kecamatan juga sudah menyetujui (mekanisme paralel)
+        $fullyApproved = $recommendationService->cekPersetujuanParalel($pendaftaran);
+        if ($fullyApproved) {
+            $message = 'Berkas Desa diteruskan. Kecamatan juga sudah meneruskan. Pendaftaran masuk ke Kabupaten.';
         } else {
-            $pendaftaran->update(['status' => 'ditolak_dpmd']);
-            $message = 'Rekomendasi ditolak oleh DPMD.';
+            $message = 'Berkas Desa berhasil diteruskan oleh DPMD. Menunggu proses Kecamatan.';
         }
 
         AuditLog::catat(
-            'Verifikasi DPMD',
-            "Keputusan: {$request->keputusan}" . ($request->catatan_dpmd ? " | Catatan: {$request->catatan_dpmd}" : ''),
+            'Verifikasi Rekomendasi (DPMD)',
+            "Meneruskan rekomendasi desa" . ($request->catatan_dpmd ? " | Catatan: {$request->catatan_dpmd}" : ''),
             Pendaftaran::class,
             $pendaftaran->id
         );
 
         return redirect()->back()->with('success', $message);
+    }
+
+    public function riwayat(\Illuminate\Http\Request $request)
+    {
+        $query = \App\Models\RekomendasiDesa::with(['pendaftaran.identitas', 'desa.kecamatan', 'dpmdVerifier', 'kecamatanVerifier'])
+            ->where('status_dpmd', '!=', 'belum_diverifikasi');
+
+        // Filter search
+        if ($request->search) {
+            $query->whereHas('pendaftaran', function($q) use ($request) {
+                $q->where('nomor_pendaftaran', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('identitas', function($q2) use ($request) {
+                      $q2->where('nama_lengkap', 'like', '%' . $request->search . '%');
+                  });
+            });
+        }
+
+        // Filter desa
+        if ($request->desa_id) {
+            $query->where('desa_id', $request->desa_id);
+        }
+
+        // Filter kecamatan
+        if ($request->kecamatan_id) {
+            $query->whereHas('desa', fn($q) => $q->where('kecamatan_id', $request->kecamatan_id));
+        }
+
+        // Filter status
+        if ($request->status) {
+            if ($request->status === 'otomatis') {
+                $query->where('status_dpmd', 'disetujui')->whereNull('dpmd_verified_by');
+            } else {
+                $query->where('status_dpmd', $request->status);
+            }
+        }
+
+        $riwayat = $query->latest('dpmd_verified_at')->paginate(20)->withQueryString();
+        
+        $kecamatanList = \App\Models\Kecamatan::orderBy('nama_kecamatan')->get();
+        // Since we need Desa list, maybe load them based on selected kecamatan or just all? 
+        // For DPMD, since there are many villages, maybe just kecamatan filter is enough, but user asked for "filter desa dan lainnya".
+        // Let's pass all desa if performance is okay, there are only ~248 villages in blitar.
+        $desaList = \App\Models\Desa::orderBy('nama_desa')->get();
+
+        return view('dpmd.riwayat', compact('riwayat', 'kecamatanList', 'desaList'));
     }
 }

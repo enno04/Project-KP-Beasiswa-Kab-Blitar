@@ -45,11 +45,11 @@
                     <i data-lucide="info" class="w-4 h-4 inline -mt-0.5 text-primary"></i>
                     Klik tombol untuk menghitung penilaian berbobot dan menghasilkan peringkat otomatis untuk semua pendaftar yang lolos verifikasi.
                 </div>
-                <form action="{{ route('kabupaten.penilaian.ranking') }}" method="POST" onsubmit="return confirm('Hitung penilaian & generate ranking untuk semua pendaftar yang lolos verifikasi pada jalur ini?');">
+                <form id="form-generate-ranking" action="{{ route('kabupaten.penilaian.ranking') }}" method="POST">
                     @csrf
                     <input type="hidden" name="jalur_id" value="{{ $jalur->id }}">
                     <input type="hidden" name="periode_id" value="{{ $periodeId }}">
-                    <button type="submit" class="btn btn-primary whitespace-nowrap">
+                    <button type="button" onclick="confirmGenerateRanking()" class="btn btn-primary whitespace-nowrap shadow-md">
                         <i data-lucide="calculator" class="w-4 h-4"></i> Hitung Penilaian & Generate Ranking
                     </button>
                 </form>
@@ -62,6 +62,16 @@
                     <i data-lucide="info" class="w-4 h-4 text-primary shrink-0"></i>
                     Untuk program SDSS, proses penilaian dan perangkingan dilakukan oleh <strong class="text-primary-dark">Admin Desa</strong>. Kabupaten hanya melihat hasil dan melakukan penetapan.
                 </div>
+            </div>
+        </div>
+    @endif
+
+    @if(isset($adaBelumDinilai) && $adaBelumDinilai)
+        <div class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-xl mb-6 flex items-start gap-3 shadow-sm">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
+            <div>
+                <strong class="font-bold block">Peringatan: Ada Pendaftar Baru!</strong>
+                <span class="text-sm">Terdapat pendaftar baru yang masuk dan belum memiliki skor/peringkat. Anda diwajibkan mengklik tombol <b>Hitung Penilaian & Generate Ranking</b> di atas agar data mereka ikut terhitung sebelum Anda bisa memproses Wawancara atau Penetapan.</span>
             </div>
         </div>
     @endif
@@ -120,15 +130,28 @@
                             </td>
                             @if(isset($isBerdayaBerjaya) && $isBerdayaBerjaya)
                                 <td class="text-right whitespace-nowrap">
-                                    @if($p->status === 'gugur_wawancara')
-                                        <span class="px-2 py-1 bg-red-50 text-red-600 rounded text-xs font-semibold">Tidak Hadir</span>
-                                        <button type="button" onclick="openWawancaraModal({{ $p->id }}, '')" class="ml-1 text-xs text-primary hover:underline">Revisi</button>
-                                    @elseif($p->nilai_wawancara !== null)
-                                        <div class="font-bold text-sm text-green-700">{{ number_format($p->nilai_wawancara, 2) }}</div>
-                                        <button type="button" onclick="openWawancaraModal({{ $p->id }}, {{ $p->nilai_wawancara }})" class="text-xs text-primary hover:underline">Edit Nilai</button>
+                                    @if($p->ranking === null)
+                                        <div class="flex flex-col items-end gap-0.5">
+                                            <button disabled class="btn btn-xs bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed w-full">
+                                                Hasil Wawancara
+                                            </button>
+                                            <span class="text-[10px] text-orange-500 italic font-medium mt-0.5">Generate nilai total dahulu</span>
+                                        </div>
+                                    @elseif(isset($adaBelumDinilai) && $adaBelumDinilai)
+                                        <div class="flex flex-col items-end gap-0.5">
+                                            <button disabled class="btn btn-xs bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed w-full">
+                                                Hasil Wawancara
+                                            </button>
+                                        </div>
+                                    @elseif($p->status === 'gugur_wawancara')
+                                        <span class="px-2 py-1 bg-red-50 text-red-600 rounded text-xs font-semibold">Tidak Lolos</span>
+                                        <button type="button" onclick="openWawancaraModal({{ $p->id }})" class="ml-1 text-xs text-primary hover:underline">Ubah Hasil</button>
+                                    @elseif($p->nilai_wawancara !== null && $p->nilai_wawancara == 100)
+                                        <span class="px-2 py-1 bg-green-50 text-green-700 rounded text-xs font-semibold">Lolos Wawancara</span>
+                                        <button type="button" onclick="openWawancaraModal({{ $p->id }})" class="ml-1 text-xs text-primary hover:underline">Ubah Hasil</button>
                                     @else
-                                        <button type="button" onclick="openWawancaraModal({{ $p->id }}, '')" class="btn btn-xs bg-green-100 text-green-700 border-green-200 hover:bg-green-200">
-                                            Input Wawancara
+                                        <button type="button" onclick="openWawancaraModal({{ $p->id }})" class="btn btn-xs bg-blue-100 text-blue-700 border-blue-200 hover:bg-blue-200">
+                                            Hasil Wawancara
                                         </button>
                                     @endif
                                 </td>
@@ -141,13 +164,30 @@
                                     <a href="{{ route('kabupaten.show', $p->id) }}" class="btn btn-xs btn-outline" title="Detail">
                                         <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                                     </a>
-                                    {{-- Tombol Tetapkan: muncul jika status menunggu_penetapan, atau lolos_verifikasi tapi sudah ada ranking (SDSS) --}}
-                                    @if($p->status === 'menunggu_penetapan' || ($p->status === 'lolos_verifikasi' && $p->ranking !== null))
-                                        <form action="{{ route('kabupaten.penetapan.satu', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Terbitkan SK untuk pendaftar ini?');">
+                                    {{-- Tombol Tetapkan: muncul jika status menunggu_penetapan, atau lolos_verifikasi tapi sudah ada ranking (SDSS). Khusus Berdaya Berjaya wajib lolos wawancara dulu --}}
+                                    @php
+                                        $canTetapkan = false;
+                                        if (!isset($adaBelumDinilai) || !$adaBelumDinilai) {
+                                            if ($p->status === 'menunggu_penetapan' || ($p->status === 'lolos_verifikasi' && $p->ranking !== null)) {
+                                                if (isset($isBerdayaBerjaya) && $isBerdayaBerjaya) {
+                                                    // Berdaya Berjaya wajib lolos wawancara dulu
+                                                    if ($p->nilai_wawancara !== null && $p->nilai_wawancara == 100) {
+                                                        $canTetapkan = true;
+                                                    }
+                                                } else {
+                                                    // Selain Berdaya Berjaya, langsung bisa ditetapkn jika sudah diranking
+                                                    $canTetapkan = true;
+                                                }
+                                            }
+                                        }
+                                    @endphp
+
+                                    @if($canTetapkan)
+                                        <form action="{{ route('kabupaten.penetapan.satu', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Tetapkan pendaftar ini?');">
                                             @csrf
                                             <input type="hidden" name="keputusan" value="lulus">
-                                            <button type="submit" class="btn btn-xs text-white bg-green-600 hover:bg-green-700 border-green-600" title="Terbitkan SK">
-                                                <i data-lucide="check" class="w-3.5 h-3.5"></i> Terbitkan SK
+                                            <button type="submit" class="btn btn-xs text-white bg-green-600 hover:bg-green-700 border-green-600" title="Tetapkan">
+                                                <i data-lucide="check" class="w-3.5 h-3.5"></i> Tetapkan
                                             </button>
                                         </form>
                                         <form action="{{ route('kabupaten.penetapan.satu', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Tolak pendaftar ini (TIDAK LULUS)?');">
@@ -160,9 +200,23 @@
                                     @endif
                                     {{-- Status akhir badges --}}
                                     @if($p->status === 'lulus')
-                                        <span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-[11px] font-bold">✓ SK TERBIT</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded-md text-[11px] font-bold">✓ SK TERBIT</span>
+                                            <form action="{{ route('kabupaten.penetapan.satu', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Batalkan penetapan beasiswa untuk pendaftar ini? Status akan kembali menjadi Menunggu Penetapan.');">
+                                                @csrf
+                                                <input type="hidden" name="keputusan" value="batal">
+                                                <button type="submit" class="text-xs text-red-500 hover:text-red-700 underline" title="Batalkan Penetapan">Batal</button>
+                                            </form>
+                                        </div>
                                     @elseif($p->status === 'tidak_lulus')
-                                        <span class="px-2 py-1 bg-red-100 text-red-600 rounded-md text-[11px] font-bold">✗ TIDAK LULUS</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="px-2 py-1 bg-red-100 text-red-600 rounded-md text-[11px] font-bold">✗ TIDAK LULUS</span>
+                                            <form action="{{ route('kabupaten.penetapan.satu', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Batalkan penolakan beasiswa untuk pendaftar ini? Status akan kembali menjadi Menunggu Penetapan.');">
+                                                @csrf
+                                                <input type="hidden" name="keputusan" value="batal">
+                                                <button type="submit" class="text-xs text-red-500 hover:text-red-700 underline" title="Batalkan Penolakan">Batal</button>
+                                            </form>
+                                        </div>
                                     @endif
                                 </div>
                             </td>
@@ -188,9 +242,9 @@
     @if(isset($isBerdayaBerjaya) && $isBerdayaBerjaya)
     <!-- Modal Input Wawancara -->
     <div id="wawancaraModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden" style="backdrop-filter: blur(4px);">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all">
             <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <h3 class="text-lg font-bold text-gray-800">Input Nilai Wawancara</h3>
+                <h3 class="text-lg font-bold text-gray-800">Hasil Wawancara</h3>
                 <button type="button" onclick="closeWawancaraModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
@@ -198,29 +252,33 @@
             
             <form id="wawancaraForm" method="POST" action="">
                 @csrf
-                <input type="hidden" name="action_type" id="action_type" value="simpan">
+                <input type="hidden" name="action_type" id="action_type" value="">
                 
                 <div class="p-6">
-                    <p class="text-sm text-gray-600 mb-4">Masukkan nilai akhir wawancara (skala 0 - 100).</p>
+                    <p class="text-sm text-center text-gray-600 mb-5">Tentukan hasil wawancara untuk pendaftar ini.</p>
                     
-                    <div class="mb-4">
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Nilai Wawancara</label>
-                        <input type="number" step="0.01" min="0" max="100" name="nilai_wawancara" id="input_nilai_wawancara" class="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-lg font-bold text-green-700" required placeholder="0.00">
+                    <div class="mb-5 text-left">
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Lampirkan Catatan (Opsional)</label>
+                        <textarea name="catatan" id="wawancara_catatan" rows="3" class="w-full px-3 py-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all text-sm" placeholder="Tuliskan catatan khusus (jika ada)..."></textarea>
+                    </div>
+
+                    <div class="flex flex-col gap-3">
+                        <button type="button" onclick="submitWawancara('lolos')" class="w-full px-4 py-3 bg-green-500 hover:bg-green-600 text-white rounded-xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                            <i data-lucide="check-circle" class="w-5 h-5"></i> Lolos Wawancara
+                        </button>
+                        <button type="button" onclick="submitWawancara('gugurkan')" class="w-full px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="x-circle" class="w-5 h-5"></i> Tidak Lolos / Gugur
+                        </button>
+                        <button type="button" onclick="submitWawancara('batalkan')" class="w-full px-4 py-2 bg-slate-50 hover:bg-slate-100 text-slate-500 border border-slate-200 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 mt-2">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Batalkan Pilih (Reset Status)
+                        </button>
                     </div>
                 </div>
 
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-between items-center">
-                    <button type="button" onclick="gugurkanWawancara()" class="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-xl text-xs font-bold transition-all">
-                        Tidak Hadir (Gugurkan)
+                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 text-right">
+                    <button type="button" onclick="closeWawancaraModal()" class="px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-xl text-xs font-bold transition-all">
+                        Tutup
                     </button>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="closeWawancaraModal()" class="px-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-xl text-xs font-bold transition-all">
-                            Batal
-                        </button>
-                        <button type="submit" class="px-4 py-2 bg-primary text-white hover:bg-primary-dark rounded-xl text-xs font-bold transition-all shadow-md">
-                            Simpan Nilai
-                        </button>
-                    </div>
                 </div>
             </form>
         </div>
@@ -228,13 +286,10 @@
 
     @push('scripts')
     <script>
-        function openWawancaraModal(id, val) {
+        function openWawancaraModal(id) {
             const form = document.getElementById('wawancaraForm');
-            const input = document.getElementById('input_nilai_wawancara');
-            document.getElementById('action_type').value = 'simpan';
             form.action = `/kabupaten/wawancara/${id}`;
-            input.value = val !== undefined ? val : '';
-            input.required = true;
+            document.getElementById('wawancara_catatan').value = ''; // Kosongkan form saat buka
             document.getElementById('wawancaraModal').classList.remove('hidden');
         }
 
@@ -242,14 +297,99 @@
             document.getElementById('wawancaraModal').classList.add('hidden');
         }
 
-        function gugurkanWawancara() {
-            if(confirm('Yakin ingin menggugurkan pendaftar ini karena tidak hadir wawancara?')) {
-                document.getElementById('action_type').value = 'gugurkan';
-                document.getElementById('input_nilai_wawancara').required = false;
-                document.getElementById('wawancaraForm').submit();
+        function submitWawancara(action) {
+            let title = '';
+            let text = '';
+            let confirmColor = '';
+            let icon = 'question';
+            let confirmText = '';
+
+            if (action === 'lolos') {
+                title = 'Lolos Wawancara?';
+                text = 'Tetapkan pendaftar ini sebagai Lolos Wawancara?';
+                confirmColor = '#10B981'; // Green
+                confirmText = 'Ya, Loloskan';
+            } else if (action === 'gugurkan') {
+                title = 'Tidak Lolos / Gugur?';
+                text = 'Tetapkan pendaftar ini sebagai Tidak Lolos / Gugur Wawancara?';
+                confirmColor = '#EF4444'; // Red
+                icon = 'warning';
+                confirmText = 'Ya, Gugurkan';
+            } else {
+                title = 'Batalkan Pilihan?';
+                text = 'Reset status wawancara pendaftar ini ke keadaan awal (Belum dinilai)?';
+                confirmColor = '#6B7280'; // Gray
+                icon = 'warning';
+                confirmText = 'Ya, Batalkan Pilihan';
             }
+
+            closeWawancaraModal(); // Sembunyikan modal dasar saat SweetAlert muncul
+
+            Swal.fire({
+                title: title,
+                text: text,
+                icon: icon,
+                showCancelButton: true,
+                confirmButtonColor: confirmColor,
+                cancelButtonColor: '#d33',
+                confirmButtonText: confirmText,
+                cancelButtonText: 'Kembali',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('action_type').value = action;
+                    document.getElementById('wawancaraForm').submit();
+                } else {
+                    // Tampilkan kembali modal dasar jika dibatalkan
+                    document.getElementById('wawancaraModal').classList.remove('hidden');
+                }
+            });
         }
     </script>
     @endpush
     @endif
+
+    @push('scripts')
+    <script>
+        function confirmGenerateRanking() {
+            let adaBelumDinilai = {{ isset($adaBelumDinilai) && $adaBelumDinilai ? 'true' : 'false' }};
+            
+            if (!adaBelumDinilai) {
+                // Semua pendaftar sudah dinilai
+                Swal.fire({
+                    title: 'Tidak Ada Data Baru',
+                    text: 'Seluruh pendaftar pada jalur ini telah memiliki skor dan peringkat. Proses perhitungan ulang hanya dapat dilakukan jika terdapat data pendaftar baru.',
+                    icon: 'info',
+                    confirmButtonColor: '#3B82F6',
+                    confirmButtonText: 'Mengerti'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: 'Mulai Perhitungan Nilai?',
+                text: 'Proses ini akan menghitung nilai berbobot dan menetapkan peringkat untuk semua pendaftar yang Lolos Verifikasi pada jalur ini.',
+                icon: 'info',
+                showCancelButton: true,
+                confirmButtonColor: '#3B82F6', // Blue
+                cancelButtonColor: '#9CA3AF', // Gray
+                confirmButtonText: 'Ya, Hitung & Ranking!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Sedang Memproses...',
+                        html: 'Mohon tunggu sebentar, sistem sedang melakukan perhitungan otomatis.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
+                    });
+                    document.getElementById('form-generate-ranking').submit();
+                }
+            });
+        }
+    </script>
+    @endpush
 </x-layouts.admin>

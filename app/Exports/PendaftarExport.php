@@ -19,7 +19,8 @@ class PendaftarExport implements FromCollection, WithHeadings, WithMapping, With
     public function collection()
     {
         return Pendaftaran::with([
-            'identitas',
+            'identitas.desa',
+            'identitas.kecamatan',
             'orangTua',
             'statusEkonomi',
             'akademik',
@@ -44,6 +45,8 @@ class PendaftarExport implements FromCollection, WithHeadings, WithMapping, With
             'Jenis Kelamin',
             'Tempat, Tanggal Lahir',
             'Alamat Domisili',
+            'Desa',
+            'Kecamatan',
             'No. Telp/WA',
             'Email',
             'Perguruan Tinggi',
@@ -171,6 +174,8 @@ class PendaftarExport implements FromCollection, WithHeadings, WithMapping, With
             ($pendaftaran->identitas->jenis_kelamin ?? '') === 'L' ? 'Laki-laki' : 'Perempuan',
             ($pendaftaran->identitas->tempat_lahir ?? '') . ', ' . ($pendaftaran->identitas->tanggal_lahir ?? ''),
             $pendaftaran->identitas->alamat_domisili ?? '',
+            $pendaftaran->identitas->desa->nama_desa ?? '',
+            $pendaftaran->identitas->kecamatan->nama_kecamatan ?? '',
             $pendaftaran->identitas->no_telp ?? '',
             $pendaftaran->identitas->email ?? '',
             $pendaftaran->identitas->asal_perguruan_tinggi ?? '',

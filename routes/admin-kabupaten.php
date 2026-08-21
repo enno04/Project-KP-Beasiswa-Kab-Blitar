@@ -5,6 +5,9 @@ use App\Http\Controllers\KabupatenController;
 
 Route::middleware(['auth', 'role:admin_kabupaten'])->prefix('kabupaten')->name('kabupaten.')->group(function () {
     Route::get('/dashboard', [KabupatenController::class, 'dashboard'])->name('dashboard');
+    Route::get('/rekap-data', [KabupatenController::class, 'rekapData'])->name('rekap-data');
+    Route::get('/riwayat-penetapan', [KabupatenController::class, 'riwayatPenetapan'])->name('riwayat-penetapan');
+    Route::get('/export-riwayat', [KabupatenController::class, 'exportRiwayat'])->name('export-riwayat');
 
     // Pendaftar per program (generik)
     Route::get('/program/{programSlug}/{jalurSlug?}', [KabupatenController::class, 'index'])->name('program.index');

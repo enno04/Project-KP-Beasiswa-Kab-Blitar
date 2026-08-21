@@ -14,12 +14,13 @@ class Periode extends Model
 
     protected $fillable = [
         'uuid', 'tahun', 'nama', 'tanggal_mulai', 'tanggal_selesai',
-        'status', 'keterangan',
+        'status', 'keterangan'
     ];
 
     protected $casts = [
         'tanggal_mulai' => 'date',
         'tanggal_selesai' => 'date',
+        'kunci_hitung_nilai' => 'boolean',
     ];
 
     protected static function booted(): void

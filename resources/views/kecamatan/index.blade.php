@@ -8,7 +8,15 @@
     {{-- Filter --}}
     <div class="card mb-6">
         <div class="card-body py-4">
-            <form method="GET" class="flex flex-col sm:flex-row gap-3 items-end">
+            <form method="GET" class="flex flex-col sm:flex-row flex-wrap gap-3 items-end">
+                <div class="flex-1 w-full min-w-[200px]">
+                    <label class="form-label">Cari Pendaftar</label>
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-input" style="padding-left: 2.5rem;" placeholder="Nama atau No. Pendaftaran...">
+                    </div>
+                </div>
+
                 <div class="w-full sm:w-48">
                     <label class="form-label">Tahun</label>
                     <select name="tahun" class="form-select" onchange="this.form.submit()">
@@ -18,22 +26,36 @@
                         @endfor
                     </select>
                 </div>
-                <div class="w-full sm:w-64">
-                    <label class="form-label">Status</label>
+                
+                <div class="w-full sm:w-48">
+                    <label class="form-label">Filter Desa</label>
+                    <select name="desa_id" class="form-select" onchange="this.form.submit()">
+                        <option value="">Semua Desa</option>
+                        @foreach($desaList as $desa)
+                            <option value="{{ $desa->id }}" {{ request('desa_id') == $desa->id ? 'selected' : '' }}>{{ $desa->nama_desa }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="w-full sm:w-48">
+                    <label class="form-label">Status Pendaftaran</label>
                     <select name="status" class="form-select" onchange="this.form.submit()">
                         <option value="">Semua Status</option>
-                        <option value="draft" {{ request('status') === 'draft' ? 'selected' : '' }}>Draft</option>
-                        <option value="menunggu_verifikasi" {{ request('status') === 'menunggu_verifikasi' ? 'selected' : '' }}>Menunggu Verifikasi</option>
-                        <option value="lolos_verifikasi" {{ request('status') === 'lolos_verifikasi' ? 'selected' : '' }}>Lolos Verifikasi</option>
-                        <option value="ditolak_verifikasi" {{ request('status') === 'ditolak_verifikasi' ? 'selected' : '' }}>Ditolak Verifikasi</option>
-                        <option value="menunggu_penetapan" {{ request('status') === 'menunggu_penetapan' ? 'selected' : '' }}>Menunggu Penetapan</option>
+                        <option value="diteruskan_ke_kecamatan" {{ request('status') === 'diteruskan_ke_kecamatan' ? 'selected' : '' }}>Menunggu Verifikasi Kec/DPMD</option>
+                        <option value="ditolak_kecamatan" {{ request('status') === 'ditolak_kecamatan' ? 'selected' : '' }}>Ditolak Kecamatan</option>
+                        <option value="proses_seleksi" {{ request('status') === 'proses_seleksi' ? 'selected' : '' }}>Proses Seleksi</option>
+                        <option value="menunggu_penetapan" {{ request('status') === 'menunggu_penetapan' ? 'selected' : '' }}>Menunggu Penetapan Kab. Blitar</option>
                         <option value="lulus" {{ request('status') === 'lulus' ? 'selected' : '' }}>Lulus</option>
                         <option value="tidak_lulus" {{ request('status') === 'tidak_lulus' ? 'selected' : '' }}>Tidak Lulus</option>
                     </select>
                 </div>
-                @if(request()->hasAny(['tahun', 'status']))
-                    <a href="{{ url()->current() }}" class="btn btn-sm btn-outline"><i data-lucide="x" class="w-3.5 h-3.5"></i> Reset</a>
-                @endif
+                
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button type="submit" class="btn btn-primary"><i data-lucide="filter" class="w-4 h-4"></i> Filter</button>
+                    @if(request()->hasAny(['search', 'tahun', 'desa_id', 'status']))
+                        <a href="{{ url()->current() }}" class="btn btn-outline"><i data-lucide="x" class="w-4 h-4"></i> Reset</a>
+                    @endif
+                </div>
             </form>
         </div>
     </div>
@@ -44,10 +66,13 @@
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th>No.</th>
                         <th>No. Pendaftaran</th>
                         <th>Nama Lengkap</th>
                         <th>Desa</th>
                         <th>Skor & Rank</th>
+                        <th class="text-center">Kecamatan</th>
+                        <th class="text-center">DPMD</th>
                         <th>Status</th>
                         <th class="text-right">Aksi</th>
                     </tr>
@@ -55,6 +80,7 @@
                 <tbody>
                     @forelse($pendaftar as $p)
                         <tr>
+                            <td><span class="text-slate-500 font-medium">{{ $pendaftar->firstItem() + $loop->index }}</span></td>
                             <td><span class="font-bold text-primary-dark">{{ $p->nomor_pendaftaran }}</span></td>
                             <td>
                                 <p class="font-semibold text-slate-900">{{ $p->identitas->nama_lengkap ?? '-' }}</p>
@@ -69,13 +95,25 @@
                                     <span class="text-xs italic text-slate-400">Belum dinilai</span>
                                 @endif
                             </td>
+                            <td class="text-center">
+                                @php $skec = $p->rekomendasiDesa?->status_kecamatan ?? 'belum_diverifikasi'; @endphp
+                                <x-badge :type="$skec === 'disetujui' ? 'success' : ($skec === 'ditolak' ? 'danger' : 'warning')">
+                                    {{ $skec === 'belum_diverifikasi' ? '⏳' : ($skec === 'disetujui' ? '✓' : '✗') }}
+                                </x-badge>
+                            </td>
+                            <td class="text-center">
+                                @php $sdpmd = $p->rekomendasiDesa?->status_dpmd ?? 'belum_diverifikasi'; @endphp
+                                <x-badge :type="$sdpmd === 'disetujui' ? 'success' : ($sdpmd === 'ditolak' ? 'danger' : 'warning')">
+                                    {{ $sdpmd === 'belum_diverifikasi' ? '⏳' : ($sdpmd === 'disetujui' ? '✓' : '✗') }}
+                                </x-badge>
+                            </td>
                             <td><span class="badge {{ $p->status_color }}">{{ $p->status_label }}</span></td>
                             <td class="text-right">
                                 <a href="{{ route('kecamatan.show', $p->id) }}" class="btn btn-xs btn-outline"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Detail</a>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="6"><x-empty-state icon="folder-open" title="Tidak Ada Data" text="Tidak ada data pendaftar pada filter ini." /></td></tr>
+                        <tr><td colspan="9"><x-empty-state icon="folder-open" title="Tidak Ada Data" text="Tidak ada data pendaftar pada filter ini." /></td></tr>
                     @endforelse
                 </tbody>
             </table>

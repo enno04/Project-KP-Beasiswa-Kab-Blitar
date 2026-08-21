@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen" style="background-color: var(--color-background);" x-data="{ sidebarOpen: false }">
@@ -51,7 +52,7 @@
                 </button>
                 <div x-show="open" @click.away="open = false"
                      x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
-                     class="absolute right-0 mt-2 w-48 bg-white rounded-xl border border-slate-100 py-1.5 z-50" style="box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+                     class="absolute right-0 mt-2 w-48 bg-white rounded-xl border border-slate-100 py-1.5 z-50" style="box-shadow: 0 10px 40px rgba(0,0,0,0.1); display: none;">
                     <div class="px-4 py-2.5 border-b border-slate-100">
                         <p class="text-xs font-bold text-slate-900">{{ auth()->user()->nama }}</p>
                         <p class="text-[11px] text-slate-400">{{ auth()->user()->role_label }}</p>
@@ -74,12 +75,24 @@
     </header>
 
     {{-- ═══ SIDEBAR OVERLAY ═══ --}}
-    <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 lg:hidden" x-transition.opacity></div>
+    <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-40 lg:hidden" x-transition.opacity style="display: none;"></div>
 
     {{-- ═══ SIDEBAR ═══ --}}
-    <aside class="fixed top-16 left-0 bottom-0 z-40 w-[264px] bg-white border-r border-slate-200/80 overflow-y-auto transition-transform duration-300"
-           :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'">
-        <nav class="p-4 space-y-1">
+    <aside class="fixed top-0 left-0 bottom-0 z-50 w-[264px] bg-white border-r border-slate-200/80 flex flex-col transition-transform duration-300 lg:top-16 -translate-x-full lg:translate-x-0"
+           :class="sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full lg:translate-x-0 lg:shadow-none'">
+        
+        {{-- Mobile Sidebar Header --}}
+        <div class="h-16 flex items-center justify-between px-4 border-b border-slate-100 lg:hidden shrink-0">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-extrabold text-[10px] shadow-sm" style="background: linear-gradient(135deg, #2B5C92, #0C1446);">BM</div>
+                <span class="font-extrabold text-sm tracking-tight" style="color: #2B5C92;">Menu Admin</span>
+            </div>
+            <button @click="sidebarOpen = false" class="p-1.5 rounded-lg bg-slate-50 hover:bg-red-50 text-slate-500 hover:text-red-500 transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+        </div>
+
+        <nav class="p-4 space-y-1 flex-1 overflow-y-auto">
             @php $roleKode = auth()->user()->getRoleKode(); @endphp
 
             {{-- Dashboard --}}
@@ -124,6 +137,14 @@
                 <a href="{{ route('super-admin.audit-log') }}" class="sidebar-link {{ request()->routeIs('super-admin.audit-log') ? 'active' : '' }}">
                     <i data-lucide="scroll-text" class="w-5 h-5"></i> Audit Log
                 </a>
+
+                <div class="sidebar-section">Manajemen Sistem</div>
+                <a href="{{ route('super-admin.pembersihan-data.index') }}" class="sidebar-link {{ request()->routeIs('super-admin.pembersihan-data.*') ? 'active' : '' }}">
+                    <i data-lucide="trash-2" class="w-5 h-5"></i> Pembersihan Data
+                </a>
+                <a href="{{ route('super-admin.data-dummy.index') }}" class="sidebar-link {{ request()->routeIs('super-admin.data-dummy.*') ? 'active' : '' }}">
+                    <i data-lucide="flask-conical" class="w-5 h-5"></i> Generator Dummy
+                </a>
             @endif
 
             {{-- ── ADMIN KABUPATEN ── --}}
@@ -143,6 +164,14 @@
                         @endforeach
                     @endif
                 @endforeach
+
+                <div class="sidebar-section">Lainnya</div>
+                <a href="{{ route('kabupaten.rekap-data') }}" class="sidebar-link {{ request()->routeIs('kabupaten.rekap-data') ? 'active' : '' }}">
+                    <i data-lucide="filter" class="w-5 h-5"></i> Rekap & Filter Lanjutan
+                </a>
+                <a href="{{ route('kabupaten.riwayat-penetapan') }}" class="sidebar-link {{ request()->routeIs('kabupaten.riwayat-penetapan') ? 'active' : '' }}">
+                    <i data-lucide="history" class="w-5 h-5"></i> Riwayat Penetapan
+                </a>
             @endif
 
             {{-- ── ADMIN OPD ── --}}
@@ -152,7 +181,7 @@
                     <i data-lucide="file-check" class="w-5 h-5"></i> Verifikasi Dokumen
                 </a>
                 <a href="{{ route('opd.riwayat') }}" class="sidebar-link {{ request()->routeIs('opd.riwayat') ? 'active' : '' }}">
-                    <i data-lucide="history" class="w-5 h-5"></i> Riwayat
+                    <i data-lucide="history" class="w-5 h-5"></i> Riwayat Verifikasi
                 </a>
             @endif
 
@@ -165,6 +194,11 @@
                         <i data-lucide="graduation-cap" class="w-5 h-5"></i> {{ $prog->nama }}
                     </a>
                 @endforeach
+                
+                <div class="sidebar-section mt-4">Lainnya</div>
+                <a href="{{ route('kecamatan.riwayat') }}" class="sidebar-link {{ request()->routeIs('kecamatan.riwayat') ? 'active' : '' }}">
+                    <i data-lucide="history" class="w-5 h-5"></i> Riwayat Keputusan
+                </a>
             @endif
 
             {{-- ── ADMIN DESA ── --}}
@@ -184,6 +218,11 @@
                         @endforeach
                     @endif
                 @endforeach
+
+                <div class="sidebar-section mt-4">Lainnya</div>
+                <a href="{{ route('desa.riwayat') }}" class="sidebar-link {{ request()->routeIs('desa.riwayat') ? 'active' : '' }}">
+                    <i data-lucide="history" class="w-5 h-5"></i> Riwayat Keputusan
+                </a>
             @endif
 
             {{-- ── ADMIN DPMD ── --}}
@@ -203,11 +242,16 @@
                         @endforeach
                     @endif
                 @endforeach
+
+                <div class="sidebar-section mt-4">Lainnya</div>
+                <a href="{{ route('dpmd.riwayat') }}" class="sidebar-link {{ request()->routeIs('dpmd.riwayat') ? 'active' : '' }}">
+                    <i data-lucide="history" class="w-5 h-5"></i> Riwayat Keputusan
+                </a>
             @endif
         </nav>
-
+  
         {{-- Sidebar Footer --}}
-        <div class="p-4 border-t border-slate-100 mt-4 space-y-3">
+        <div class="p-4 border-t border-slate-100 mt-auto shrink-0 space-y-3">
             <a href="{{ route('home') }}" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 text-slate-700 text-sm font-bold rounded-xl transition-colors border border-slate-200">
                 <i data-lucide="globe" class="w-4 h-4 text-slate-500"></i> Ke Halaman Publik
             </a>
@@ -221,14 +265,80 @@
 
     {{-- ═══ MAIN CONTENT ═══ --}}
     <main class="pt-16 lg:pl-[264px] min-h-screen">
-        {{-- Flash Messages --}}
+        {{-- Flash Messages (SweetAlert2) --}}
         @if(session('success') || session('error') || session('info') || session('warning'))
-        <div class="px-6 pt-6 space-y-3">
-            @if(session('success')) <x-alert type="success" :dismissible="true">{{ session('success') }}</x-alert> @endif
-            @if(session('error'))   <x-alert type="danger" :dismissible="true">{{ session('error') }}</x-alert>   @endif
-            @if(session('info'))    <x-alert type="info" :dismissible="true">{{ session('info') }}</x-alert>       @endif
-            @if(session('warning')) <x-alert type="warning" :dismissible="true">{{ session('warning') }}</x-alert> @endif
-        </div>
+            @push('scripts')
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    @if(session('success'))
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Berhasil!',
+                            html: `{!! session('success') !!}`,
+                            confirmButtonColor: '#10B981',
+                            customClass: {
+                                confirmButton: 'btn btn-primary'
+                            }
+                        });
+                    @endif
+                    @if(session('error'))
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops! Terjadi Kesalahan',
+                            html: `{!! session('error') !!}`,
+                            confirmButtonColor: '#EF4444',
+                            customClass: {
+                                confirmButton: 'btn btn-primary'
+                            }
+                        });
+                    @endif
+                    @if(session('info'))
+                        Swal.fire({
+                            icon: 'info',
+                            title: 'Informasi',
+                            html: `{!! session('info') !!}`,
+                            confirmButtonColor: '#3B82F6',
+                            customClass: {
+                                confirmButton: 'btn btn-primary'
+                            }
+                        });
+                    @endif
+                    @if(session('warning'))
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Peringatan',
+                            html: `{!! session('warning') !!}`,
+                            confirmButtonColor: '#F59E0B',
+                            customClass: {
+                                confirmButton: 'btn btn-primary'
+                            }
+                        });
+                    @endif
+                });
+            </script>
+            @endpush
+        @endif
+
+        @if($errors->any())
+            @push('scripts')
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    let errorMessages = '';
+                    @foreach($errors->all() as $error)
+                        errorMessages += '&bull; {{ addslashes($error) }}<br>';
+                    @endforeach
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validasi Gagal',
+                        html: `<div class="text-left text-sm text-slate-600">${errorMessages}</div>`,
+                        confirmButtonColor: '#EF4444',
+                        customClass: {
+                            confirmButton: 'btn btn-primary'
+                        }
+                    });
+                });
+            </script>
+            @endpush
         @endif
 
         <div class="p-6">

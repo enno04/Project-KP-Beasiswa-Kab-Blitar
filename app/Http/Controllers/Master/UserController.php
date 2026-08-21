@@ -16,11 +16,26 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with(['role', 'opd', 'kecamatan', 'desa'])
-                    ->search(['nama', 'username'], request('search'))
-                    ->sort(request('sort', 'created_at'), request('dir', 'desc'))
-                    ->paginate(15)
-                    ->withQueryString();
+        $query = User::with(['role', 'opd', 'kecamatan', 'desa'])
+                    ->search(['nama', 'username'], request('search'));
+
+        if (request()->filled('role_id')) {
+            $query->where('role_id', request('role_id'));
+        }
+
+        if (request()->filled('status')) {
+            $query->where('status', request('status') === 'aktif' ? 1 : 0);
+        }
+
+        if (request('urutan_waktu') === 'terlama') {
+            $query->orderBy('created_at', 'asc');
+        } elseif (request('urutan_waktu') === 'terbaru') {
+            $query->orderBy('created_at', 'desc');
+        } else {
+            $query->sort(request('sort', 'created_at'), request('dir', 'desc'));
+        }
+
+        $users = $query->paginate(15)->withQueryString();
         $roles = Role::all();
         $opdList = Opd::orderBy('nama_opd')->get();
         $kecamatanList = Kecamatan::orderBy('nama_kecamatan')->get();

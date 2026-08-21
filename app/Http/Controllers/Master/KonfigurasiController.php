@@ -77,28 +77,123 @@ class KonfigurasiController extends Controller
         $request->validate([
             'periode_id' => 'required|exists:periode,id',
             'nama' => 'required|string|max:255',
-            'kode' => 'required|string|max:50',
+            'kode' => [
+                'required',
+                'string',
+                'max:50',
+                \Illuminate\Validation\Rule::unique('programs', 'kode')->where(function ($query) use ($request) {
+                    return $query->where('periode_id', $request->periode_id);
+                }),
+            ],
+            'tanggal_buka' => 'required|date',
+            'tanggal_tutup' => 'required|date|after_or_equal:tanggal_buka',
+            'urutan' => 'required|integer|min:1',
             'aktif' => 'required|boolean',
+        ], [
+            'kode.unique' => 'Kode program ini sudah digunakan. Silakan gunakan kode lain.'
         ]);
-        $prog = Program::create($request->only(['periode_id', 'nama', 'kode', 'deskripsi', 'tanggal_buka', 'tanggal_tutup', 'aktif']));
-        AuditLog::catat('Tambah Program', "Program: {$prog->nama}", Program::class, $prog->id, null, $prog->only(['nama', 'kode', 'aktif', 'tanggal_buka', 'tanggal_tutup']));
+        $isSdss = strtolower($request->kode) === 'sdss';
+        $request->merge([
+            'aktif' => $request->has('aktif'),
+            'kunci_hitung_nilai' => $isSdss ? true : false
+        ]);
+
+        $prog = Program::create($request->only(['periode_id', 'nama', 'kode', 'deskripsi', 'tanggal_buka', 'tanggal_tutup', 'urutan', 'aktif', 'kunci_hitung_nilai']));
+        
+        // Reorder semua program agar berurutan tanpa celah/duplikat
+        $programs = Program::where('periode_id', $prog->periode_id)
+            ->where('id', '!=', $prog->id)
+            ->orderBy('urutan', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+            
+        $programsList = $programs->values()->all();
+        array_splice($programsList, max(0, $prog->urutan - 1), 0, [$prog]);
+        
+        foreach ($programsList as $index => $p) {
+            Program::where('id', $p->id)->update(['urutan' => $index + 1]);
+        }
+
+        AuditLog::catat('Tambah Program', "Program: {$prog->nama}", Program::class, $prog->id, null, $prog->only(['nama', 'kode', 'aktif', 'tanggal_buka', 'tanggal_tutup', 'urutan', 'kunci_hitung_nilai']));
         return redirect()->route('super-admin.master.program.index')->with('success', 'Program berhasil ditambahkan.');
     }
 
     public function programUpdate(Request $request, $id)
     {
         $prog = Program::findOrFail($id);
-        $dataLama = $prog->only(['nama', 'kode', 'aktif', 'tanggal_buka', 'tanggal_tutup']);
-        $prog->update($request->only(['nama', 'kode', 'deskripsi', 'tanggal_buka', 'tanggal_tutup', 'aktif']));
-        AuditLog::catat('Ubah Program', "Program: {$prog->nama}", Program::class, $prog->id, $dataLama, $prog->only(['nama', 'kode', 'aktif', 'tanggal_buka', 'tanggal_tutup']));
+        
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'kode' => [
+                'required',
+                'string',
+                'max:50',
+                \Illuminate\Validation\Rule::unique('programs', 'kode')->where(function ($query) use ($prog) {
+                    return $query->where('periode_id', $prog->periode_id);
+                })->ignore($prog->id),
+            ],
+            'tanggal_buka' => 'required|date',
+            'tanggal_tutup' => 'required|date|after_or_equal:tanggal_buka',
+            'urutan' => 'required|integer|min:1',
+        ], [
+            'kode.unique' => 'Kode program ini sudah digunakan. Silakan gunakan kode lain.'
+        ]);
+
+        $request->merge([
+            'aktif' => $request->has('aktif'),
+            'kunci_hitung_nilai' => $request->has('kunci_hitung_nilai')
+        ]);
+        
+        $urutanBaru = (int) $request->urutan;
+        
+        // Ambil semua program lain di periode yang sama
+        $programs = Program::where('periode_id', $prog->periode_id)
+            ->where('id', '!=', $prog->id)
+            ->orderBy('urutan', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+            
+        // Sisipkan program yang sedang di-edit ke posisi baru
+        $programsList = $programs->values()->all();
+        array_splice($programsList, max(0, $urutanBaru - 1), 0, [$prog]);
+        
+        // Update ulang semua urutan secara berurut (1, 2, 3...)
+        foreach ($programsList as $index => $p) {
+            $expectedUrutan = $index + 1;
+            if ($p->id == $prog->id) {
+                $request->merge(['urutan' => $expectedUrutan]);
+            } else {
+                Program::where('id', $p->id)->update(['urutan' => $expectedUrutan]);
+            }
+        }
+
+        $dataLama = $prog->only(['nama', 'kode', 'aktif', 'tanggal_buka', 'tanggal_tutup', 'urutan', 'kunci_hitung_nilai']);
+        $prog->update($request->only(['nama', 'kode', 'deskripsi', 'tanggal_buka', 'tanggal_tutup', 'urutan', 'aktif', 'kunci_hitung_nilai']));
+        AuditLog::catat('Ubah Program', "Program: {$prog->nama}", Program::class, $prog->id, $dataLama, $prog->only(['nama', 'kode', 'aktif', 'tanggal_buka', 'tanggal_tutup', 'urutan', 'kunci_hitung_nilai']));
         return redirect()->route('super-admin.master.program.index')->with('success', 'Program berhasil diperbarui.');
     }
 
     public function programDestroy($id)
     {
         $prog = Program::findOrFail($id);
+        
+        if (strtolower($prog->kode) === 'sdss') {
+            return redirect()->back()->with('error', 'Program utama (SDSS) tidak dapat dihapus karena dibutuhkan oleh sistem.');
+        }
+
         AuditLog::catat('Hapus Program', "Program: {$prog->nama}", Program::class, $prog->id, $prog->only(['nama', 'kode', 'aktif']), null);
         $prog->delete();
+        
+        // Re-index sisa program agar tidak ada gap urutan
+        $programs = Program::where('periode_id', $prog->periode_id)
+            ->orderBy('urutan', 'asc')
+            ->orderBy('id', 'asc')
+            ->get();
+            
+        foreach ($programs as $index => $p) {
+            Program::where('id', $p->id)->update(['urutan' => $index + 1]);
+        }
+
         return redirect()->route('super-admin.master.program.index')->with('success', 'Program berhasil dihapus.');
     }
 
@@ -111,18 +206,44 @@ class KonfigurasiController extends Controller
 
     public function jalurStore(Request $request, $programId)
     {
-        $request->validate(['nama' => 'required|string|max:255', 'kode' => 'required|string|max:50', 'urutan' => 'required|integer']);
-        $jalur = Jalur::create(array_merge($request->only(['nama', 'kode', 'deskripsi', 'aktif', 'urutan']), ['program_id' => $programId]));
-        AuditLog::catat('Tambah Jalur', "Jalur: {$jalur->nama}", Jalur::class, $jalur->id, null, $jalur->only(['nama', 'kode', 'aktif', 'urutan']));
+        $request->validate([
+            'nama' => 'required|string|max:255', 
+            'kode' => [
+                'required',
+                'string',
+                'max:50',
+                \Illuminate\Validation\Rule::unique('jalurs', 'kode')->where(function ($query) use ($programId) {
+                    return $query->where('program_id', $programId);
+                })
+            ]
+        ], [
+            'kode.unique' => 'Kode jalur ini sudah terdaftar pada program ini. Silakan gunakan kode lain.'
+        ]);
+        $jalur = Jalur::create(array_merge($request->only(['nama', 'kode', 'deskripsi', 'aktif']), ['program_id' => $programId, 'urutan' => 1]));
+        AuditLog::catat('Tambah Jalur', "Jalur: {$jalur->nama}", Jalur::class, $jalur->id, null, $jalur->only(['nama', 'kode', 'aktif']));
         return redirect()->route('super-admin.master.jalur.index', $programId)->with('success', 'Jalur berhasil ditambahkan.');
     }
 
     public function jalurUpdate(Request $request, $programId, $id)
     {
         $jalur = Jalur::findOrFail($id);
-        $dataLama = $jalur->only(['nama', 'kode', 'aktif', 'urutan']);
-        $jalur->update($request->only(['nama', 'kode', 'deskripsi', 'aktif', 'urutan']));
-        AuditLog::catat('Ubah Jalur', "Jalur: {$jalur->nama}", Jalur::class, $jalur->id, $dataLama, $jalur->only(['nama', 'kode', 'aktif', 'urutan']));
+        
+        $request->validate([
+            'nama' => 'required|string|max:255', 
+            'kode' => [
+                'required',
+                'string',
+                'max:50',
+                \Illuminate\Validation\Rule::unique('jalurs', 'kode')->where(function ($query) use ($programId) {
+                    return $query->where('program_id', $programId);
+                })->ignore($jalur->id)
+            ]
+        ], [
+            'kode.unique' => 'Kode jalur ini sudah terdaftar pada program ini. Silakan gunakan kode lain.'
+        ]);
+        $dataLama = $jalur->only(['nama', 'kode', 'aktif']);
+        $jalur->update($request->only(['nama', 'kode', 'deskripsi', 'aktif']));
+        AuditLog::catat('Ubah Jalur', "Jalur: {$jalur->nama}", Jalur::class, $jalur->id, $dataLama, $jalur->only(['nama', 'kode', 'aktif']));
         return redirect()->route('super-admin.master.jalur.index', $programId)->with('success', 'Jalur berhasil diperbarui.');
     }
 

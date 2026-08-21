@@ -44,18 +44,45 @@ class VerifikasiService
         // Jika dokumen dinyatakan tidak valid, pendaftar otomatis gugur
         if ($hasil === 'tidak_valid') {
             $pendaftaran = $upload->pendaftaran;
-            if ($pendaftaran && $pendaftaran->status !== 'tidak_lulus') {
-                $pendaftaran->status = 'tidak_lulus';
+            if ($pendaftaran && $pendaftaran->status !== 'tidak_lolos_verifikasi') {
+                $pendaftaran->status = 'tidak_lolos_verifikasi';
                 $pendaftaran->save();
                 
                 AuditLog::catat(
                     'Pendaftaran Gugur',
-                    "Pendaftar dinyatakan Tidak Lulus karena dokumen {$upload->dokumen->nama} dinyatakan Tidak Valid oleh OPD.",
+                    "Pendaftar dinyatakan Tidak Lolos Verifikasi OPD karena dokumen {$upload->dokumen->nama} dinyatakan Tidak Valid oleh OPD.",
                     Pendaftaran::class,
                     $pendaftaran->id
                 );
+
+                // Jika pendaftar ini sudah pernah dinilai & diranking oleh desa (SDSS),
+                // maka kita harus me-reset rankingnya dan me-re-generate ranking untuk desa tersebut.
+                $pendaftaran->loadMissing(['program', 'identitas']);
+                if ($pendaftaran->total_nilai > 0 && $pendaftaran->program && $pendaftaran->program->isSdss()) {
+                    $pendaftaran->ranking = null;
+                    $pendaftaran->save();
+                    
+                    app(\App\Services\RankingService::class)->generateRankingPerDesa(
+                        $pendaftaran->jalur_id,
+                        $pendaftaran->periode_id,
+                        $pendaftaran->identitas?->desa_id
+                    );
+                }
             }
-            return ['status' => true, 'message' => 'Verifikasi disimpan. Pendaftar dinyatakan Tidak Lulus karena dokumen tidak valid.'];
+            return ['status' => true, 'message' => 'Verifikasi disimpan. Pendaftar dinyatakan Tidak Lolos Verifikasi karena dokumen tidak valid.'];
+        } elseif ($hasil === 'valid') {
+            $pendaftaran = $upload->pendaftaran;
+            if ($pendaftaran && $pendaftaran->status === 'tidak_lolos_verifikasi') {
+                // Cek apakah masih ada dokumen lain yang tidak_valid
+                $hasTidakValid = UploadDokumen::where('pendaftaran_id', $pendaftaran->id)
+                    ->where('status', 'tidak_valid')
+                    ->exists();
+                
+                if (!$hasTidakValid) {
+                    $pendaftaran->status = 'sedang_diverifikasi';
+                    $pendaftaran->save();
+                }
+            }
         }
 
         return ['status' => true, 'message' => 'Verifikasi dokumen berhasil.'];
@@ -91,6 +118,17 @@ class VerifikasiService
                 Pendaftaran::class,
                 $pendaftaran->id
             );
+
+            // Jika sebelumnya pendaftar ini digugurkan lalu dikembalikan ke lolos, 
+            // dan dia sudah punya nilai, kita harus re-generate ranking desa tersebut.
+            $pendaftaran->loadMissing(['program', 'identitas']);
+            if ($pendaftaran->total_nilai > 0 && $pendaftaran->program && $pendaftaran->program->isSdss()) {
+                app(\App\Services\RankingService::class)->generateRankingPerDesa(
+                    $pendaftaran->jalur_id,
+                    $pendaftaran->periode_id,
+                    $pendaftaran->identitas?->desa_id
+                );
+            }
         }
 
         return true;
@@ -99,13 +137,45 @@ class VerifikasiService
     /**
      * Ambil dokumen yang menjadi kewenangan OPD tertentu.
      */
-    public function getDokumenByOpd(int $opdId, ?string $statusFilter = null)
+    public function getDokumenByOpd(int $opdId, ?string $statusFilter = null, ?int $programId = null, ?int $kecamatanId = null, ?int $desaId = null, ?string $search = null)
     {
         $query = UploadDokumen::with(['dokumen', 'pendaftaran.identitas'])
             ->whereHas('dokumen', fn($q) => $q->where('opd_id', $opdId));
 
         if ($statusFilter) {
             $query->where('status', $statusFilter);
+            
+            // Jika memfilter 'belum_diverifikasi' (Antrean Aktif), pastikan status pendaftarannya juga masih aktif untuk verifikasi OPD
+            if ($statusFilter === 'belum_diverifikasi') {
+                $query->whereHas('pendaftaran', fn($q) => $q->opdActive());
+            }
+        }
+
+        if ($programId) {
+            $query->whereHas('pendaftaran', fn($q) => $q->where('program_id', $programId));
+        }
+
+        if ($kecamatanId) {
+            $query->whereHas('pendaftaran.identitas', fn($q) => $q->where('kecamatan_id', $kecamatanId));
+        }
+
+        if ($desaId) {
+            $query->whereHas('pendaftaran.identitas', fn($q) => $q->where('desa_id', $desaId));
+        }
+
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->whereHas('pendaftaran', function($q2) use ($search) {
+                    $q2->where('nomor_pendaftaran', 'like', "%{$search}%")
+                       ->orWhereHas('identitas', function($q3) use ($search) {
+                           $q3->where('nama_lengkap', 'like', "%{$search}%")
+                              ->orWhere('nik', 'like', "%{$search}%");
+                       });
+                })
+                ->orWhereHas('dokumen', function($q2) use ($search) {
+                    $q2->where('nama', 'like', "%{$search}%");
+                });
+            });
         }
 
         return $query->latest()->paginate(20);

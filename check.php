@@ -1,0 +1,1 @@
+﻿<?php print_r(\App\Models\RekomendasiDesa::where('status_kecamatan', 'menunggu')->whereHas('pendaftaran', function($q) { $q->where('status', 'diteruskan_ke_kecamatan'); })->get(['id', 'pendaftaran_id', 'tanggal_rekomendasi'])->toArray());

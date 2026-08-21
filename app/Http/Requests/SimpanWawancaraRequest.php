@@ -13,13 +13,9 @@ class SimpanWawancaraRequest extends FormRequest
 
     public function rules(): array
     {
-        // Jika action_type adalah 'gugurkan', tidak perlu validasi nilai wawancara
-        if ($this->action_type === 'gugurkan') {
-            return [];
-        }
-
         return [
-            'nilai_wawancara' => 'required|numeric|min:0|max:100',
+            'action_type' => 'required|in:lolos,gugurkan,batalkan',
+            'catatan' => 'nullable|string|max:500',
         ];
     }
 }

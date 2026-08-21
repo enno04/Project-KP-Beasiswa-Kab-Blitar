@@ -14,9 +14,12 @@
                     <span class="text-slate-400">NIK: {{ $pendaftaran->identitas->nik ?? '-' }}</span>
                 </div>
             </div>
-            <span class="badge {{ $pendaftaran->status_color }}">
-                <i data-lucide="tag" class="w-3.5 h-3.5"></i> {{ $pendaftaran->status_label }}
-            </span>
+            <div class="flex flex-col items-end gap-3">
+                <span class="badge {{ $pendaftaran->status_color }}">
+                    <i data-lucide="tag" class="w-3.5 h-3.5"></i> {{ $pendaftaran->status_label }}
+                </span>
+                <a href="{{ route('dpmd.program.index', [$pendaftaran->program->slug, $pendaftaran->jalur->slug]) }}" class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50"><i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Daftar Pendaftar</a>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -72,6 +75,39 @@
                         @endforeach
                     </div>
                 </div>
+
+                {{-- Data Orang Tua --}}
+                @if($pendaftaran->orangtua)
+                <div class="card overflow-hidden">
+                    <div class="card-header flex items-center gap-2">
+                        <i data-lucide="users" class="w-5 h-5 text-slate-400"></i>
+                        <span class="font-bold text-lg">Data Orang Tua / Wali</span>
+                    </div>
+                    <div class="card-body grid grid-cols-1 md:grid-cols-2 gap-4">
+                        @foreach([
+                            ['Ayah', $pendaftaran->orangtua->nama_ayah, $pendaftaran->orangtua->nik_ayah, $pendaftaran->orangtua->tempat_lahir_ayah, $pendaftaran->orangtua->tanggal_lahir_ayah, $pendaftaran->orangtua->no_hp_ayah, $pendaftaran->orangtua->alamat_ayah],
+                            ['Ibu', $pendaftaran->orangtua->nama_ibu, $pendaftaran->orangtua->nik_ibu, $pendaftaran->orangtua->tempat_lahir_ibu, $pendaftaran->orangtua->tanggal_lahir_ibu, $pendaftaran->orangtua->no_hp_ibu, $pendaftaran->orangtua->alamat_ibu],
+                        ] as [$role, $nama, $nik, $tempat, $tgl, $hp, $alamat])
+                        <div>
+                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-2">{{ $role }}</span>
+                            <div class="font-medium text-sm">{{ $nama ?? '-' }}</div>
+                            <div class="text-xs text-slate-500 mt-1">NIK: {{ $nik ?? '-' }}</div>
+                            <div class="text-xs text-slate-500 mt-1">{{ $tempat ?? '-' }}, {{ $tgl ? \Carbon\Carbon::parse($tgl)->format('d M Y') : '-' }}</div>
+                            <div class="text-xs text-slate-500 mt-1">HP: {{ $hp ?? '-' }}</div>
+                            <div class="text-xs text-slate-500 mt-1">Alamat: {{ $alamat ?? '-' }}</div>
+                        </div>
+                        @endforeach
+                        @if($pendaftaran->orangtua->nama_wali)
+                        <div class="md:col-span-2 pt-4 border-t border-dashed border-slate-200">
+                            <span class="block text-[11px] text-slate-400 font-bold uppercase tracking-wider mb-2">Wali</span>
+                            <div class="font-medium text-sm">{{ $pendaftaran->orangtua->nama_wali }}</div>
+                            <div class="text-xs text-slate-500 mt-1">NIK: {{ $pendaftaran->orangtua->nik_wali ?? '-' }}</div>
+                            <div class="text-xs text-slate-500 mt-1">HP: {{ $pendaftaran->orangtua->no_hp_wali ?? '-' }}</div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+                @endif
 
                 {{-- Penilaian --}}
                 @if($pendaftaran->penilaians->isNotEmpty())
@@ -141,17 +177,7 @@
                         </div>
                         @endif
 
-                        {{-- Status Verifikasi Kecamatan --}}
-                        <div class="pt-3 border-t border-slate-100">
-                            <div class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Status Verifikasi Kecamatan</div>
-                            @if($pendaftaran->rekomendasiDesa->status_kecamatan === 'disetujui')
-                                <div class="alert alert-success"><i data-lucide="check-circle" class="w-5 h-5"></i> <div><strong>DISETUJUI oleh Kecamatan</strong><p class="text-xs mt-1">Diverifikasi: {{ $pendaftaran->rekomendasiDesa->verified_at?->format('d M Y H:i') }}</p>@if($pendaftaran->rekomendasiDesa->catatan_kecamatan)<p class="text-sm mt-1">{{ $pendaftaran->rekomendasiDesa->catatan_kecamatan }}</p>@endif</div></div>
-                            @elseif($pendaftaran->rekomendasiDesa->status_kecamatan === 'ditolak')
-                                <div class="alert alert-danger"><i data-lucide="x-circle" class="w-5 h-5"></i> <div><strong>DITOLAK oleh Kecamatan</strong><p class="text-xs mt-1">{{ $pendaftaran->rekomendasiDesa->verified_at?->format('d M Y H:i') }}</p>@if($pendaftaran->rekomendasiDesa->catatan_kecamatan)<p class="text-sm mt-1">{{ $pendaftaran->rekomendasiDesa->catatan_kecamatan }}</p>@endif</div></div>
-                            @else
-                                <div class="alert alert-warning"><i data-lucide="clock" class="w-5 h-5"></i> <div><strong>Menunggu verifikasi Kecamatan</strong></div></div>
-                            @endif
-                        </div>
+
 
                         {{-- Status Verifikasi DPMD --}}
                         <div class="pt-3 border-t border-slate-100">
@@ -162,9 +188,9 @@
                                 <div class="alert alert-danger"><i data-lucide="x-circle" class="w-5 h-5"></i> <div><strong>DITOLAK oleh DPMD</strong><p class="text-xs mt-1">{{ $pendaftaran->rekomendasiDesa->dpmd_verified_at?->format('d M Y H:i') }} oleh {{ $pendaftaran->rekomendasiDesa->dpmdVerifier?->nama ?? '-' }}</p>@if($pendaftaran->rekomendasiDesa->catatan_dpmd)<p class="text-sm mt-1">{{ $pendaftaran->rekomendasiDesa->catatan_dpmd }}</p>@endif</div></div>
                             @else
                                 {{-- Form Verifikasi DPMD --}}
-                                <form action="{{ route('dpmd.verifikasi.rekomendasi', $pendaftaran->id) }}" method="POST" class="space-y-4">
+                                <form action="{{ route('dpmd.verifikasi.rekomendasi', $pendaftaran->id) }}" method="POST" class="space-y-4 pt-4 border-t border-slate-100">
                                     @csrf
-                                    <div class="text-sm font-bold text-violet-700 flex items-center gap-2">
+                                    <div class="text-sm font-bold text-slate-700 flex items-center gap-2">
                                         <i data-lucide="clipboard-check" class="w-4 h-4"></i> Berikan Keputusan Verifikasi DPMD
                                     </div>
                                     <div>
@@ -172,8 +198,7 @@
                                         <textarea name="catatan_dpmd" rows="3" class="form-input" placeholder="Tuliskan catatan verifikasi DPMD..."></textarea>
                                     </div>
                                     <div class="flex items-center gap-3">
-                                        <button type="submit" name="keputusan" value="disetujui" class="btn btn-success flex-1 justify-center"><i data-lucide="check" class="w-4 h-4"></i> Setujui & Teruskan</button>
-                                        <button type="submit" name="keputusan" value="ditolak" class="btn btn-sm" style="background:#DC2626;color:white;" onclick="return confirm('Yakin tolak rekomendasi ini?')"><i data-lucide="x" class="w-4 h-4"></i> Tolak</button>
+                                        <button type="submit" name="keputusan" value="disetujui" class="btn btn-success w-full justify-center"><i data-lucide="check" class="w-4 h-4"></i> Teruskan ke Kabupaten</button>
                                     </div>
                                 </form>
                             @endif
@@ -217,7 +242,7 @@
                 <div class="card overflow-hidden">
                     <div class="card-header flex items-center gap-2">
                         <i data-lucide="shield-check" class="w-5 h-5 text-violet-500"></i>
-                        <span class="font-bold">Status Persetujuan Paralel</span>
+                        <span class="font-bold">Status Persetujuan Rekomendasi</span>
                     </div>
                     <div class="card-body space-y-3">
                         @php

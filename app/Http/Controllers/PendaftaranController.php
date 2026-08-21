@@ -45,10 +45,11 @@ class PendaftaranController extends Controller
         $dokumens = $jalur->dokumens()->orderBy('urutan')->get();
         $kelompokKriterias = $jalur->kelompokKriterias()->with('kriterias.pilihans')->orderBy('urutan')->get();
         $kecamatanList = Kecamatan::orderBy('nama_kecamatan')->get();
+        $customFields = $jalur->customFields()->aktif()->orderBy('penempatan')->orderBy('urutan')->get();
 
         return view('pendaftaran.create', compact(
             'program', 'jalur', 'periode', 'persyaratans', 'dokumens',
-            'kelompokKriterias', 'kecamatanList'
+            'kelompokKriterias', 'kecamatanList', 'customFields'
         ));
     }
 

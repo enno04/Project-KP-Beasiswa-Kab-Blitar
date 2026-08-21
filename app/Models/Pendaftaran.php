@@ -135,10 +135,25 @@ class Pendaftaran extends Model
 
     public function getStatusLabelAttribute(): string
     {
+        if ($this->status === 'diteruskan_ke_kecamatan' && $this->rekomendasiDesa) {
+            $kec = $this->rekomendasiDesa->status_kecamatan;
+            $dpmd = $this->rekomendasiDesa->status_dpmd;
+            
+            if ($kec === 'disetujui' && $dpmd !== 'disetujui') {
+                return 'Menunggu Verif DPMD';
+            } elseif ($kec !== 'disetujui' && $dpmd === 'disetujui') {
+                return 'Menunggu Verif Kecamatan';
+            }
+        }
+
+        if ($this->status === 'lolos_verifikasi' && $this->total_nilai > 0) {
+            return 'Selesai Dinilai Desa';
+        }
+
         return match ($this->status) {
             'draft' => 'Draft',
-            'menunggu_verifikasi' => 'Diajukan',
-            'sedang_diverifikasi' => 'Sedang Diverifikasi',
+            'menunggu_verifikasi' => 'Diajukan ke OPD',
+            'sedang_diverifikasi' => 'Sedang Diverifikasi OPD',
             'lolos_verifikasi' => 'Lolos Verifikasi OPD',
             'tidak_lolos_verifikasi' => 'Gugur Verifikasi OPD',
             'tidak_lolos_desa' => 'Tidak Dipilih Desa',
@@ -151,7 +166,7 @@ class Pendaftaran extends Model
             'gugur_wawancara' => 'Gugur Wawancara',
             'menunggu_penilaian' => 'Menunggu Penilaian',
             'proses_penilaian' => 'Proses Penilaian',
-            'menunggu_penetapan' => 'Menunggu Penetapan',
+            'menunggu_penetapan' => 'Menunggu Penetapan Kab. Blitar',
             'lulus', 'sk_terbit' => 'Lulus — SK Terbit',
             'tidak_lulus' => 'Tidak Lulus',
             default => str_replace('_', ' ', $this->status),
@@ -230,6 +245,10 @@ class Pendaftaran extends Model
 
     public function getStatusColorAttribute(): string
     {
+        if ($this->status === 'lolos_verifikasi' && $this->total_nilai > 0) {
+            return 'bg-emerald-100 text-emerald-700'; // Warna khusus untuk yang sudah dinilai desa
+        }
+
         return match ($this->status) {
             'lulus', 'sk_terbit' => 'bg-green-100 text-green-700',
             'tidak_lulus', 'tidak_lolos_verifikasi', 'ditolak_kecamatan', 'ditolak_dpmd', 'gugur_wawancara' => 'bg-red-100 text-red-700',
@@ -262,5 +281,41 @@ class Pendaftaran extends Model
         }
 
         return $prefix . str_pad($newSequence, 4, '0', STR_PAD_LEFT);
+    }
+
+    public function customFieldAnswers()
+    {
+        return $this->hasMany(CustomFieldAnswer::class);
+    }
+
+    /**
+     * Scope untuk mengambil pendaftaran yang verifikasinya belum dikunci bagi OPD.
+     */
+    public function scopeOpdActive($query)
+    {
+        return $query->where(function($q) {
+            $q->where(function($q2) {
+                // Untuk SDSS: OPD aktif selama belum ditetapkan desa (masih menunggu/sedang/lolos/tidak lolos verifikasi OPD)
+                $q2->whereHas('program', fn($p) => $p->where('nama', 'like', '%satu desa%'))
+                   ->whereIn('pendaftarans.status', ['menunggu_verifikasi', 'sedang_diverifikasi', 'lolos_verifikasi', 'tidak_lolos_verifikasi']);
+            })
+            ->orWhere(function($q2) {
+                // Untuk Non-SDSS: OPD aktif selama belum penetapan akhir Kab. Blitar
+                $q2->whereHas('program', fn($p) => $p->where('nama', 'not like', '%satu desa%'))
+                   ->whereNotIn('pendaftarans.status', ['menunggu_penetapan', 'lulus', 'sk_terbit', 'ditolak']);
+            });
+        });
+    }
+
+    /**
+     * Mengecek apakah verifikasi pendaftaran masih bisa diubah oleh OPD.
+     */
+    public function isOpdActive(): bool
+    {
+        $isSDSS = str_contains(strtolower($this->program->nama ?? ''), 'satu desa');
+        if ($isSDSS) {
+            return in_array($this->status, ['menunggu_verifikasi', 'sedang_diverifikasi', 'lolos_verifikasi', 'tidak_lolos_verifikasi']);
+        }
+        return !in_array($this->status, ['menunggu_penetapan', 'lulus', 'sk_terbit', 'ditolak']);
     }
 }

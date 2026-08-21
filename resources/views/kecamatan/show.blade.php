@@ -14,9 +14,12 @@
                     <span class="text-slate-400">NIK: {{ $pendaftaran->identitas->nik ?? '-' }}</span>
                 </div>
             </div>
-            <span class="badge {{ $pendaftaran->status_color }}">
-                <i data-lucide="tag" class="w-3.5 h-3.5"></i> {{ $pendaftaran->status_label }}
-            </span>
+            <div class="flex flex-col items-end gap-3">
+                <span class="badge {{ $pendaftaran->status_color }}">
+                    <i data-lucide="tag" class="w-3.5 h-3.5"></i> {{ $pendaftaran->status_label }}
+                </span>
+                <a href="{{ route('kecamatan.program.index', [$pendaftaran->program->slug, $pendaftaran->jalur->slug]) }}" class="btn btn-sm btn-outline border-slate-300 text-slate-600 hover:bg-slate-50"><i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali ke Daftar Pendaftar</a>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -105,6 +108,67 @@
                 </div>
                 @endif
 
+                {{-- Kriteria Penilaian & Ranking --}}
+                @if($pendaftaran->penilaians->isNotEmpty())
+                <div class="card overflow-hidden">
+                    <div class="card-header flex items-center gap-2">
+                        <i data-lucide="calculator" class="w-5 h-5 text-slate-400"></i>
+                        <span class="font-bold text-lg">Penilaian & Ranking</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div class="text-center p-4 bg-primary-light rounded-xl">
+                                <div class="text-xs font-bold text-slate-500 uppercase">Total Nilai</div>
+                                <div class="text-2xl font-extrabold text-primary-dark">{{ number_format($pendaftaran->total_nilai, 4) }}</div>
+                            </div>
+                            <div class="text-center p-4 bg-amber-50 rounded-xl">
+                                <div class="text-xs font-bold text-slate-500 uppercase">Ranking Desa</div>
+                                <div class="text-2xl font-extrabold text-amber-700">#{{ $pendaftaran->ranking ?? '-' }}</div>
+                            </div>
+                        </div>
+                        <table class="data-table">
+                            <thead><tr><th>Kriteria</th><th class="text-right">Skor</th><th class="text-right">Nilai Terbobot</th></tr></thead>
+                            <tbody>
+                                @foreach($pendaftaran->penilaians as $penilaian)
+                                <tr>
+                                    <td class="font-medium">{{ $penilaian->kriteria->nama ?? '-' }}</td>
+                                    <td class="text-right">{{ number_format($penilaian->skor, 2) }}</td>
+                                    <td class="text-right font-semibold text-primary-dark">{{ number_format($penilaian->nilai_terbobot, 4) }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                @else
+                <div class="card overflow-hidden">
+                    <div class="card-header flex items-center gap-2"><i data-lucide="list-checks" class="w-5 h-5 text-slate-400"></i><span class="font-bold text-lg">Input Jawaban Kriteria</span></div>
+                    <table class="data-table">
+                        <tbody>
+                            @forelse($pendaftaran->jawabanKriterias as $jawaban)
+                            <tr>
+                                <td class="w-1/2">
+                                    <div class="font-semibold text-slate-700">{{ $jawaban->kriteria->nama }}</div>
+                                    <div class="text-xs text-slate-400">{{ $jawaban->kriteria->kelompokKriteria->nama ?? '' }}</div>
+                                </td>
+                                <td>
+                                    @if($jawaban->kriteria->tipe_input === 'pilihan')
+                                        <span class="font-medium">{{ $jawaban->pilihanKriteria->label ?? '-' }}</span>
+                                    @else
+                                        <span class="font-medium font-mono text-primary">{{ $jawaban->nilai_input ?? '-' }}</span>
+                                    @endif
+                                </td>
+                            </tr>
+                            @empty
+                            <tr>
+                                <td colspan="2" class="text-center text-slate-400 py-4 text-sm italic">Belum ada data nilai kriteria.</td>
+                            </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                @endif
+
                 {{-- Verifikasi Berkas Desa --}}
                 @if($pendaftaran->rekomendasiDesa)
                 <div class="card overflow-hidden">
@@ -148,20 +212,19 @@
                         @elseif($pendaftaran->rekomendasiDesa->status_kecamatan === 'ditolak')
                             <div class="alert alert-danger"><i data-lucide="x-circle" class="w-5 h-5"></i> <div><strong>DITOLAK</strong><p class="text-xs mt-1">Ditolak: {{ $pendaftaran->rekomendasiDesa->verified_at?->format('d M Y H:i') }}</p>@if($pendaftaran->rekomendasiDesa->catatan_kecamatan)<p class="text-sm mt-1">{{ $pendaftaran->rekomendasiDesa->catatan_kecamatan }}</p>@endif</div></div>
                         @else
-                            <form action="{{ route('kecamatan.verifikasi.rekomendasi', $pendaftaran->id) }}" method="POST" class="space-y-4 pt-4 border-t border-slate-100">
-                                @csrf
-                                <div class="text-sm font-bold text-slate-700 flex items-center gap-2">
-                                    <i data-lucide="clipboard-check" class="w-4 h-4"></i> Berikan Keputusan Verifikasi
-                                </div>
-                                <div>
-                                    <label class="form-label">Catatan Verifikasi (Opsional)</label>
-                                    <textarea name="catatan_kecamatan" rows="3" class="form-input" placeholder="Tuliskan catatan verifikasi..."></textarea>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <button type="submit" name="keputusan" value="disetujui" class="btn btn-success flex-1 justify-center"><i data-lucide="check" class="w-4 h-4"></i> Setujui & Teruskan</button>
-                                    <button type="submit" name="keputusan" value="ditolak" class="btn btn-sm" style="background:#DC2626;color:white;" onclick="return confirm('Yakin tolak berkas ini?')"><i data-lucide="x" class="w-4 h-4"></i> Tolak</button>
-                                </div>
-                            </form>
+                                <form action="{{ route('kecamatan.verifikasi.rekomendasi', $pendaftaran->id) }}" method="POST" class="space-y-4 pt-4 border-t border-slate-100">
+                                    @csrf
+                                    <div class="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                        <i data-lucide="clipboard-check" class="w-4 h-4"></i> Berikan Keputusan Verifikasi
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Catatan Verifikasi (Opsional)</label>
+                                        <textarea name="catatan_kecamatan" rows="3" class="form-input" placeholder="Tuliskan catatan verifikasi..."></textarea>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <button type="submit" name="keputusan" value="disetujui" class="btn btn-success w-full justify-center"><i data-lucide="check" class="w-4 h-4"></i> Teruskan ke Kabupaten</button>
+                                    </div>
+                                </form>
                         @endif
                     </div>
                 </div>
@@ -204,6 +267,38 @@
                         </li>
                         @endforeach
                     </ul>
+                </div>
+                <div class="card overflow-hidden">
+                    <div class="card-header flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-5 h-5 text-violet-500"></i>
+                        <span class="font-bold">Status Persetujuan Rekomendasi</span>
+                    </div>
+                    <div class="card-body space-y-3">
+                        @php
+                            $rek = $pendaftaran->rekomendasiDesa;
+                            $skec = $rek?->status_kecamatan ?? 'belum_diverifikasi';
+                            $sdpmd = $rek?->status_dpmd ?? 'belum_diverifikasi';
+                        @endphp
+                        <div class="flex items-center justify-between p-3 rounded-lg {{ $skec === 'disetujui' ? 'bg-green-50' : ($skec === 'ditolak' ? 'bg-red-50' : 'bg-amber-50') }}">
+                            <span class="text-sm font-semibold">Kecamatan</span>
+                            <x-badge :type="$skec === 'disetujui' ? 'success' : ($skec === 'ditolak' ? 'danger' : 'warning')">
+                                {{ $skec === 'disetujui' ? '✓ Disetujui' : ($skec === 'ditolak' ? '✗ Ditolak' : '⏳ Menunggu') }}
+                            </x-badge>
+                        </div>
+                        <div class="flex items-center justify-between p-3 rounded-lg {{ $sdpmd === 'disetujui' ? 'bg-green-50' : ($sdpmd === 'ditolak' ? 'bg-red-50' : 'bg-amber-50') }}">
+                            <span class="text-sm font-semibold">DPMD</span>
+                            <x-badge :type="$sdpmd === 'disetujui' ? 'success' : ($sdpmd === 'ditolak' ? 'danger' : 'warning')">
+                                {{ $sdpmd === 'disetujui' ? '✓ Disetujui' : ($sdpmd === 'ditolak' ? '✗ Ditolak' : '⏳ Menunggu') }}
+                            </x-badge>
+                        </div>
+                        @if($rek && $rek->isFullyApproved())
+                            <div class="text-center p-3 bg-green-50 rounded-lg border border-green-200 mt-2">
+                                <i data-lucide="check-circle-2" class="w-6 h-6 text-green-600 mx-auto mb-1"></i>
+                                <p class="text-sm font-bold text-green-700">Kedua pihak sudah menyetujui</p>
+                                <p class="text-xs text-green-600">Pendaftaran diteruskan ke Kabupaten</p>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             </div>
         </div>

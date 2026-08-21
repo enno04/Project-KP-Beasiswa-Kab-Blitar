@@ -16,7 +16,14 @@ class PublicController extends Controller
     {
         $periodeAktif = Periode::aktif()->first();
         $programs = $periodeAktif
-            ? Program::where('periode_id', $periodeAktif->id)->aktif()->with('jalurs')->orderBy('urutan')->get()
+            ? Program::where('periode_id', $periodeAktif->id)
+                ->aktif()
+                ->with('jalurs')
+                ->withCount(['pendaftarans' => function ($q) {
+                    $q->where('status', '!=', 'draft');
+                }])
+                ->orderBy('urutan')
+                ->get()
             : collect();
         $dokumenPubliks = DokumenPublik::aktif()->ordered()->get();
 

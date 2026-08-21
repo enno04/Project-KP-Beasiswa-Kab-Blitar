@@ -146,6 +146,10 @@
                                 Keluar
                             </button>
                         </form>
+                    @else
+                        <a href="{{ route('login') }}" class="btn btn-sm btn-outline hidden sm:flex">
+                            <i data-lucide="log-in" class="w-4 h-4"></i> Login Admin
+                        </a>
                     @endauth
 
                     <button @click="mobileMenu = !mobileMenu"
@@ -173,12 +177,18 @@
                 <div class="border-t border-slate-100 pt-2 mt-2">
                     <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Pendaftaran</p>
                     <a href="{{ route('pendaftaran.index') }}"
-                        class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('pendaftaran.*') ? 'bg-primary-light text-primary-dark' : 'text-slate-600 hover:bg-slate-50' }}">Formulir
-                        Pendaftaran</a>
+                        class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('pendaftaran.*') ? 'bg-primary-light text-primary-dark' : 'text-slate-600 hover:bg-slate-50' }}">Formulir Pendaftaran</a>
                     <a href="{{ route('cek.status') }}"
-                        class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('cek.status') ? 'bg-primary-light text-primary-dark' : 'text-slate-600 hover:bg-slate-50' }}">Cek
-                        Status & Cetak Bukti</a>
+                        class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('cek.status') ? 'bg-primary-light text-primary-dark' : 'text-slate-600 hover:bg-slate-50' }}">Cek Status & Cetak Bukti</a>
                 </div>
+                @guest
+                <div class="border-t border-slate-100 pt-2 mt-2 sm:hidden">
+                    <a href="{{ route('login') }}"
+                        class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
+                        <i data-lucide="log-in" class="w-4 h-4"></i> Login Admin
+                    </a>
+                </div>
+                @endguest
             </div>
         </div>
     </nav>

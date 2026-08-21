@@ -29,6 +29,7 @@
                         @if(request('status')) <input type="hidden" name="status" value="{{ request('status') }}"> @endif
                         @if(request('sort')) <input type="hidden" name="sort" value="{{ request('sort') }}"> @endif
                         @if(request('dir')) <input type="hidden" name="dir" value="{{ request('dir') }}"> @endif
+                        @if(request('per_page')) <input type="hidden" name="per_page" value="{{ request('per_page') }}"> @endif
                         
                         <div class="relative">
                             <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -78,7 +79,7 @@
         </div>
         
         {{-- Pagination --}}
-        @if($items->hasPages())
+        @if(method_exists($items, 'hasPages') && $items->hasPages())
             <div class="card-footer border-t border-slate-200 p-4 bg-slate-50">
                 {{ $items->onEachSide(1)->links() }}
             </div>

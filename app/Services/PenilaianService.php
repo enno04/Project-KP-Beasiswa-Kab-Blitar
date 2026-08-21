@@ -137,7 +137,8 @@ class PenilaianService
         $pendaftarans = $query->get();
 
         if ($pendaftarans->isEmpty()) {
-            return ['status' => false, 'message' => 'Tidak ada pendaftar yang siap dinilai.'];
+            // Ubah menjadi true agar proses tetap bisa berlanjut ke tahap re-ranking jika ada perubahan
+            return ['status' => true, 'message' => 'Semua pendaftar telah memiliki nilai, melanjutkan ke proses re-ranking.'];
         }
 
         $berhasil = 0;

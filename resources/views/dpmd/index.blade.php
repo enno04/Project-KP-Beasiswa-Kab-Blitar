@@ -8,7 +8,15 @@
     {{-- Filter --}}
     <div class="card mb-6">
         <div class="card-body py-4">
-            <form method="GET" class="flex flex-col sm:flex-row gap-3 items-end">
+            <form method="GET" class="flex flex-col sm:flex-row flex-wrap gap-3 items-end">
+                <div class="flex-1 w-full min-w-[200px]">
+                    <label class="form-label">Cari Pendaftar</label>
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-input" style="padding-left: 2.5rem;" placeholder="Nama atau No. Pendaftaran...">
+                    </div>
+                </div>
+
                 <div class="w-full sm:w-48">
                     <label class="form-label">Tahun</label>
                     <select name="tahun" class="form-select" onchange="this.form.submit()">
@@ -18,28 +26,54 @@
                         @endfor
                     </select>
                 </div>
+                
+                <div class="w-full sm:w-48">
+                    <label class="form-label">Filter Kecamatan</label>
+                    <select name="kecamatan_id" id="kecamatan_id" class="form-select" onchange="filterDesa()">
+                        <option value="">Semua Kecamatan</option>
+                        @foreach($kecamatanList as $kec)
+                            <option value="{{ $kec->id }}" {{ request('kecamatan_id') == $kec->id ? 'selected' : '' }}>{{ $kec->nama_kecamatan }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="w-full sm:w-48">
+                    <label class="form-label">Filter Desa</label>
+                    <select name="desa_id" id="desa_id" class="form-select">
+                        <option value="">Semua Desa</option>
+                        @foreach($desaList as $desa)
+                            <option value="{{ $desa->id }}" {{ request('desa_id') == $desa->id ? 'selected' : '' }}>{{ $desa->nama_desa }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 <div class="w-full sm:w-48">
                     <label class="form-label">Status DPMD</label>
                     <select name="filter_dpmd" class="form-select" onchange="this.form.submit()">
                         <option value="">Semua</option>
                         <option value="belum" {{ request('filter_dpmd') === 'belum' ? 'selected' : '' }}>Belum Diverifikasi</option>
                         <option value="disetujui" {{ request('filter_dpmd') === 'disetujui' ? 'selected' : '' }}>Disetujui</option>
-                        <option value="ditolak" {{ request('filter_dpmd') === 'ditolak' ? 'selected' : '' }}>Ditolak</option>
                     </select>
                 </div>
+                
                 <div class="w-full sm:w-48">
                     <label class="form-label">Status Pendaftaran</label>
                     <select name="status" class="form-select" onchange="this.form.submit()">
                         <option value="">Semua Status</option>
                         <option value="diteruskan_ke_kecamatan" {{ request('status') === 'diteruskan_ke_kecamatan' ? 'selected' : '' }}>Menunggu Verif</option>
+                        <option value="proses_seleksi" {{ request('status') === 'proses_seleksi' ? 'selected' : '' }}>Proses Seleksi</option>
                         <option value="menunggu_penetapan" {{ request('status') === 'menunggu_penetapan' ? 'selected' : '' }}>Menunggu Penetapan</option>
                         <option value="lulus" {{ request('status') === 'lulus' ? 'selected' : '' }}>Lulus</option>
                         <option value="tidak_lulus" {{ request('status') === 'tidak_lulus' ? 'selected' : '' }}>Tidak Lulus</option>
                     </select>
                 </div>
-                @if(request()->hasAny(['tahun', 'status', 'filter_dpmd']))
-                    <a href="{{ url()->current() }}" class="btn btn-sm btn-outline"><i data-lucide="x" class="w-3.5 h-3.5"></i> Reset</a>
-                @endif
+                
+                <div class="flex gap-2 w-full sm:w-auto">
+                    <button type="submit" class="btn btn-primary"><i data-lucide="filter" class="w-4 h-4"></i> Filter</button>
+                    @if(request()->hasAny(['search', 'tahun', 'kecamatan_id', 'desa_id', 'status', 'filter_dpmd']))
+                        <a href="{{ url()->current() }}" class="btn btn-outline"><i data-lucide="x" class="w-4 h-4"></i> Reset</a>
+                    @endif
+                </div>
             </form>
         </div>
     </div>
@@ -50,6 +84,7 @@
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th>No.</th>
                         <th>No. Pendaftaran</th>
                         <th>Nama Lengkap</th>
                         <th>Desa / Kec.</th>
@@ -63,6 +98,7 @@
                 <tbody>
                     @forelse($pendaftar as $p)
                         <tr>
+                            <td><span class="text-slate-500 font-medium">{{ $pendaftar->firstItem() + $loop->index }}</span></td>
                             <td><span class="font-bold text-primary-dark">{{ $p->nomor_pendaftaran }}</span></td>
                             <td>
                                 <p class="font-semibold text-slate-900">{{ $p->identitas->nama_lengkap ?? '-' }}</p>
@@ -98,7 +134,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="8"><x-empty-state icon="folder-open" title="Tidak Ada Data" text="Tidak ada data pendaftar SDSS pada filter ini." /></td></tr>
+                        <tr><td colspan="9"><x-empty-state icon="folder-open" title="Tidak Ada Data" text="Tidak ada data pendaftar SDSS pada filter ini." /></td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -107,4 +143,40 @@
             <div class="card-footer">{{ $pendaftar->links() }}</div>
         @endif
     </div>
+
+    @push('scripts')
+    <script>
+        const allDesa = @json($desaList->map(fn($d) => ['id' => $d->id, 'nama' => $d->nama_desa, 'kecamatan_id' => $d->kecamatan_id]));
+        const reqDesaId = "{{ request('desa_id') }}";
+        
+        function filterDesa() {
+            const kecId = document.getElementById('kecamatan_id').value;
+            const desaSelect = document.getElementById('desa_id');
+            const currentValue = desaSelect.value || reqDesaId;
+            
+            desaSelect.innerHTML = '<option value="">Semua Desa</option>';
+            
+            let valueFound = false;
+            
+            allDesa.forEach(desa => {
+                if (!kecId || desa.kecamatan_id == kecId) {
+                    const opt = document.createElement('option');
+                    opt.value = desa.id;
+                    opt.textContent = desa.nama;
+                    if (desa.id == currentValue) {
+                        opt.selected = true;
+                        valueFound = true;
+                    }
+                    desaSelect.appendChild(opt);
+                }
+            });
+            
+            if (!valueFound && currentValue !== '') {
+                desaSelect.value = ''; 
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', filterDesa);
+    </script>
+    @endpush
 </x-layouts.admin>

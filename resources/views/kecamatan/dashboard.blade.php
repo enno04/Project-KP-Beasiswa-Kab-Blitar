@@ -18,12 +18,11 @@
         </div>
 
         {{-- Stats --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <x-stat-card label="Total Pendaftar" :value="$stats['total']" icon="users" color="#2B5C92" />
-            <x-stat-card label="Perlu Diverifikasi" :value="$stats['diteruskan_ke_kecamatan']" icon="inbox" color="#D97706" />
-            <x-stat-card label="Lolos Verifikasi" :value="$stats['lolos_verifikasi']" icon="check-square" color="#0284C7" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <x-stat-card label="Total Diteruskan" :value="$stats['total']" icon="users" color="#2B5C92" />
+            <x-stat-card label="Menunggu Verif Kec." :value="$stats['diteruskan_ke_kecamatan']" icon="inbox" color="#D97706" />
+            <x-stat-card label="Menunggu Penetapan" :value="$stats['menunggu_penetapan']" icon="check-square" color="#0284C7" />
             <x-stat-card label="Ditetapkan Lulus" :value="$stats['lulus']" icon="award" color="#059669" />
-            <x-stat-card label="Menunggu Verifikasi" :value="$stats['menunggu_verifikasi']" icon="clock" color="#D97706" />
         </div>
 
         {{-- Monitoring Desa --}}

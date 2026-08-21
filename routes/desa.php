@@ -15,4 +15,7 @@ Route::middleware(['auth', 'role:admin_desa'])->prefix('desa')->name('desa.')->g
     
     // Penetapan Perwakilan SDSS
     Route::post('/pendaftar/{id}/tetapkan', [DesaController::class, 'tetapkanPerwakilan'])->name('tetapkan');
+    
+    // Riwayat Hasil Penetapan Desa
+    Route::get('/riwayat', [DesaController::class, 'riwayat'])->name('riwayat');
 });

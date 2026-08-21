@@ -152,6 +152,17 @@ class RegistrationService
                 }
             }
 
+            // 6. Custom Fields
+            if (isset($data['custom_fields']) && is_array($data['custom_fields'])) {
+                foreach ($data['custom_fields'] as $customFieldId => $jawaban) {
+                    \App\Models\CustomFieldAnswer::create([
+                        'pendaftaran_id' => $pendaftaran->id,
+                        'custom_field_id' => $customFieldId,
+                        'jawaban' => $jawaban,
+                    ]);
+                }
+            }
+
             AuditLog::catat('Pendaftaran Baru', "No: {$nomorPendaftaran} | {$data['nama_lengkap']}", Pendaftaran::class, $pendaftaran->id);
             DB::commit();
 

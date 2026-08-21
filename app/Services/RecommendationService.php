@@ -12,6 +12,10 @@ class RecommendationService
 {
     public function uploadRekomendasi(Pendaftaran $pendaftaran, int $desaId, int $userId, array $files, ?string $catatan): void
     {
+        if (!$pendaftaran->ranking) {
+            throw new Exception('Pendaftar belum diranking atau belum ditetapkan oleh Desa.');
+        }
+
         DB::beginTransaction();
         try {
             $rekPath = $files['surat_rekomendasi']
@@ -49,18 +53,52 @@ class RecommendationService
 
     public function tetapkanPerwakilan(Pendaftaran $pendaftaran, int $desaId): void
     {
-        if (!$pendaftaran->ranking) {
-            throw new Exception('Pendaftar belum diranking.');
+        if (!$pendaftaran->ranking || $pendaftaran->total_nilai <= 0) {
+            throw new Exception('Pendaftar belum diranking atau belum memiliki nilai.');
         }
 
         DB::beginTransaction();
         try {
-            // Gugurkan semua pendaftar lain di desa ini untuk jalur & periode yang sama
-            Pendaftaran::whereHas('identitas', fn($q) => $q->where('desa_id', $desaId))
+            // Cari semua pendaftar lain di desa ini untuk jalur & periode yang sama
+            $pendaftarLain = Pendaftaran::whereHas('identitas', fn($q) => $q->where('desa_id', $desaId))
                 ->where('jalur_id', $pendaftaran->jalur_id)
                 ->where('periode_id', $pendaftaran->periode_id)
                 ->where('id', '!=', $pendaftaran->id)
-                ->update(['status' => 'tidak_lolos_desa']);
+                ->get();
+
+            foreach ($pendaftarLain as $pLain) {
+                // Gugurkan pendaftar ini di level desa
+                $pLain->update(['status' => 'tidak_lolos_desa']);
+
+                // Cari semua dokumen yang masih nyangkut (belum diverifikasi OPD)
+                $dokumenBelumDiperiksa = \App\Models\UploadDokumen::where('pendaftaran_id', $pLain->id)
+                    ->where('status', 'belum_diverifikasi')
+                    ->get();
+
+                foreach ($dokumenBelumDiperiksa as $dok) {
+                    $dok->update(['status' => 'gugur_desa']);
+                    
+                    // Catat ke riwayat verifikasi agar muncul di OPD
+                    \App\Models\VerifikasiDokumen::create([
+                        'upload_dokumen_id' => $dok->id,
+                        'user_id' => auth()->id() ?? 1,
+                        'hasil' => 'gugur_desa',
+                        'catatan' => 'Otomatis digugurkan: Desa telah menetapkan kandidat lain (Kuota Desa terpenuhi).',
+                        'tanggal_verifikasi' => now(),
+                    ]);
+                }
+            }
+
+            // Tandai pendaftar ini sudah ditetapkan dengan membuat record RekomendasiDesa kosong
+            \App\Models\RekomendasiDesa::firstOrCreate(
+                ['pendaftaran_id' => $pendaftaran->id],
+                [
+                    'desa_id' => $desaId,
+                    'user_id' => auth()->id() ?? 1,
+                    'status_kecamatan' => 'belum_diverifikasi',
+                    'status_dpmd' => 'belum_diverifikasi'
+                ]
+            );
 
             AuditLog::catat('Penetapan Desa', "Pendaftar ID {$pendaftaran->id} ditetapkan sebagai perwakilan desa. Pendaftar lain digugurkan.", Pendaftaran::class, $pendaftaran->id);
             
@@ -86,7 +124,7 @@ class RecommendationService
         if ($rekomendasi->isFullyApproved()) {
             // Kedua pihak sudah menyetujui, majukan ke Kabupaten
             $newStatus = 'lolos_verifikasi';
-            if ($pendaftaran->program && $pendaftaran->program->isSdss() && $pendaftaran->total_nilai !== null && $pendaftaran->ranking !== null) {
+            if ($pendaftaran->program && $pendaftaran->program->isSdss() && $pendaftaran->total_nilai > 0 && $pendaftaran->ranking !== null) {
                 $newStatus = 'menunggu_penetapan';
             }
             $pendaftaran->update(['status' => $newStatus]);

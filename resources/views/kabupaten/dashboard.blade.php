@@ -62,17 +62,7 @@
                             </td>
                             <td class="text-xs text-slate-500">{{ $p->created_at->diffForHumans() }}</td>
                             <td class="text-center">
-                                @php
-                                    $statusType = match($p->status) {
-                                        'menunggu_verifikasi' => 'warning',
-                                        'lolos_verifikasi' => 'info',
-                                        'menunggu_penetapan' => 'warning',
-                                        'lulus' => 'success',
-                                        'tidak_lulus', 'ditolak_verifikasi' => 'danger',
-                                        default => 'muted',
-                                    };
-                                @endphp
-                                <x-badge :type="$statusType">{{ str_replace('_', ' ', $p->status) }}</x-badge>
+                                <span class="badge {{ $p->status_color }}">{{ $p->status_label }}</span>
                             </td>
                             <td class="text-right">
                                 <a href="{{ route('kabupaten.show', $p->id) }}" class="btn btn-xs btn-outline">Detail</a>
@@ -86,8 +76,6 @@
                         </tr>
                         @endforelse
                     </tbody>
-                </table>
-            </div>
         </div>
     </div>
 </x-layouts.admin>

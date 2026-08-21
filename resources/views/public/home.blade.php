@@ -191,6 +191,39 @@
                 </div>
             </section>
 
+            {{-- ═══ STATISTIK PENDAFTAR ═══ --}}
+            <section class="lenis-reveal">
+                <div class="text-center mb-14">
+                    <p class="text-sm font-bold text-primary uppercase tracking-widest mb-3">Statistik</p>
+                    <h2 class="text-3xl lg:text-4xl font-extrabold text-slate-900">TOTAL PENDAFTAR SAAT INI</h2>
+                    <p class="text-slate-600 mt-3 max-w-2xl mx-auto">Jumlah pendaftar yang telah menyelesaikan pendaftaran pada masing-masing program beasiswa (Periode {{ $periodeAktif->tahun ?? date('Y') }})</p>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @forelse($programs as $index => $prog)
+                        <div class="card relative overflow-hidden group hover:-translate-y-1 hover:shadow-xl transition-all duration-300 lenis-reveal lenis-delay-{{ min($index + 1, 4) }}">
+                            <div class="absolute -right-6 -top-6 w-32 h-32 bg-gradient-to-br from-primary-light/50 to-primary/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                            <div class="absolute -left-6 -bottom-6 w-24 h-24 bg-amber-100/40 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700"></div>
+                            
+                            <div class="card-body p-6 flex flex-col items-center text-center relative z-10 h-full">
+                                <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center text-white mb-5 shadow-lg shadow-primary/30 transform group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                                    <i data-lucide="{{ $prog->isSdss() ? 'users' : 'award' }}" class="w-8 h-8"></i>
+                                </div>
+                                <h3 class="font-bold text-slate-800 mb-2 leading-snug flex-1">{{ $prog->nama }}</h3>
+                                <div class="pt-5 mt-auto flex flex-col items-center w-full border-t border-slate-100 border-dashed">
+                                    <span class="text-4xl font-extrabold bg-gradient-to-r from-primary-dark to-primary bg-clip-text text-transparent">{{ number_format($prog->pendaftarans_count) }}</span>
+                                    <span class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mt-1">Mahasiswa / Siswa</span>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="col-span-full">
+                            <x-empty-state icon="bar-chart-2" title="Belum Ada Data" text="Belum ada data pendaftar untuk ditampilkan." />
+                        </div>
+                    @endforelse
+                </div>
+            </section>
+
             {{-- ═══ ALUR SELEKSI ═══ --}}
             <section class="lenis-reveal">
                 <div class="text-center mb-14">

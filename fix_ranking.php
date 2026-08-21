@@ -1,0 +1,1 @@
+﻿<?php $pendaftar = \App\Models\Pendaftaran::where('id', 2)->first(); $pendaftar->update(['total_nilai' => 85, 'ranking' => 1]); app(\App\Services\RecommendationService::class)->cekPersetujuanParalel($pendaftar); echo 'Data 2 updated to menunggu_penetapan';

@@ -12,7 +12,7 @@ class Program extends Model
 
     protected $fillable = [
         'uuid', 'periode_id', 'nama', 'kode', 'slug', 'deskripsi',
-        'tanggal_buka', 'tanggal_tutup', 'aktif', 'urutan',
+        'tanggal_buka', 'tanggal_tutup', 'aktif', 'urutan', 'kunci_hitung_nilai'
     ];
 
     protected $casts = [
@@ -50,6 +50,8 @@ class Program extends Model
     {
         return $this->hasMany(DraftSk::class);
     }
+
+
 
     // === Scope ===
 

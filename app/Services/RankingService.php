@@ -19,7 +19,7 @@ class RankingService
         $pendaftarans = Pendaftaran::where('jalur_id', $jalurId)
             ->where('periode_id', $periodeId)
             ->whereIn('status', ['proses_penilaian', 'menunggu_penetapan'])
-            ->whereNotNull('total_nilai')
+            ->where('total_nilai', '>', 0)
             ->orderBy('total_nilai', 'desc')
             ->orderBy('created_at', 'asc') // Tie-breaker
             ->get();
@@ -64,7 +64,7 @@ class RankingService
             ->where('jalur_id', $jalurId)
             ->where('periode_id', $periodeId)
             ->whereIn('status', ['lolos_verifikasi', 'proses_penilaian', 'diteruskan_ke_kecamatan', 'menunggu_penetapan'])
-            ->whereNotNull('total_nilai');
+            ->where('total_nilai', '>', 0);
 
         if ($desaId) {
             $query->whereHas('identitas', fn($q) => $q->where('desa_id', $desaId));

@@ -8,8 +8,25 @@
     </x-page-header>
 
     {{-- Table --}}
-    {{-- Table --}}
     <x-data-table :items="$users" empty-icon="users" empty-title="Belum Ada Pengguna" empty-text="Belum ada user terdaftar dalam sistem.">
+        <x-slot:filter>
+            <select name="role_id" class="form-select text-sm py-2" onchange="this.form.submit()">
+                <option value="">Semua Role</option>
+                @foreach($roles as $r)
+                    <option value="{{ $r->id }}" {{ request('role_id') == $r->id ? 'selected' : '' }}>{{ $r->nama }}</option>
+                @endforeach
+            </select>
+            <select name="status" class="form-select text-sm py-2" onchange="this.form.submit()">
+                <option value="">Semua Status</option>
+                <option value="aktif" {{ request('status') === 'aktif' ? 'selected' : '' }}>Aktif</option>
+                <option value="nonaktif" {{ request('status') === 'nonaktif' ? 'selected' : '' }}>Nonaktif</option>
+            </select>
+            <select name="urutan_waktu" class="form-select text-sm py-2" onchange="this.form.submit()">
+                <option value="">Urutkan Terdaftar</option>
+                <option value="terbaru" {{ request('urutan_waktu') === 'terbaru' ? 'selected' : '' }}>Terbaru Dibuat</option>
+                <option value="terlama" {{ request('urutan_waktu') === 'terlama' ? 'selected' : '' }}>Terlama Dibuat</option>
+            </select>
+        </x-slot:filter>
         <x-slot:header>
             <x-table-column label="Nama Pengguna" sortable="nama" />
             <x-table-column label="Role" sortable="role_id" />
@@ -60,9 +77,9 @@
                 <td class="px-4 py-3 border-b border-slate-100 text-sm text-slate-500">{{ $user->created_at->format('d M Y') }}</td>
                 <td class="px-4 py-3 border-b border-slate-100 text-right">
                     @if(auth()->id() !== $user->id)
-                        <form action="{{ route('super-admin.master.users.destroy', $user->id) }}" method="POST" class="inline" onsubmit="return confirm('Apakah Anda yakin ingin menghapus user ini?');">
+                        <form action="{{ route('super-admin.master.users.destroy', $user->id) }}" method="POST" class="inline" id="form-delete-{{ $user->id }}">
                             @csrf @method('DELETE')
-                            <button type="submit" class="btn btn-xs btn-ghost text-red-500 hover:bg-red-50" title="Hapus">
+                            <button type="button" onclick="confirmDelete({{ $user->id }}, '{{ addslashes($user->nama) }}')" class="btn btn-xs btn-ghost text-red-500 hover:bg-red-50" title="Hapus">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </form>
@@ -84,7 +101,7 @@
                     </button>
                 </div>
 
-                <div class="modal-body space-y-4">
+                <div class="modal-body space-y-4 overflow-y-auto max-h-[65vh] p-4">
                     <x-form-input name="nama" label="Nama Lengkap" :required="true" placeholder="Masukkan nama lengkap" />
                     <x-form-input name="username" label="Username" :required="true" placeholder="Masukkan username" />
                     <x-form-input name="password" label="Password" type="password" :required="true" placeholder="Min. 8 karakter" helper="Minimal 8 karakter" />
@@ -157,6 +174,41 @@
                             desaSelect.innerHTML = '<option value="">— Pilih Desa —</option>';
                             data.forEach(d => { desaSelect.innerHTML += `<option value="${d.id}">${d.nama_desa}</option>`; });
                         });
+                }
+            }
+        }
+
+        function confirmDelete(id, nama) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Hapus Pengguna?',
+                    html: `Untuk menghapus user <b>${nama}</b>, ketikkan <strong>hapus</strong> di bawah ini:`,
+                    input: 'text',
+                    inputPlaceholder: 'ketik: hapus',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#ef4444',
+                    cancelButtonColor: '#94a3b8',
+                    confirmButtonText: 'Ya, Hapus!',
+                    cancelButtonText: 'Batal',
+                    preConfirm: (inputValue) => {
+                        if (inputValue !== 'hapus') {
+                            Swal.showValidationMessage('Anda harus mengetik "hapus" untuk melanjutkan.');
+                            return false;
+                        }
+                        return true;
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        document.getElementById('form-delete-' + id).submit();
+                    }
+                });
+            } else {
+                const input = prompt(`Untuk menghapus user ${nama}, ketikkan "hapus" di bawah ini:`);
+                if (input === 'hapus') {
+                    document.getElementById('form-delete-' + id).submit();
+                } else if (input !== null) {
+                    alert('Kata kunci salah. Penghapusan dibatalkan.');
                 }
             }
         }

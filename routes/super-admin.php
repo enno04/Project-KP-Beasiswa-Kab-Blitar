@@ -52,6 +52,12 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('super-admin')->name('su
         Route::put('/program/{id}', [KonfigurasiController::class, 'programUpdate'])->name('program.update');
         Route::delete('/program/{id}', [KonfigurasiController::class, 'programDestroy'])->name('program.destroy');
 
+        // Custom Fields (nested under jalur)
+        Route::get('/jalur/{jalur}/custom-fields', [\App\Http\Controllers\SuperAdmin\CustomFieldController::class, 'index'])->name('custom-fields.index');
+        Route::post('/jalur/{jalur}/custom-fields', [\App\Http\Controllers\SuperAdmin\CustomFieldController::class, 'store'])->name('custom-fields.store');
+        Route::put('/custom-fields/{customField}', [\App\Http\Controllers\SuperAdmin\CustomFieldController::class, 'update'])->name('custom-fields.update');
+        Route::delete('/custom-fields/{customField}', [\App\Http\Controllers\SuperAdmin\CustomFieldController::class, 'destroy'])->name('custom-fields.destroy');
+
         // Jalur (nested under program)
         Route::get('/program/{programId}/jalur', [KonfigurasiController::class, 'jalurIndex'])->name('jalur.index');
         Route::post('/program/{programId}/jalur', [KonfigurasiController::class, 'jalurStore'])->name('jalur.store');
@@ -87,8 +93,18 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('super-admin')->name('su
     // Monitoring & Histori
     Route::get('/monitoring/pendaftaran', [SuperAdminController::class, 'monitoringPendaftaran'])->name('monitoring.pendaftaran');
     Route::get('/histori', [SuperAdminController::class, 'historiPenerima'])->name('histori');
-    Route::post('/histori/import', [SuperAdminController::class, 'importHistori'])->name('histori.import');
+    Route::post('/histori/import/lama', [SuperAdminController::class, 'importHistori'])->name('histori.import.lama');
+    Route::post('/histori/import/baru', [SuperAdminController::class, 'importHistoriBaru'])->name('histori.import.baru');
 
     // Audit Log
     Route::get('/audit-log', [SuperAdminController::class, 'auditLog'])->name('audit-log');
+
+    Route::get('/pembersihan-data', [SuperAdminController::class, 'pembersihanData'])->name('pembersihan-data.index');
+    Route::get('/pembersihan-data/{program_id}', [SuperAdminController::class, 'detailPembersihanData'])->name('pembersihan-data.detail');
+    Route::delete('/pembersihan-data/bulk-delete', [SuperAdminController::class, 'destroyDataPendaftar'])->name('pembersihan-data.destroy');
+
+    Route::get('/data-dummy', [SuperAdminController::class, 'dataDummy'])->name('data-dummy.index');
+    Route::post('/data-dummy/generate', [SuperAdminController::class, 'generateDataDummy'])->name('data-dummy.generate');
+    Route::get('/data-dummy/bypass-opd', [SuperAdminController::class, 'bypassOpdList'])->name('data-dummy.bypass-opd');
+    Route::post('/data-dummy/auto-verify-opd', [SuperAdminController::class, 'autoVerifyOpd'])->name('data-dummy.auto-verify');
 });
