@@ -14,8 +14,10 @@ class PasswordService
     public function ubahPassword(User $user, string $newPassword): void
     {
         $user->update([
-            'password' => Hash::make($newPassword),
+            'password' => \Illuminate\Support\Facades\Hash::make($newPassword),
         ]);
+
+        \Illuminate\Support\Facades\Auth::login($user);
 
         AuditLog::catat(
             aktivitas: 'Ubah Password',

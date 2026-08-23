@@ -64,11 +64,20 @@ class LoginRequest extends FormRequest
             }
         }
 
+        $user = \App\Models\User::where('username', $this->input('username'))->first();
+
+        if (!$user) {
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages([
+                'username' => 'Username tidak ditemukan atau tidak terdaftar.',
+            ]);
+        }
+
         if (! Auth::attempt($this->only('username', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'username' => trans('auth.failed'),
+                'password' => 'Password yang Anda masukkan salah.',
             ]);
         }
 

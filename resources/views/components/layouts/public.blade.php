@@ -193,6 +193,20 @@
         </div>
     </nav>
 
+    {{-- ═══ GLOBAL ANNOUNCEMENT BANNER (MARQUEE) ═══ --}}
+    @if(isset($announcementActive) && $announcementActive == '1' && !empty($announcementText))
+    <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 text-white border-b border-indigo-700 overflow-hidden relative z-40 shadow-md">
+        <div class="flex items-center w-full py-2">
+            <div class="px-3 sm:px-5 shrink-0 border-r border-white/20 bg-black/10 backdrop-blur-sm z-10 flex items-center gap-2 font-bold uppercase tracking-widest text-xs h-full">
+                <i data-lucide="megaphone" class="w-4 h-4 animate-pulse text-amber-300"></i> <span class="text-white drop-shadow-sm hidden sm:inline">INFO PENTING</span>
+            </div>
+            <marquee class="font-semibold text-sm tracking-wide text-white/90 drop-shadow-sm pl-3 sm:pl-4" scrollamount="6" onmouseover="this.stop();" onmouseout="this.start();">
+                {{ $announcementText }}
+            </marquee>
+        </div>
+    </div>
+    @endif
+
     {{-- ═══ FLASH MESSAGES ═══ --}}
     @if(session('success') || session('error') || session('info') || session('warning'))
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
@@ -257,21 +271,47 @@
                             <i data-lucide="map-pin" class="w-4 h-4 shrink-0 mt-0.5 text-primary"></i>
                             <div>
                                 <p>Kantor Dinas Kepemudaan dan Olahraga Kab. Blitar</p>
-                                <p>Jl. Raya Sawahan Pojok, Kec. Garum, Blitar</p>
+                                <p>{{ $webAddress }}</p>
                             </div>
                         </div>
                         <div class="flex items-center gap-3">
                             <i data-lucide="clock" class="w-4 h-4 shrink-0 text-primary"></i>
-                            <span>Sen — Jum, 08:00 — 16:00 WIB</span>
+                            <span>{{ $webOperationalHours }}</span>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="phone" class="w-4 h-4 shrink-0 text-primary"></i>
-                            <span>Contact Person: Bapak Akhyat (0813-3400-1600)</span>
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center shrink-0 border border-slate-700">
+                                <i data-lucide="phone" class="w-5 h-5 text-amber-400"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm text-slate-400 mb-1">WhatsApp Only</p>
+                                <div class="flex flex-col gap-2">
+                                    @foreach($contactPersons ?? [] as $cp)
+                                        <a href="{{ $cp['wa_link'] ?? 'https://wa.me/'.preg_replace('/[^0-9]/', '', $cp['phone']) }}" target="_blank" class="text-white hover:text-amber-400 font-bold flex flex-col gap-0.5 transition-colors">
+                                            <span>{{ $cp['phone'] }}</span>
+                                            <span class="text-xs font-normal text-slate-300">Contact Person: {{ $cp['name'] }}</span>
+                                        </a>
+                                    @endforeach
+                                </div>
+                            </div>
                         </div>
-                        <a href="https://maps.app.goo.gl/Wgz7JqscQjiqs348A" target="_blank"
+                        <a href="{{ $webMapsLink }}" target="_blank"
                             class="inline-flex items-center gap-2 text-primary hover:text-primary-light transition-colors mt-1">
                             <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Buka di Google Maps
                         </a>
+                        
+                        {{-- Social Media Links --}}
+                        <div class="flex items-center gap-3 mt-4 pt-4 border-t border-slate-800">
+                            @if(!empty($webInstagram))
+                                <a href="{{ $webInstagram }}" target="_blank" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all shadow-sm" title="Instagram">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                                </a>
+                            @endif
+                            @if(!empty($webLink))
+                                <a href="{{ $webLink }}" target="_blank" class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-primary hover:text-white transition-all shadow-sm" title="Website Resmi">
+                                    <i data-lucide="globe" class="w-4 h-4"></i>
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -284,9 +324,11 @@
                 <p class="text-xs text-slate-500">
                     &copy; {{ date('Y') }} Pemerintah Kabupaten Blitar. Hak cipta dilindungi.
                 </p>
-                <p class="text-xs text-slate-600">
-                    Sistem Beasiswa Blitar Mengabdi
-                </p>
+                <div class="flex items-center gap-4">
+                    <p class="text-xs text-slate-600">
+                        Sistem Beasiswa Blitar Mengabdi
+                    </p>
+                </div>
             </div>
         </div>
     </footer>

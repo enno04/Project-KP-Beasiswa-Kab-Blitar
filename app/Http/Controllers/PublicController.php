@@ -127,6 +127,10 @@ class PublicController extends Controller
             ->whereHas('identitas', fn($q) => $q->where('nik', $request->nik))
             ->latest()->get();
 
-        return view('public.cek_status', compact('pendaftarans', 'tahunOptions', 'tahunAktif'));
+        $historiPenerimas = \App\Models\HistoriPenerima::where('tahun', $request->tahun)
+            ->where('nik', $request->nik)
+            ->latest()->get();
+
+        return view('public.cek_status', compact('pendaftarans', 'historiPenerimas', 'tahunOptions', 'tahunAktif'));
     }
 }

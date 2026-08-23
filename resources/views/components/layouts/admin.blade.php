@@ -145,6 +145,9 @@
                 <a href="{{ route('super-admin.data-dummy.index') }}" class="sidebar-link {{ request()->routeIs('super-admin.data-dummy.*') ? 'active' : '' }}">
                     <i data-lucide="flask-conical" class="w-5 h-5"></i> Generator Dummy
                 </a>
+                <a href="{{ route('super-admin.pengaturan.index') }}" class="sidebar-link {{ request()->routeIs('super-admin.pengaturan.*') ? 'active' : '' }}">
+                    <i data-lucide="settings" class="w-5 h-5"></i> Pengaturan Web
+                </a>
             @endif
 
             {{-- ── ADMIN KABUPATEN ── --}}

@@ -196,15 +196,22 @@
                         </div>
                         <div>
                             <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Pusat Informasi & Layanan Bantuan</p>
-                            <h3 class="text-lg font-extrabold text-slate-900 mt-0.5">Contact Person Official</h3>
-                            <p class="text-sm font-semibold text-slate-700 mt-1">
-                                Bapak Akhyat: <a href="https://wa.me/6281334001600" target="_blank" class="text-primary hover:underline font-bold">0813-3400-1600</a>
-                            </p>
+                            <div class="text-sm font-semibold text-slate-700 mt-1 flex flex-col gap-1">
+                                @foreach($contactPersons ?? [] as $cp)
+                                    <div>
+                                        {{ $cp['name'] }}: <a href="{{ $cp['wa_link'] ?? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $cp['phone'] ?? '') }}" target="_blank" class="text-primary hover:underline font-bold">{{ $cp['phone'] }}</a>
+                                    </div>
+                                @endforeach
+                            </div>
                         </div>
                     </div>
-                    <a href="https://wa.me/6281334001600" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-md transition-all shrink-0">
-                        <i data-lucide="message-circle" class="w-4 h-4"></i> Hubungi WhatsApp
-                    </a>
+                    <div class="flex flex-col md:flex-row gap-3">
+                        @foreach($contactPersons ?? [] as $cp)
+                            <a href="{{ $cp['wa_link'] ?? 'https://wa.me/' . preg_replace('/[^0-9]/', '', $cp['phone'] ?? '') }}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-600 hover:bg-green-700 text-white font-bold text-sm shadow-md transition-all shrink-0">
+                                <i data-lucide="message-circle" class="w-4 h-4"></i> Chat {{ $cp['name'] }}
+                            </a>
+                        @endforeach
+                    </div>
                 </div>
             </div>
         </div>

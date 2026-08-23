@@ -86,8 +86,11 @@
         <div class="footer">
             <p>Email ini dikirim secara otomatis oleh sistem. Harap tidak membalas email ini.</p>
             <p>
-                <a href="https://maps.app.goo.gl/Wgz7JqscQjiqs348A">📍 Kantor Dispora Kab. Blitar</a> |
-                Contact Person: Akhyat — 0813-3400-1600
+                <a href="{{ $webMapsLink ?? 'https://maps.app.goo.gl/Wgz7JqscQjiqs348A' }}">📍 Kantor Dispora Kab. Blitar</a> |
+                Contact Person:
+                @foreach($contactPersons ?? [] as $cp)
+                    {{ $cp['name'] }} ({{ $cp['phone'] }}){{ !$loop->last ? ', ' : '' }}
+                @endforeach
             </p>
         </div>
     </div>

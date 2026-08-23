@@ -32,8 +32,8 @@
             </div>
 
             {{-- Hasil Pencarian --}}
-            @if(isset($pendaftarans))
-                @if($pendaftarans->count() > 0)
+            @if(isset($pendaftarans) || isset($historiPenerimas))
+                @if((isset($pendaftarans) && $pendaftarans->count() > 0) || (isset($historiPenerimas) && $historiPenerimas->count() > 0))
                     <div class="space-y-6">
                         @foreach($pendaftarans as $p)
                         <div class="card overflow-hidden">
@@ -222,9 +222,85 @@
                             </div>
                         </div>
                         @endforeach
+
+                        {{-- Data Histori Penerima --}}
+                        @if(isset($historiPenerimas))
+                            @foreach($historiPenerimas as $h)
+                            <div class="card overflow-hidden">
+                                <div class="card-body py-4 border-b border-slate-100 bg-emerald-50/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div>
+                                        <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1">No. Pendaftaran (Histori)</p>
+                                        <p class="font-extrabold text-xl text-emerald-700">{{ $h->nomor_pendaftaran ?? '-' }}</p>
+                                    </div>
+                                    <span class="badge success">Penerima Beasiswa Ditetapkan</span>
+                                </div>
+
+                                <div class="bg-emerald-50/30 p-4 border-b border-slate-100">
+                                    <div class="p-3.5 rounded-xl bg-white border border-slate-200/80 shadow-xs flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 bg-emerald-100 text-emerald-600">
+                                            <i data-lucide="check-circle" class="w-4.5 h-4.5"></i>
+                                        </div>
+                                        <div class="text-xs sm:text-sm">
+                                            <span class="text-slate-500 font-medium">Status / Posisi Berkas:</span>
+                                            <span class="font-bold text-emerald-700 ml-1">Telah ditetapkan sebagai Penerima Beasiswa Tahun {{ $h->tahun }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="card-body space-y-6">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                                        <div>
+                                            <p class="text-slate-400 mb-1 text-xs font-medium">Nama Pendaftar</p>
+                                            <p class="font-bold text-slate-900">{{ $h->nama_lengkap ?? '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-400 mb-1 text-xs font-medium">Program & Jalur</p>
+                                            <p class="font-bold text-slate-900">{{ $h->jenis_beasiswa ?? '-' }} — {{ $h->jalur_beasiswa ?? '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-400 mb-1 text-xs font-medium">Tahun Penetapan</p>
+                                            <p class="font-bold text-slate-900">{{ $h->tahun ?? '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-400 mb-1 text-xs font-medium">Asal Perguruan Tinggi</p>
+                                            <p class="font-bold text-slate-900">{{ $h->asal_perguruan_tinggi ?? '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-400 mb-1 text-xs font-medium">IPK / Nilai Akademik</p>
+                                            <p class="font-bold text-slate-900">{{ $h->ipk_nilai ?? '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-400 mb-1 text-xs font-medium">Kecamatan</p>
+                                            <p class="font-bold text-slate-900">{{ $h->kecamatan ?? '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-400 mb-1 text-xs font-medium">Desa</p>
+                                            <p class="font-bold text-slate-900">{{ $h->desa ?? '-' }}</p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-400 mb-1 text-xs font-medium">Waktu Penetapan</p>
+                                            <p class="font-bold text-slate-900">
+                                                {{ $h->waktu_penetapan ?? '-' }}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <p class="text-slate-400 mb-1 text-xs font-medium">Sumber Data</p>
+                                            <p class="font-bold text-slate-900">
+                                                @if(strtolower($h->sumber_data) === 'sistem')
+                                                    Sistem Pendaftaran Beasiswa Online (Tahun {{ $h->tahun ?? '-' }})
+                                                @else
+                                                    Arsip / Impor Data Dinas (Tahun {{ $h->tahun ?? '-' }})
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endforeach
+                        @endif
                     </div>
                 @else
-                    <x-empty-state icon="search-x" title="Data Tidak Ditemukan" text="Tidak ditemukan riwayat pendaftaran beasiswa dengan NIK dan Tahun Pendaftaran tersebut." />
+                    <x-empty-state icon="search-x" title="Data Tidak Ditemukan" text="Tidak ditemukan riwayat pendaftaran atau histori penerima beasiswa dengan NIK dan Tahun Pendaftaran tersebut." />
                 @endif
             @endif
         </div>

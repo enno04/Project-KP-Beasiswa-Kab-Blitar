@@ -231,6 +231,7 @@ class SuperAdminController extends Controller
             $tahunList = Periode::pluck('tahun')->sortDesc()->values();
             
             $programList = DB::table('programs')
+                ->whereNull('deleted_at')
                 ->select('nama')
                 ->orderBy('nama', 'asc')
                 ->pluck('nama');

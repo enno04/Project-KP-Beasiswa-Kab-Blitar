@@ -195,7 +195,7 @@
             <section class="lenis-reveal">
                 <div class="text-center mb-14">
                     <p class="text-sm font-bold text-primary uppercase tracking-widest mb-3">Statistik</p>
-                    <h2 class="text-3xl lg:text-4xl font-extrabold text-slate-900">TOTAL PENDAFTAR SAAT INI</h2>
+                    <h2 class="text-3xl lg:text-4xl font-extrabold text-slate-900">Total Pendaftar Saat Ini</h2>
                     <p class="text-slate-600 mt-3 max-w-2xl mx-auto">Jumlah pendaftar yang telah menyelesaikan pendaftaran pada masing-masing program beasiswa (Periode {{ $periodeAktif->tahun ?? date('Y') }})</p>
                 </div>
                 
