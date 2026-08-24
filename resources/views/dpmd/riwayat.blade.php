@@ -1,5 +1,19 @@
 <x-layouts.admin :title="'Riwayat Verifikasi DPMD'">
-    <x-page-header title="Riwayat Verifikasi" subtitle="Catatan seluruh keputusan persetujuan yang telah dilakukan oleh instansi Anda." />
+    <x-page-header title="Riwayat Verifikasi" subtitle="Catatan seluruh keputusan persetujuan yang telah dilakukan oleh instansi Anda.">
+        <x-slot:actions>
+            <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl border shadow-sm"
+                 style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border-color: #ddd6fe;">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg"
+                     style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                    <i data-lucide="history" class="w-4 h-4 text-white"></i>
+                </div>
+                <div class="leading-tight">
+                    <p class="text-xs font-medium text-violet-500 uppercase tracking-wide">Total Riwayat</p>
+                    <p class="text-lg font-bold text-violet-900">{{ number_format($riwayat->total(), 0, ',', '.') }}</p>
+                </div>
+            </div>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Filter & Search --}}
     <div class="card p-4 mb-6">

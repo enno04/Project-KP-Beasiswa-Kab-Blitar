@@ -20,6 +20,7 @@ class KecamatanController extends Controller
         $kecId = $user->kecamatan_id;
 
         $pendaftaranQuery = Pendaftaran::whereHas('identitas', fn($q) => $q->where('kecamatan_id', $kecId))
+            ->whereHas('program', fn($q) => $q->where('kode', 'sdss'))
             ->whereIn('status', ['diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd', 'proses_seleksi', 'menunggu_penetapan', 'lulus', 'tidak_lulus']);
 
         $stats = [
@@ -37,6 +38,7 @@ class KecamatanController extends Controller
         $persentase = $stats['total'] > 0 ? round(($disetujuiKecamatan / $stats['total']) * 100) : 0;
 
         $slaWarning = Pendaftaran::whereHas('identitas', fn($q) => $q->where('kecamatan_id', $kecId))
+            ->whereHas('program', fn($q) => $q->where('kode', 'sdss'))
             ->where('status', 'diteruskan_ke_kecamatan')
             ->whereHas('rekomendasiDesa', function ($q) {
                 $q->where('status_kecamatan', 'belum_diverifikasi')
@@ -46,6 +48,7 @@ class KecamatanController extends Controller
 
         $aktivitasTerbaru = Pendaftaran::with(['program', 'jalur', 'identitas.desa'])
             ->whereHas('identitas', fn($q) => $q->where('kecamatan_id', $kecId))
+            ->whereHas('program', fn($q) => $q->where('kode', 'sdss'))
             ->whereIn('status', ['diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd', 'proses_seleksi', 'menunggu_penetapan', 'lulus', 'tidak_lulus'])
             ->latest()->take(5)->get();
 
@@ -62,6 +65,7 @@ class KecamatanController extends Controller
             
         // Optimization: Fetch all stats grouped by desa_id
         $totalPendaftarPerDesa = Pendaftaran::whereHas('identitas', fn($q) => $q->where('kecamatan_id', $kecId))
+            ->whereHas('program', fn($q) => $q->where('kode', 'sdss'))
             ->join('pendaftaran_identitas', 'pendaftarans.id', '=', 'pendaftaran_identitas.pendaftaran_id')
             ->select('pendaftaran_identitas.desa_id', \Illuminate\Support\Facades\DB::raw('count(*) as total'))
             ->groupBy('pendaftaran_identitas.desa_id')

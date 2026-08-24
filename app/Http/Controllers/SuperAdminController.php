@@ -657,4 +657,14 @@ class SuperAdminController extends Controller
 
         return redirect()->back()->with('success', "Berhasil memverifikasi otomatis $count dokumen untuk " . $pendaftarans->count() . " pendaftar (Bypass OPD berhasil).");
     }
+    public function triggerAutoVerifySla()
+    {
+        try {
+            \Illuminate\Support\Facades\Artisan::call('beasiswa:auto-verify');
+            $output = \Illuminate\Support\Facades\Artisan::output();
+            return back()->with('success', 'Berhasil menjalankan Auto-Verify SLA. Output: ' . trim($output));
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menjalankan Auto-Verify: ' . $e->getMessage());
+        }
+    }
 }

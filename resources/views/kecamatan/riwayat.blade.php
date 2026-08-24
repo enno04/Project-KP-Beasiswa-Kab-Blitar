@@ -1,13 +1,15 @@
 <x-layouts.admin :title="'Riwayat Verifikasi Kecamatan'">
     <x-page-header title="Riwayat Verifikasi" subtitle="Catatan seluruh keputusan rekomendasi yang telah dilakukan oleh instansi Anda.">
         <x-slot:actions>
-            <div class="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 transform transition-transform hover:-translate-y-0.5">
-                <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                    <i data-lucide="database" class="w-4 h-4 text-white"></i>
+            <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl border shadow-sm"
+                 style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border-color: #ddd6fe;">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg"
+                     style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                    <i data-lucide="history" class="w-4 h-4 text-white"></i>
                 </div>
-                <div class="flex flex-col text-left">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-white/90 leading-none mb-0.5">Total Data</span>
-                    <span class="text-base font-black leading-none">{{ number_format($riwayat->total(), 0, ',', '.') }}</span>
+                <div class="leading-tight">
+                    <p class="text-xs font-medium text-violet-500 uppercase tracking-wide">Total Riwayat</p>
+                    <p class="text-lg font-bold text-violet-900">{{ number_format($riwayat->total(), 0, ',', '.') }}</p>
                 </div>
             </div>
         </x-slot:actions>

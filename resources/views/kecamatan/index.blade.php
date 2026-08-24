@@ -1,13 +1,15 @@
 <x-layouts.admin :title="'Data Pendaftar — ' . $program->nama">
     <x-page-header :title="'Data Pendaftar: ' . $program->nama" :subtitle="$jalur ? 'Jalur: ' . $jalur->nama : null">
         <x-slot:actions>
-            <div class="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 transform transition-transform hover:-translate-y-0.5">
-                <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                    <i data-lucide="database" class="w-4 h-4 text-white"></i>
+            <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl border shadow-sm"
+                 style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%); border-color: #bfdbfe;">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg"
+                     style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                    <i data-lucide="users" class="w-4 h-4 text-white"></i>
                 </div>
-                <div class="flex flex-col text-left">
-                    <span class="text-[10px] font-bold uppercase tracking-widest text-white/90 leading-none mb-0.5">Total Data</span>
-                    <span class="text-base font-black leading-none">{{ number_format($pendaftar->total(), 0, ',', '.') }}</span>
+                <div class="leading-tight">
+                    <p class="text-xs font-medium text-blue-500 uppercase tracking-wide">Total Pendaftar</p>
+                    <p class="text-lg font-bold text-blue-900">{{ number_format($pendaftar->total(), 0, ',', '.') }}</p>
                 </div>
             </div>
         </x-slot:actions>

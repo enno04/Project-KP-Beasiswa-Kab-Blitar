@@ -48,71 +48,112 @@
                             {{-- Alur Kemajuan Pendaftaran --}}
                             @php
                                 $st = $p->status;
+                                $prog = $p->program?->kode;
+                                $stagesList = [];
 
-                                // Stage 1: Pengajuan (Selalu selesai jika data ada)
-                                $stage1 = 'done';
+                                // 1. PENGAJUAN (Selalu Pertama & Selalu Selesai)
+                                $stagesList[] = ['title' => 'Pengajuan', 'desc' => 'Pendaftaran', 'state' => 'done', 'icon' => 'file-text'];
+                                $currentStepIsDone = true;
 
-                                // Stage 2: Verifikasi OPD
+                                // 2. VERIFIKASI OPD
+                                $verifState = 'pending';
                                 if (in_array($st, ['menunggu_verifikasi', 'sedang_diverifikasi'])) {
-                                    $stage2 = 'active';
-                                    $stage3 = 'pending';
-                                    $stage4 = 'pending';
-                                    $stage5 = 'pending';
+                                    $verifState = 'active';
+                                    $currentStepIsDone = false;
                                 } elseif ($st === 'tidak_lolos_verifikasi') {
-                                    $stage2 = 'failed';
-                                    $stage3 = 'pending';
-                                    $stage4 = 'pending';
-                                    $stage5 = 'pending';
+                                    $verifState = 'failed';
+                                    $currentStepIsDone = false;
+                                } elseif ($st !== 'draft') {
+                                    $verifState = 'done';
+                                }
+                                $stagesList[] = ['title' => 'Verifikasi OPD', 'desc' => 'Berkas & Syarat', 'state' => $verifState, 'icon' => 'shield-check'];
+
+
+                                // TAHAP SELANJUTNYA TERGANTUNG PROGRAM
+                                if ($prog === 'sdss') {
+                                    // SDSS: Penilaian SPK (Desa) -> Rekomendasi (Desa&Kec) -> Penetapan
+
+                                    // 3. Penilaian SPK (Skor Desa)
+                                    $spkState = 'pending';
+                                    if ($currentStepIsDone) {
+                                        if (in_array($st, ['lolos_verifikasi', 'proses_penilaian', 'menunggu_penilaian'])) {
+                                            $spkState = 'active';
+                                            $currentStepIsDone = false;
+                                        } else {
+                                            $spkState = 'done';
+                                        }
+                                    }
+                                    $stagesList[] = ['title' => 'Penilaian SPK', 'desc' => 'Skor (Desa)', 'state' => $spkState, 'icon' => 'award'];
+
+                                    // 4. Rekomendasi
+                                    $rekState = 'pending';
+                                    if ($currentStepIsDone) {
+                                        if (in_array($st, ['diteruskan_ke_kecamatan'])) {
+                                            $rekState = 'active';
+                                            $currentStepIsDone = false;
+                                        } elseif (in_array($st, ['tidak_lolos_desa', 'ditolak_kecamatan', 'ditolak_dpmd'])) {
+                                            $rekState = 'failed';
+                                            $currentStepIsDone = false;
+                                        } elseif (in_array($st, ['menunggu_penetapan', 'lulus', 'sk_terbit', 'tidak_lulus'])) {
+                                            $rekState = 'done';
+                                        } else {
+                                            $rekState = 'active';
+                                            $currentStepIsDone = false;
+                                        }
+                                    }
+                                    $stagesList[] = ['title' => 'Rekomendasi', 'desc' => 'Desa, Kec & DPMD', 'state' => $rekState, 'icon' => 'map-pin'];
+
                                 } else {
-                                    $stage2 = 'done';
-                                }
+                                    // NON-SDSS: Penilaian SPK (Kabupaten) -> [Wawancara (BB)] -> Penetapan
 
-                                // Stage 3: Rekomendasi Desa & Kecamatan
-                                if ($stage2 === 'done') {
-                                    if ($st === 'tidak_lolos_desa' || $st === 'ditolak_kecamatan') {
-                                        $stage3 = 'failed';
-                                        $stage4 = 'pending';
-                                        $stage5 = 'pending';
-                                    } elseif (in_array($st, ['lolos_verifikasi', 'diteruskan_ke_kecamatan']) && ($p->program?->kode === 'sdss')) {
-                                        $stage3 = 'active';
-                                        $stage4 = 'pending';
-                                        $stage5 = 'pending';
-                                    } else {
-                                        $stage3 = 'done';
+                                    // 3. Penilaian SPK (Kabupaten)
+                                    $spkState = 'pending';
+                                    if ($currentStepIsDone) {
+                                        if (in_array($st, ['lolos_verifikasi', 'proses_seleksi', 'proses_penilaian', 'menunggu_penilaian'])) {
+                                            $spkState = 'active';
+                                            $currentStepIsDone = false;
+                                        } else {
+                                            $spkState = 'done';
+                                        }
+                                    }
+                                    $stagesList[] = ['title' => 'Penilaian SPK', 'desc' => 'Skor & Ranking', 'state' => $spkState, 'icon' => 'award'];
+
+                                    // 4. Wawancara (Hanya BB)
+                                    if ($prog === 'berdaya_berjaya') {
+                                        $wawancaraState = 'pending';
+                                        if ($currentStepIsDone) {
+                                            if (in_array($st, ['menunggu_wawancara', 'proses_wawancara'])) {
+                                                $wawancaraState = 'active';
+                                                $currentStepIsDone = false;
+                                            } elseif ($st === 'gugur_wawancara') {
+                                                $wawancaraState = 'failed';
+                                                $currentStepIsDone = false;
+                                            } elseif (in_array($st, ['menunggu_penetapan', 'lulus', 'sk_terbit', 'tidak_lulus'])) {
+                                                $wawancaraState = 'done';
+                                            } else {
+                                                $wawancaraState = 'active';
+                                                $currentStepIsDone = false;
+                                            }
+                                        }
+                                        $stagesList[] = ['title' => 'Wawancara', 'desc' => 'Seleksi Akhir', 'state' => $wawancaraState, 'icon' => 'users'];
                                     }
                                 }
 
-                                // Stage 4: Penilaian SPK
-                                if ($stage3 === 'done') {
-                                    if (in_array($st, ['proses_seleksi', 'proses_penilaian', 'menunggu_penilaian', 'proses_wawancara', 'menunggu_wawancara', 'menunggu_penetapan'])) {
-                                        $stage4 = 'active';
-                                        $stage5 = 'pending';
-                                    } elseif ($st === 'gugur_wawancara') {
-                                        $stage4 = 'failed';
-                                        $stage5 = 'pending';
-                                    } else {
-                                        $stage4 = 'done';
-                                    }
-                                }
-
-                                // Stage 5: Hasil Penetapan
-                                if ($stage4 === 'done') {
-                                    if (in_array($st, ['lulus', 'sk_terbit'])) {
-                                        $stage5 = 'done';
+                                // 5. PENETAPAN (Untuk Semua Program)
+                                $penetapanState = 'pending';
+                                if ($currentStepIsDone) {
+                                    if (in_array($st, ['menunggu_penetapan'])) {
+                                        $penetapanState = 'active';
+                                    } elseif (in_array($st, ['lulus', 'sk_terbit'])) {
+                                        $penetapanState = 'done';
                                     } elseif ($st === 'tidak_lulus') {
-                                        $stage5 = 'failed';
+                                        $penetapanState = 'failed';
                                     } else {
-                                        $stage5 = 'active';
+                                        $penetapanState = 'active';
                                     }
                                 }
+                                $stagesList[] = ['title' => 'Penetapan', 'desc' => 'Hasil Akhir', 'state' => $penetapanState, 'icon' => 'check-circle-2'];
 
-                                $stagesList = [
-                                    ['title' => 'Pengajuan', 'desc' => 'Pendaftaran', 'state' => $stage1, 'icon' => 'file-text'],
-                                    ['title' => 'Verifikasi OPD', 'desc' => 'Berkas & Syarat', 'state' => $stage2, 'icon' => 'shield-check'],
-                                    ['title' => 'Desa & Kec.', 'desc' => 'Rekomendasi', 'state' => $stage3, 'icon' => 'map-pin'],
-                                    ['title' => 'Penilaian SPK', 'desc' => 'Skor & Ranking', 'state' => $stage4, 'icon' => 'award'],
-                                    ['title' => 'Penetapan', 'desc' => 'Hasil Pengumuman', 'state' => $stage5, 'icon' => 'check-circle-2'],
-                                ];
                             @endphp
 
                             <div class="px-6 py-5 border-b border-slate-100 bg-slate-50/40">

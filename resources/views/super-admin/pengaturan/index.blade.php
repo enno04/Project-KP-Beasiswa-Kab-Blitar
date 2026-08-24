@@ -113,7 +113,11 @@
                         </div>
                         <div class="pt-2">
                             <label class="block text-sm font-medium text-slate-700 mb-2">Teks Pengumuman</label>
-                            <textarea name="settings[announcement_text]" rows="3" class="form-input w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-inner bg-white resize-none transition-all" placeholder="Ketik teks peringatan atau info penting di sini...">{{ old('settings.announcement_text', $settings['announcement_text']->value ?? '') }}</textarea>
+                            <textarea name="settings[announcement_text]" rows="4" class="form-input w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-inner bg-white resize-none transition-all" placeholder="Ketik teks peringatan atau info penting di sini...">{{ old('settings.announcement_text', $settings['announcement_text']->value ?? '') }}</textarea>
+                            <p class="text-xs text-slate-500 mt-2 flex items-start gap-1.5 bg-blue-50/50 p-2.5 rounded-lg border border-blue-100">
+                                <i data-lucide="info" class="w-4 h-4 text-blue-500 shrink-0 mt-0.5"></i>
+                                <span><b>Tips:</b> Untuk menampilkan lebih dari satu pengumuman sekaligus secara bersambung, pisahkan setiap pengumuman dengan menekan tombol <b>Enter (Baris Baru)</b>. Sistem akan otomatis menyisipkan simbol pemisah di antara kalimat.</span>
+                            </p>
                         </div>
                     </div>
                 </div>

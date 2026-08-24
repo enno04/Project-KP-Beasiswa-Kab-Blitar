@@ -94,7 +94,7 @@ class KonfigurasiController extends Controller
         ]);
         $isSdss = strtolower($request->kode) === 'sdss';
         $request->merge([
-            'aktif' => $request->has('aktif'),
+            'aktif' => filter_var($request->aktif, FILTER_VALIDATE_BOOLEAN),
             'kunci_hitung_nilai' => $isSdss ? true : false
         ]);
 
@@ -140,7 +140,7 @@ class KonfigurasiController extends Controller
         ]);
 
         $request->merge([
-            'aktif' => $request->has('aktif'),
+            'aktif' => filter_var($request->aktif, FILTER_VALIDATE_BOOLEAN),
             'kunci_hitung_nilai' => $request->has('kunci_hitung_nilai')
         ]);
         

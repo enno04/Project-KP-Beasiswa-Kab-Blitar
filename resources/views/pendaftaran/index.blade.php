@@ -6,8 +6,11 @@
             <p class="text-xs sm:text-sm font-extrabold text-amber-400 uppercase tracking-widest mb-3">Daftar Sekarang</p>
             <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight drop-shadow-md">Pendaftaran Beasiswa</h1>
             @if($periodeAktif)
-                <p class="text-slate-200 mt-3 font-medium">Periode: <strong class="text-amber-300 font-bold">{{ $periodeAktif->nama }} ({{ $periodeAktif->tahun }})</strong></p>
-                <p class="text-sm text-slate-300 mt-1">Batas akhir: {{ $periodeAktif->tanggal_selesai?->translatedFormat('d F Y') ?? '-' }}</p>
+                <p class="text-slate-200 mt-3 font-medium">Periode: <strong class="text-amber-300 font-bold">{{ $periodeAktif->nama }}</strong></p>
+                <p class="text-sm text-slate-300 mt-1">
+                    Masa Periode: {{ $periodeAktif->tanggal_mulai?->translatedFormat('d M Y') ?? '-' }} 
+                    — {{ $periodeAktif->tanggal_selesai?->translatedFormat('d M Y') ?? '-' }}
+                </p>
             @else
                 <div class="mt-4 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-red-500/20 backdrop-blur-md border border-red-300/40 text-red-200 font-semibold text-sm">
                     <i data-lucide="alert-circle" class="w-4 h-4 text-red-300"></i> Saat ini belum ada periode pendaftaran yang dibuka.

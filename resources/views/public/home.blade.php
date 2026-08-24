@@ -107,10 +107,14 @@
         <div class="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 sm:p-8">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-8">
                 @php
+                    $isPeriodeExpired = $periodeAktif && $periodeAktif->tanggal_selesai && now()->startOfDay()->gt($periodeAktif->tanggal_selesai);
+                    $periodeValue = $periodeAktif ? $periodeAktif->tahun : '-';
+                    $periodeLabel = $periodeAktif ? ($isPeriodeExpired ? 'Periode (Berakhir)' : 'Periode Aktif') : 'Tidak Ada Periode';
+
                     $statItems = [
                         ['value' => $programs->count(), 'label' => 'Program Beasiswa', 'icon' => 'tag'],
                         ['value' => $programs->flatMap->jalurs->count(), 'label' => 'Jalur Tersedia', 'icon' => 'git-branch'],
-                        ['value' => $periodeAktif ? $periodeAktif->tahun : date('Y'), 'label' => 'Periode Aktif', 'icon' => 'calendar'],
+                        ['value' => $periodeValue, 'label' => $periodeLabel, 'icon' => 'calendar'],
                         ['value' => 'Online', 'label' => 'Sistem Pendaftaran', 'icon' => 'globe'],
                     ];
                 @endphp

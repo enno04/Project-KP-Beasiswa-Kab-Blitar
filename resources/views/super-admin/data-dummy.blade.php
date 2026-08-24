@@ -94,6 +94,20 @@
         </form>
     </div>
 
+    <!-- Mode Trigger SLA -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 max-w-2xl mt-6 border-l-4 border-l-purple-500">
+        <h3 class="text-slate-800 font-bold text-lg mb-2">Trigger Auto-Verify SLA 3 Hari</h3>
+        <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+            Tombol ini berfungsi untuk mengeksekusi sistem <strong>Cron Job SLA (Auto-Verifikasi)</strong> secara manual tanpa harus menunggu pukul 00:00 tengah malam. Sangat berguna ketika Anda menguji fitur dengan cara memundurkan waktu pengajuan secara manual lewat database.
+        </p>
+        <form action="{{ route('super-admin.trigger-auto-verify') }}" method="POST" onsubmit="return confirm('Jalankan Auto-Verify SLA sekarang?')">
+            @csrf
+            <button type="submit" class="btn bg-purple-600 text-white hover:bg-purple-700 shadow-md shadow-purple-500/20">
+                <i data-lucide="clock" class="w-4 h-4 mr-2"></i> Jalankan SLA Sekarang
+            </button>
+        </form>
+    </div>
+
     @push('scripts')
     <script>
         document.getElementById('kecamatan_select').addEventListener('change', function() {

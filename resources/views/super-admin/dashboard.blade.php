@@ -134,7 +134,13 @@
                 'tidak_lulus': 'Tdk Lulus'
             };
             
-            const statusLabels = rawStatusData.map(item => statusMapping[item.status] || item.status);
+            const statusLabels = rawStatusData.map(item => {
+                if (statusMapping[item.status]) {
+                    return statusMapping[item.status];
+                }
+                // Fallback: ubah snake_case ke Title Case
+                return item.status.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            });
             const statusData = rawStatusData.map(item => item.total);
             const ctxStatus = document.getElementById('statusChart').getContext('2d');
             new Chart(ctxStatus, {

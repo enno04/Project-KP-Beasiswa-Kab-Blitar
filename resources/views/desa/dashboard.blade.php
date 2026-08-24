@@ -73,37 +73,36 @@
         </div>
 
         {{-- Stats & Chart --}}
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div class="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <x-stat-card label="Total Pendaftar" :value="$stats['total']" icon="users" color="#2B5C92" />
-                <x-stat-card label="Menunggu Verifikasi" :value="$stats['menunggu_verifikasi']" icon="clock" color="#D97706" />
-                <x-stat-card label="Siap Dinilai" :value="$stats['lolos_verifikasi']" icon="check-square" color="#0284C7" />
-                <x-stat-card label="Telah Dinilai" :value="$stats['sudah_dinilai']" icon="award" color="#059669" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <x-stat-card label="Total Pendaftar" :value="$stats['total']" icon="users" color="#2B5C92" />
+            <x-stat-card label="Menunggu Verifikasi" :value="$stats['menunggu_verifikasi']" icon="clock" color="#D97706" />
+            <x-stat-card label="Siap Dinilai" :value="$stats['lolos_verifikasi']" icon="check-square" color="#0284C7" />
+            <x-stat-card label="Telah Dinilai" :value="$stats['sudah_dinilai']" icon="award" color="#059669" />
+        </div>
+
+        <div class="card p-4 flex flex-col justify-center mb-6">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Proporsi Status Pendaftar</h3>
+            @php
+                $total = $stats['total'] ?: 1; // avoid division by zero
+                $pctMenunggu = ($stats['menunggu_verifikasi'] / $total) * 100;
+                $pctLolos = ($stats['lolos_verifikasi'] / $total) * 100;
+                $pctDinilai = ($stats['sudah_dinilai'] / $total) * 100;
+                $pctLulus = ($stats['lulus'] / $total) * 100;
+                // Sisa adalah yang gagal/ditolak
+                $pctSisa = max(0, 100 - ($pctMenunggu + $pctLolos + $pctDinilai + $pctLulus)); 
+            @endphp
+            <div class="w-full h-3 flex rounded-full overflow-hidden mb-3 bg-slate-100 shadow-inner">
+                <div style="width: {{ $pctMenunggu }}%" class="bg-amber-400" title="Menunggu Verifikasi"></div>
+                <div style="width: {{ $pctLolos }}%" class="bg-sky-400" title="Lolos Verifikasi"></div>
+                <div style="width: {{ $pctDinilai }}%" class="bg-emerald-400" title="Sudah Dinilai"></div>
+                <div style="width: {{ $pctLulus }}%" class="bg-indigo-500" title="Lulus/Ditetapkan"></div>
+                <div style="width: {{ $pctSisa }}%" class="bg-rose-400" title="Gugur"></div>
             </div>
-            <div class="card p-4 flex flex-col justify-center">
-                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Proporsi Status Pendaftar</h3>
-                @php
-                    $total = $stats['total'] ?: 1; // avoid division by zero
-                    $pctMenunggu = ($stats['menunggu_verifikasi'] / $total) * 100;
-                    $pctLolos = ($stats['lolos_verifikasi'] / $total) * 100;
-                    $pctDinilai = ($stats['sudah_dinilai'] / $total) * 100;
-                    $pctLulus = ($stats['lulus'] / $total) * 100;
-                    // Sisa adalah yang gagal/ditolak
-                    $pctSisa = max(0, 100 - ($pctMenunggu + $pctLolos + $pctDinilai + $pctLulus)); 
-                @endphp
-                <div class="w-full h-3 flex rounded-full overflow-hidden mb-3 bg-slate-100 shadow-inner">
-                    <div style="width: {{ $pctMenunggu }}%" class="bg-amber-400" title="Menunggu Verifikasi"></div>
-                    <div style="width: {{ $pctLolos }}%" class="bg-sky-400" title="Lolos Verifikasi"></div>
-                    <div style="width: {{ $pctDinilai }}%" class="bg-emerald-400" title="Sudah Dinilai"></div>
-                    <div style="width: {{ $pctLulus }}%" class="bg-indigo-500" title="Lulus/Ditetapkan"></div>
-                    <div style="width: {{ $pctSisa }}%" class="bg-rose-400" title="Gugur"></div>
-                </div>
-                <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
-                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-amber-400"></div> Menunggu</div>
-                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-sky-400"></div> Siap Nilai</div>
-                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-emerald-400"></div> Dinilai</div>
-                    <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-rose-400"></div> Gugur</div>
-                </div>
+            <div class="flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-amber-400"></div> Menunggu</div>
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-sky-400"></div> Siap Nilai</div>
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-emerald-400"></div> Dinilai</div>
+                <div class="flex items-center gap-1"><div class="w-2 h-2 rounded-full bg-rose-400"></div> Gugur</div>
             </div>
         </div>
 

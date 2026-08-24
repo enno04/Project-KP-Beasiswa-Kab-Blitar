@@ -108,6 +108,9 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('super-admin')->name('su
     Route::get('/data-dummy/bypass-opd', [SuperAdminController::class, 'bypassOpdList'])->name('data-dummy.bypass-opd');
     Route::post('/data-dummy/auto-verify-opd', [SuperAdminController::class, 'autoVerifyOpd'])->name('data-dummy.auto-verify');
 
+    // Trigger SLA
+    Route::post('/trigger-auto-verify', [SuperAdminController::class, 'triggerAutoVerifySla'])->name('trigger-auto-verify');
+
     // Pengaturan Web
     Route::get('/pengaturan', [\App\Http\Controllers\SuperAdmin\WebSettingController::class, 'index'])->name('pengaturan.index');
     Route::put('/pengaturan', [\App\Http\Controllers\SuperAdmin\WebSettingController::class, 'update'])->name('pengaturan.update');

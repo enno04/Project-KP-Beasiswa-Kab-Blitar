@@ -200,9 +200,28 @@
             <div class="px-3 sm:px-5 shrink-0 border-r border-white/20 bg-black/10 backdrop-blur-sm z-10 flex items-center gap-2 font-bold uppercase tracking-widest text-xs h-full">
                 <i data-lucide="megaphone" class="w-4 h-4 animate-pulse text-amber-300"></i> <span class="text-white drop-shadow-sm hidden sm:inline">INFO PENTING</span>
             </div>
-            <marquee class="font-semibold text-sm tracking-wide text-white/90 drop-shadow-sm pl-3 sm:pl-4" scrollamount="6" onmouseover="this.stop();" onmouseout="this.start();">
-                {{ $announcementText }}
-            </marquee>
+            {{-- Seamless Infinite Marquee --}}
+            <style>
+                .marquee-wrapper { display: flex; overflow: hidden; width: 100%; white-space: nowrap; align-items: center; }
+                .marquee-content { display: flex; flex-shrink: 0; animation: scroll-left 90s linear infinite; cursor: default; }
+                .marquee-wrapper:hover .marquee-content { animation-play-state: paused; }
+                @keyframes scroll-left { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+            </style>
+            <div class="marquee-wrapper pl-4">
+                <div class="marquee-content font-semibold text-sm tracking-wide text-white/90 drop-shadow-sm">
+                    @php
+                        $announcementLines = array_filter(array_map('trim', explode("\n", $announcementText)));
+                    @endphp
+                    @for($i = 0; $i < 10; $i++)
+                        @foreach($announcementLines as $line)
+                            <span class="flex items-center">
+                                {{ $line }}
+                                <span class="mx-8 text-white/30">•</span>
+                            </span>
+                        @endforeach
+                    @endfor
+                </div>
+            </div>
         </div>
     </div>
     @endif
