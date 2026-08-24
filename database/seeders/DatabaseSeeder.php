@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             ProgramBeasiswaSeeder::class,
             KriteriaDokumenSeeder::class,
             DokumenPublikSeeder::class,
+            WebSettingTempSeeder::class,
         ]);
     }
 }

@@ -1,1 +1,0 @@
-﻿<?php $pendaftar = \App\Models\Pendaftaran::where('status', 'proses_seleksi')->whereHas('rekomendasiDesa', function($q) { $q->where('status_kecamatan', 'disetujui')->where('status_dpmd', 'disetujui'); })->get(); foreach($pendaftar as $p) { app(\App\Services\RecommendationService::class)->cekPersetujuanParalel($p); echo 'Fixed ' . $p->id . PHP_EOL; }

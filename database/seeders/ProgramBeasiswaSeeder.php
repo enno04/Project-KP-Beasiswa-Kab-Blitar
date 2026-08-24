@@ -43,6 +43,7 @@ class ProgramBeasiswaSeeder extends Seeder
                 'tanggal_buka' => '2026-03-01',
                 'tanggal_tutup' => '2026-12-31',
                 'aktif' => true,
+                'kunci_hitung_nilai' => true,
                 'urutan' => 1,
             ]
         );

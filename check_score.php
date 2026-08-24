@@ -1,1 +1,0 @@
-﻿<?php print_r(\App\Models\Pendaftaran::where('status', 'lolos_verifikasi')->whereHas('rekomendasiDesa', function($q){ $q->where('status_kecamatan', 'disetujui')->where('status_dpmd', 'disetujui'); })->get(['id', 'total_nilai', 'ranking'])->toArray());
