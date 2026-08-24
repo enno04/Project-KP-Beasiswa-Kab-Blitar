@@ -1,37 +1,109 @@
 <x-layouts.admin :title="'Data Pendaftar — ' . $program->nama">
     <x-page-header :title="'Data Pendaftar: ' . $program->nama" :subtitle="$jalur ? 'Jalur: ' . $jalur->nama : 'Semua jalur'">
         <x-slot:actions>
-            <span class="badge badge-primary text-xs">{{ $pendaftar->total() }} data</span>
+            <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl border shadow-sm"
+                 style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%); border-color: #bfdbfe;">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg"
+                     style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                    <i data-lucide="users" class="w-4 h-4 text-white"></i>
+                </div>
+                <div class="leading-tight">
+                    <p class="text-xs font-medium text-blue-500 uppercase tracking-wide">Total Pendaftar</p>
+                    <p class="text-lg font-bold text-blue-900">{{ number_format($pendaftar->total(), 0, ',', '.') }}</p>
+                </div>
+            </div>
         </x-slot:actions>
     </x-page-header>
 
-    {{-- Filter --}}
-    <div class="card mb-6">
-        <div class="card-body py-4">
-            <form method="GET" class="flex flex-col sm:flex-row gap-3 items-end">
+    {{-- Filter Kompleks --}}
+    <div class="card mb-6 overflow-hidden">
+        <div class="bg-slate-50/50 border-b border-slate-100 px-5 py-3">
+            <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i> Filter Data
+            </h3>
+        </div>
+        <div class="card-body p-5">
+            <form method="GET" class="flex flex-wrap gap-4 items-end">
+                {{-- Pencarian --}}
+                <div class="w-full sm:w-64">
+                    <label class="form-label text-xs font-semibold text-slate-500 mb-1.5 block">Pencarian</label>
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none z-10"></i>
+                        <input type="text" name="search" value="{{ request('search') }}" class="form-input w-full" style="padding-left: 2.5rem;" placeholder="Cari Nama / NIK..." onblur="this.form.submit()">
+                    </div>
+                </div>
+
+                {{-- Periode --}}
                 <div class="w-full sm:w-48">
-                    <label class="form-label">Periode</label>
-                    <select name="periode_id" class="form-select" onchange="this.form.submit()">
+                    <label class="form-label text-xs font-semibold text-slate-500 mb-1.5 block">Periode</label>
+                    <select name="periode_id" class="form-select w-full" onchange="this.form.submit()">
                         @foreach($periodeList as $p)
                             <option value="{{ $p->id }}" {{ ($periodeId ?? '') == $p->id ? 'selected' : '' }}>{{ $p->nama }} ({{ $p->tahun }})</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="w-full sm:w-64">
-                    <label class="form-label">Status</label>
-                    <select name="status" class="form-select" onchange="this.form.submit()">
+
+                {{-- Kecamatan --}}
+                <div class="w-full sm:w-48">
+                    <label class="form-label text-xs font-semibold text-slate-500 mb-1.5 block">Kecamatan</label>
+                    <select name="kecamatan_id" class="form-select w-full" onchange="this.form.submit()">
+                        <option value="">Semua Kecamatan</option>
+                        @foreach($kecamatanList as $kec)
+                            <option value="{{ $kec->id }}" {{ request('kecamatan_id') == $kec->id ? 'selected' : '' }}>{{ $kec->nama_kecamatan }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                {{-- Desa (Hanya muncul jika Kecamatan dipilih) --}}
+                @if(request()->filled('kecamatan_id'))
+                <div class="w-full sm:w-48 animate-in fade-in slide-in-from-left-4 duration-300">
+                    <label class="form-label text-xs font-semibold text-slate-500 mb-1.5 block">Desa / Kelurahan</label>
+                    <select name="desa_id" class="form-select w-full" onchange="this.form.submit()">
+                        <option value="">Semua Desa</option>
+                        @foreach($desaList as $desa)
+                            <option value="{{ $desa->id }}" {{ request('desa_id') == $desa->id ? 'selected' : '' }}>{{ $desa->nama_desa }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @endif
+
+                {{-- Status --}}
+                <div class="w-full sm:w-48">
+                    <label class="form-label text-xs font-semibold text-slate-500 mb-1.5 block">Status</label>
+                    <select name="status" class="form-select w-full" onchange="this.form.submit()">
                         <option value="">Semua Status</option>
                         <option value="lolos_verifikasi" {{ request('status') === 'lolos_verifikasi' ? 'selected' : '' }}>Lolos Verifikasi</option>
                         <option value="proses_penilaian" {{ request('status') === 'proses_penilaian' ? 'selected' : '' }}>Proses Penilaian</option>
+                        
+                        @if(isset($isBerdayaBerjaya) && $isBerdayaBerjaya)
+                            <option value="menunggu_wawancara" {{ request('status') === 'menunggu_wawancara' ? 'selected' : '' }}>Menunggu Wawancara</option>
+                            <option value="sudah_wawancara" {{ request('status') === 'sudah_wawancara' ? 'selected' : '' }}>Tahap Wawancara: Lolos</option>
+                            <option value="gugur_wawancara" {{ request('status') === 'gugur_wawancara' ? 'selected' : '' }}>Tahap Wawancara: Tidak Lolos / Gugur</option>
+                        @endif
+
                         <option value="menunggu_penetapan" {{ request('status') === 'menunggu_penetapan' ? 'selected' : '' }}>Menunggu Penetapan</option>
                         <option value="lulus" {{ request('status') === 'lulus' ? 'selected' : '' }}>Lulus</option>
                         <option value="tidak_lulus" {{ request('status') === 'tidak_lulus' ? 'selected' : '' }}>Tidak Lulus</option>
                     </select>
                 </div>
-                @if(request()->hasAny(['status']))
-                    <a href="{{ url()->current() }}?periode_id={{ $periodeId }}" class="btn btn-outline btn-sm">
-                        <i data-lucide="x" class="w-3.5 h-3.5"></i> Reset
-                    </a>
+                
+                {{-- Pagination Limit --}}
+                <div class="w-full sm:w-24">
+                    <label class="form-label text-xs font-semibold text-slate-500 mb-1.5 block">Tampil</label>
+                    <select name="per_page" class="form-select w-full" onchange="this.form.submit()">
+                        <option value="10" {{ request('per_page') == 10 ? 'selected' : '' }}>10</option>
+                        <option value="25" {{ request('per_page') == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ request('per_page', 50) == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ request('per_page') == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                </div>
+
+                @if(request()->hasAny(['search', 'kecamatan_id', 'desa_id', 'status']) || request('per_page') != 50)
+                    <div class="pb-0.5">
+                        <a href="{{ url()->current() }}?periode_id={{ $periodeId }}" class="btn btn-outline border-slate-200 text-slate-600 hover:bg-slate-100 h-[42px]">
+                            <i data-lucide="x" class="w-4 h-4"></i> Reset
+                        </a>
+                    </div>
                 @endif
             </form>
         </div>
@@ -55,18 +127,9 @@
                 </form>
             </div>
         </div>
-    @elseif($isSdss)
-        <div class="card mb-6">
-            <div class="card-body py-4">
-                <div class="flex items-center gap-3 text-sm text-slate-600">
-                    <i data-lucide="info" class="w-4 h-4 text-primary shrink-0"></i>
-                    Untuk program SDSS, proses penilaian dan perangkingan dilakukan oleh <strong class="text-primary-dark">Admin Desa</strong>. Kabupaten hanya melihat hasil dan melakukan penetapan.
-                </div>
-            </div>
-        </div>
     @endif
 
-    @if(isset($adaBelumDinilai) && $adaBelumDinilai)
+    @if(isset($adaBelumDinilai) && $adaBelumDinilai && !$isSdss)
         <div class="bg-orange-50 border border-orange-200 text-orange-800 px-4 py-3 rounded-xl mb-6 flex items-start gap-3 shadow-sm">
             <i data-lucide="alert-triangle" class="w-5 h-5 text-orange-500 shrink-0 mt-0.5"></i>
             <div>
@@ -164,18 +227,18 @@
                                     <a href="{{ route('kabupaten.show', $p->id) }}" class="btn btn-xs btn-outline" title="Detail">
                                         <i data-lucide="eye" class="w-3.5 h-3.5"></i>
                                     </a>
-                                    {{-- Tombol Tetapkan: muncul jika status menunggu_penetapan, atau lolos_verifikasi tapi sudah ada ranking (SDSS). Khusus Berdaya Berjaya wajib lolos wawancara dulu --}}
+                                    {{-- Tombol Tetapkan: hanya muncul jika status menunggu_penetapan. Khusus Berdaya Berjaya wajib lolos wawancara dulu --}}
                                     @php
                                         $canTetapkan = false;
                                         if (!isset($adaBelumDinilai) || !$adaBelumDinilai) {
-                                            if ($p->status === 'menunggu_penetapan' || ($p->status === 'lolos_verifikasi' && $p->ranking !== null)) {
+                                            if ($p->status === 'menunggu_penetapan') {
                                                 if (isset($isBerdayaBerjaya) && $isBerdayaBerjaya) {
                                                     // Berdaya Berjaya wajib lolos wawancara dulu
                                                     if ($p->nilai_wawancara !== null && $p->nilai_wawancara == 100) {
                                                         $canTetapkan = true;
                                                     }
                                                 } else {
-                                                    // Selain Berdaya Berjaya, langsung bisa ditetapkn jika sudah diranking
+                                                    // Selain Berdaya Berjaya (termasuk SDSS), langsung bisa ditetapkn
                                                     $canTetapkan = true;
                                                 }
                                             }

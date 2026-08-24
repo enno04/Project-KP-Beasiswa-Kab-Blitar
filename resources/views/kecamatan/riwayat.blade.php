@@ -1,5 +1,17 @@
 <x-layouts.admin :title="'Riwayat Verifikasi Kecamatan'">
-    <x-page-header title="Riwayat Verifikasi" subtitle="Catatan seluruh keputusan rekomendasi yang telah dilakukan oleh instansi Anda." />
+    <x-page-header title="Riwayat Verifikasi" subtitle="Catatan seluruh keputusan rekomendasi yang telah dilakukan oleh instansi Anda.">
+        <x-slot:actions>
+            <div class="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 transform transition-transform hover:-translate-y-0.5">
+                <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                    <i data-lucide="database" class="w-4 h-4 text-white"></i>
+                </div>
+                <div class="flex flex-col text-left">
+                    <span class="text-[10px] font-bold uppercase tracking-widest text-white/90 leading-none mb-0.5">Total Data</span>
+                    <span class="text-base font-black leading-none">{{ number_format($riwayat->total(), 0, ',', '.') }}</span>
+                </div>
+            </div>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Filter & Search --}}
     <div class="card p-4 mb-6">

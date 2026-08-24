@@ -5,141 +5,233 @@
             <div class="absolute inset-0">
                 <div class="absolute -top-16 -right-16 w-64 h-64 bg-white/5 rounded-full blur-2xl"></div>
             </div>
-            <div class="relative card-body text-white">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
-                        <i data-lucide="landmark" class="w-5 h-5"></i>
+            <div class="relative card-body flex flex-col sm:flex-row justify-between sm:items-center text-white p-6">
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center backdrop-blur-sm">
+                            <i data-lucide="landmark" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-xs font-bold uppercase tracking-widest text-violet-200">Admin DPMD</span>
                     </div>
-                    <span class="text-xs font-bold uppercase tracking-widest text-violet-200">Admin DPMD</span>
+                    <h1 class="text-2xl font-extrabold">Selamat Datang, {{ auth()->user()->nama }}!</h1>
+                    <p class="text-violet-100 text-sm mt-1">Verifikasi rekomendasi Desa untuk program Satu Desa Satu Sarjana (SDSS) se-Kabupaten Blitar.</p>
                 </div>
-                <h1 class="text-2xl font-extrabold">Selamat Datang, {{ auth()->user()->nama }}!</h1>
-                <p class="text-violet-100 text-sm mt-1">Verifikasi rekomendasi Desa untuk program Satu Desa Satu Sarjana (SDSS) se-Kabupaten Blitar.</p>
+                <div class="hidden sm:block text-right mt-4 sm:mt-0">
+                    <div class="text-xs text-violet-200 font-semibold mb-1 uppercase tracking-wider">Progress Kinerja</div>
+                    <div class="text-3xl font-black">{{ $persentase }}%</div>
+                    <div class="text-xs text-violet-200 mt-1">{{ $stats['disetujui_dpmd'] }} dari {{ $stats['total'] }} Dokumen</div>
+                </div>
+            </div>
+            
+            <div class="relative px-6 pb-6 z-10">
+                {{-- Progress Bar --}}
+                <div class="mt-2">
+                    <div class="h-2 w-full bg-white/20 rounded-full overflow-hidden shadow-inner">
+                        <div class="h-full bg-white transition-all duration-1000 rounded-full" style="width: {{ $persentase }}%"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
+        {{-- SLA Warning --}}
+        @if($slaWarning > 0)
+        <div class="alert alert-danger shadow-sm border-0 bg-red-50 text-red-700">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i> 
+            <div class="flex-1">
+                <strong class="font-bold">Perhatian!</strong> Terdapat <span class="font-black underline">{{ $slaWarning }} dokumen</span> rekomendasi SDSS yang sudah berada di antrean lebih dari 3 hari. Mohon segera diproses.
+            </div>
+            <a href="{{ route('dpmd.program.index', 'sdss') }}?status=diteruskan_ke_kecamatan" class="btn btn-xs btn-danger whitespace-nowrap">Lihat Berkas</a>
+        </div>
+        @endif
+
         {{-- Stats --}}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <x-stat-card label="Total Masuk" :value="$stats['total']" icon="users" color="#7C3AED" />
             <x-stat-card label="Perlu Diverifikasi" :value="$stats['menunggu_verifikasi_dpmd']" icon="inbox" color="#D97706" />
             <x-stat-card label="Disetujui DPMD" :value="$stats['disetujui_dpmd']" icon="check-circle" color="#059669" />
-            <x-stat-card label="Ditolak DPMD" :value="$stats['ditolak_dpmd']" icon="x-circle" color="#DC2626" />
             <x-stat-card label="Lulus Final" :value="$stats['lulus']" icon="award" color="#0284C7" />
         </div>
 
-        {{-- Monitoring Per Kecamatan --}}
-        <div class="card overflow-hidden">
-            <div class="card-header flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
-                    <i data-lucide="map" class="w-4 h-4"></i>
-                </div>
-                <div>
-                    <span class="font-bold">Monitoring Per Kecamatan</span>
-                    <p class="text-xs text-slate-400 font-normal mt-0.5">Status pendaftar SDSS yang sudah diteruskan oleh Desa, per kecamatan.</p>
+        {{-- Quick Actions --}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="card border-violet-500/20 bg-violet-50/30 hover:shadow-md transition-shadow">
+                <div class="card-body flex items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-bold text-violet-800 mb-1">Mulai Verifikasi</h3>
+                        <p class="text-sm text-slate-500">Periksa dokumen rekomendasi SDSS yang masuk.</p>
+                    </div>
+                    <a href="{{ route('dpmd.program.index', 'sdss') }}?status=diteruskan_ke_kecamatan" class="btn btn-primary bg-violet-600 border-violet-600 hover:bg-violet-700 shrink-0 shadow-md shadow-violet-500/20">
+                        <i data-lucide="play" class="w-4 h-4"></i> Mulai
+                    </a>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Kecamatan</th>
-                            <th class="text-center">Total</th>
-                            <th class="text-center">Menunggu</th>
-                            <th class="text-center">Disetujui</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($monitoringKecamatan as $mk)
-                        <tr>
-                            <td class="font-semibold text-slate-900">{{ $mk->nama_kecamatan }}</td>
-                            <td class="text-center">{{ $mk->total }}</td>
-                            <td class="text-center">
-                                <x-badge :type="$mk->menunggu > 0 ? 'warning' : 'muted'">{{ $mk->menunggu }}</x-badge>
-                            </td>
-                            <td class="text-center">
-                                <x-badge type="success">{{ $mk->disetujui }}</x-badge>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="4">
-                                <x-empty-state icon="map" title="Tidak Ada Data" text="Belum ada pendaftar SDSS yang diteruskan." />
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+            <div class="card hover:shadow-md transition-shadow">
+                <div class="card-body flex items-center justify-between gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-900 mb-1">Riwayat Verifikasi</h3>
+                        <p class="text-sm text-slate-500">Lihat log tindakan verifikasi yang telah dilakukan.</p>
+                    </div>
+                    <a href="{{ route('dpmd.riwayat') }}" class="btn btn-outline shrink-0">
+                        <i data-lucide="history" class="w-4 h-4"></i> Riwayat
+                    </a>
+                </div>
             </div>
         </div>
 
-        {{-- Pendaftar Terbaru --}}
-        <div class="card overflow-hidden">
-            <div class="card-header flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
-                    <i data-lucide="clock" class="w-4 h-4"></i>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {{-- Monitoring Per Kecamatan (Chart) --}}
+            <div class="lg:col-span-1">
+                <div class="card h-full">
+                    <div class="card-header flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
+                            <i data-lucide="bar-chart-2" class="w-4 h-4"></i>
+                        </div>
+                        <span class="font-bold">Monitoring Kecamatan</span>
+                    </div>
+                    <div class="card-body flex flex-col justify-center">
+                        <div class="relative w-full h-[300px]">
+                            <canvas id="kecamatanChart"></canvas>
+                        </div>
+                    </div>
                 </div>
-                Pendaftar SDSS Terbaru
             </div>
-            <div class="overflow-x-auto">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Nama / NIK</th>
-                            <th>Desa / Kec.</th>
-                            <th>Skor & Rank</th>
-                            <th class="text-center">Status Kec.</th>
-                            <th class="text-center">Status DPMD</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-right">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($aktivitasTerbaru as $p)
-                        <tr>
-                            <td>
-                                <p class="font-semibold text-slate-900">{{ $p->identitas->nama_lengkap ?? '-' }}</p>
-                                <p class="text-xs text-slate-400">NIK: {{ $p->identitas->nik ?? '-' }}</p>
-                            </td>
-                            <td>
-                                <p class="font-medium text-sm">Desa {{ $p->identitas->desa->nama_desa ?? '-' }}</p>
-                                <p class="text-xs text-slate-400">Kec. {{ $p->identitas->kecamatan->nama_kecamatan ?? '-' }}</p>
-                            </td>
-                            <td>
-                                @if($p->total_nilai !== null)
-                                    <span class="font-bold text-primary-dark">{{ number_format($p->total_nilai, 4) }}</span>
-                                    <p class="text-xs text-slate-400">Rank: {{ $p->ranking ?? '-' }}</p>
-                                @else
-                                    <span class="text-xs italic text-slate-400">Belum dinilai</span>
-                                @endif
-                            </td>
-                            <td class="text-center">
-                                @php $skec = $p->rekomendasiDesa?->status_kecamatan ?? '-'; @endphp
-                                <x-badge :type="$skec === 'disetujui' ? 'success' : ($skec === 'ditolak' ? 'danger' : 'warning')">
-                                    {{ ucfirst($skec) }}
-                                </x-badge>
-                            </td>
-                            <td class="text-center">
-                                @php $sdpmd = $p->rekomendasiDesa?->status_dpmd ?? '-'; @endphp
-                                <x-badge :type="$sdpmd === 'disetujui' ? 'success' : ($sdpmd === 'ditolak' ? 'danger' : 'warning')">
-                                    {{ ucfirst($sdpmd) }}
-                                </x-badge>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge {{ $p->status_color }}">{{ $p->status_label }}</span>
-                            </td>
-                            <td class="text-right">
-                                <a href="{{ route('dpmd.show', $p->id) }}" class="btn btn-xs btn-outline">Detail</a>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="7">
-                                <x-empty-state icon="inbox" title="Belum Ada Pendaftar" text="Belum ada pendaftar SDSS yang diteruskan oleh Desa." />
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+
+            {{-- Pendaftar Terbaru --}}
+            <div class="lg:col-span-2">
+                <div class="card h-full flex flex-col">
+                    <div class="card-header flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="clock" class="w-4 h-4"></i>
+                        </div>
+                        <span class="font-bold">Pendaftar SDSS Terbaru</span>
+                    </div>
+                    <div class="overflow-x-auto flex-1">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-slate-500 font-medium border-b border-slate-100">
+                                <tr>
+                                    <th class="px-4 py-3">Nama / NIK</th>
+                                    <th class="px-4 py-3">Desa / Kec.</th>
+                                    <th class="px-4 py-3 text-center">Skor</th>
+                                    <th class="px-4 py-3 text-center">Status</th>
+                                    <th class="px-4 py-3 text-right">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                @forelse($aktivitasTerbaru as $p)
+                                <tr class="hover:bg-slate-50 transition-colors">
+                                    <td class="px-4 py-3">
+                                        <div class="font-bold text-slate-800">{{ $p->identitas->nama_lengkap ?? '-' }}</div>
+                                        <div class="text-xs text-slate-500 mt-0.5">{{ $p->identitas->nik ?? '-' }}</div>
+                                    </td>
+                                    <td class="px-4 py-3">
+                                        <div class="font-medium text-slate-700">Desa {{ $p->identitas->desa->nama_desa ?? '-' }}</div>
+                                        <div class="text-xs text-slate-500 mt-0.5">Kec. {{ $p->identitas->kecamatan->nama_kecamatan ?? '-' }}</div>
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        @if($p->total_nilai !== null)
+                                            <span class="font-bold text-violet-600">{{ number_format($p->total_nilai, 2) }}</span>
+                                        @else
+                                            <span class="text-xs italic text-slate-400">Belum Dinilai</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 text-center">
+                                        <span class="badge {{ $p->status_color }}">{{ $p->status_label }}</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-right">
+                                        <a href="{{ route('dpmd.show', $p->id) }}" class="btn btn-xs btn-outline">
+                                            <i data-lucide="eye" class="w-3.5 h-3.5"></i> Detail
+                                        </a>
+                                    </td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="5" class="px-4 py-8 text-center">
+                                        <x-empty-state icon="inbox" title="Belum Ada Pendaftar" text="Belum ada pendaftar SDSS yang diteruskan oleh Desa." />
+                                    </td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                    @if($stats['total'] > 5)
+                    <div class="p-4 border-t border-slate-100 flex justify-center bg-slate-50/50">
+                        <a href="{{ route('dpmd.program.index', 'sdss') }}" class="group inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white border border-slate-200 text-slate-600 font-medium text-sm hover:bg-primary hover:border-primary hover:text-white hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 transform hover:-translate-y-0.5">
+                            Lihat Selengkapnya ({{ $stats['total'] }} Data)
+                            <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+                        </a>
+                    </div>
+                    @endif
+                </div>
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const chartData = @json($monitoringKecamatan);
+            
+            const labels = chartData.map(item => item.nama_kecamatan);
+            const totalData = chartData.map(item => item.total);
+            const disetujuiData = chartData.map(item => item.disetujui);
+
+            const ctx = document.getElementById('kecamatanChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Disetujui',
+                            data: disetujuiData,
+                            backgroundColor: '#10B981', // Emerald 500
+                            borderRadius: 4,
+                        },
+                        {
+                            label: 'Total Masuk',
+                            data: totalData,
+                            backgroundColor: '#8B5CF6', // Violet 500
+                            borderRadius: 4,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                                font: {
+                                    family: "'Inter', sans-serif",
+                                    size: 11
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
+                }
+            });
+        });
+    </script>
+    @endpush
 </x-layouts.admin>

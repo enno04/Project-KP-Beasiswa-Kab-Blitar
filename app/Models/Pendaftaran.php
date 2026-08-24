@@ -147,7 +147,18 @@ class Pendaftaran extends Model
         }
 
         if ($this->status === 'lolos_verifikasi' && $this->total_nilai > 0) {
-            return 'Selesai Dinilai Desa';
+            if ($this->program && str_contains(strtolower($this->program->nama ?? ''), 'satu desa')) {
+                return 'Selesai Dinilai Desa';
+            }
+            return 'Selesai Dinilai / Diranking';
+        }
+
+        if ($this->status === 'menunggu_penetapan') {
+            if ($this->program && in_array(strtolower($this->program->kode ?? ''), ['berdaya_berjaya', 'berdaya-berjaya'])) {
+                if ($this->nilai_wawancara === null) {
+                    return 'Menunggu Wawancara';
+                }
+            }
         }
 
         return match ($this->status) {
@@ -166,7 +177,7 @@ class Pendaftaran extends Model
             'gugur_wawancara' => 'Gugur Wawancara',
             'menunggu_penilaian' => 'Menunggu Penilaian',
             'proses_penilaian' => 'Proses Penilaian',
-            'menunggu_penetapan' => 'Menunggu Penetapan Kab. Blitar',
+            'menunggu_penetapan' => 'Menunggu Penetapan Penerima Beasiswa',
             'lulus', 'sk_terbit' => 'Lulus — SK Terbit',
             'tidak_lulus' => 'Tidak Lulus',
             default => str_replace('_', ' ', $this->status),

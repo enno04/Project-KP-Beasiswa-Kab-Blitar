@@ -34,9 +34,11 @@ class VerifikasiService
         $upload->status = $hasil;
         $upload->save();
 
+        $namaDokumen = $upload->dokumen ? $upload->dokumen->nama : 'Dokumen (Dihapus/Tidak Diketahui)';
+        
         AuditLog::catat(
             'Verifikasi Dokumen',
-            "Dokumen: {$upload->dokumen->nama} | Hasil: {$hasil}" . ($catatan ? " | {$catatan}" : ''),
+            "Dokumen: {$namaDokumen} | Hasil: {$hasil}" . ($catatan ? " | {$catatan}" : ''),
             UploadDokumen::class,
             $upload->id
         );
@@ -50,7 +52,7 @@ class VerifikasiService
                 
                 AuditLog::catat(
                     'Pendaftaran Gugur',
-                    "Pendaftar dinyatakan Tidak Lolos Verifikasi OPD karena dokumen {$upload->dokumen->nama} dinyatakan Tidak Valid oleh OPD.",
+                    "Pendaftar dinyatakan Tidak Lolos Verifikasi OPD karena dokumen {$namaDokumen} dinyatakan Tidak Valid oleh OPD.",
                     Pendaftaran::class,
                     $pendaftaran->id
                 );

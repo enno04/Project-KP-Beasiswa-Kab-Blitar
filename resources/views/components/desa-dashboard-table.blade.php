@@ -54,9 +54,18 @@
             </tbody>
         </table>
     </div>
-    @if($pendaftar->hasPages())
-        <div class="card-footer border-t border-slate-100">
-            {{ $pendaftar->appends(['tab' => $tabName])->links() }}
+    @if($pendaftar->total() > 5)
+        @php
+            $targetUrl = match($tabName) {
+                'selesai' => route('desa.riwayat'),
+                default => route('desa.program.index', 'sdss')
+            };
+        @endphp
+        <div class="p-4 border-t border-slate-100 flex justify-center bg-slate-50/50">
+            <a href="{{ $targetUrl }}" class="group inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white border border-slate-200 text-slate-600 font-medium text-sm hover:bg-primary hover:border-primary hover:text-white hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 transform hover:-translate-y-0.5">
+                Lihat Selengkapnya ({{ $pendaftar->total() }} Data)
+                <i data-lucide="arrow-right" class="w-4 h-4 group-hover:translate-x-1 transition-transform"></i>
+            </a>
         </div>
     @endif
 </div>

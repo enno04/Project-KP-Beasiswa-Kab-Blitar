@@ -30,10 +30,24 @@ class KecamatanController extends Controller
             'lulus' => (clone $pendaftaranQuery)->where('status', 'lulus')->count(),
         ];
 
+        $disetujuiKecamatan = RekomendasiDesa::whereHas('pendaftaran.identitas', fn($q) => $q->where('kecamatan_id', $kecId))
+            ->where('status_kecamatan', 'disetujui')
+            ->count();
+            
+        $persentase = $stats['total'] > 0 ? round(($disetujuiKecamatan / $stats['total']) * 100) : 0;
+
+        $slaWarning = Pendaftaran::whereHas('identitas', fn($q) => $q->where('kecamatan_id', $kecId))
+            ->where('status', 'diteruskan_ke_kecamatan')
+            ->whereHas('rekomendasiDesa', function ($q) {
+                $q->where('status_kecamatan', 'belum_diverifikasi')
+                  ->where('created_at', '<', now()->subDays(3));
+            })
+            ->count();
+
         $aktivitasTerbaru = Pendaftaran::with(['program', 'jalur', 'identitas.desa'])
             ->whereHas('identitas', fn($q) => $q->where('kecamatan_id', $kecId))
             ->whereIn('status', ['diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd', 'proses_seleksi', 'menunggu_penetapan', 'lulus', 'tidak_lulus'])
-            ->latest()->take(10)->get();
+            ->latest()->take(5)->get();
 
         // Monitoring: status desa se-kecamatan (Optimized N+1)
         $desaList = Desa::where('kecamatan_id', $kecId)
@@ -78,7 +92,7 @@ class KecamatanController extends Controller
             ];
         }
 
-        return view('kecamatan.dashboard', compact('stats', 'aktivitasTerbaru', 'monitoringDesa'));
+        return view('kecamatan.dashboard', compact('stats', 'aktivitasTerbaru', 'monitoringDesa', 'persentase', 'slaWarning', 'disetujuiKecamatan'));
     }
 
     public function index(Request $request, $programSlug, $jalurSlug = null)

@@ -38,6 +38,7 @@ class AuthenticatedSessionController extends Controller
             'admin_opd' => 'opd.dashboard',
             'admin_kecamatan' => 'kecamatan.dashboard',
             'admin_desa' => 'desa.dashboard',
+            'admin_dpmd' => 'dpmd.dashboard',
             default => 'home',
         };
 

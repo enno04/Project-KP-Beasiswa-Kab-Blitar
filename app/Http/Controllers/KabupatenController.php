@@ -33,8 +33,11 @@ class KabupatenController extends Controller
     {
         $periodeAktif = Periode::aktif()->first();
 
-        // Hanya tampilkan data yang sudah masuk ke level kabupaten
-        $baseQuery = Pendaftaran::whereIn('status', self::KABUPATEN_STATUSES);
+        // Base query yang mengecualikan program SDSS (karena penilaian SDSS ada di Desa)
+        $baseQuery = Pendaftaran::whereIn('status', self::KABUPATEN_STATUSES)
+            ->whereHas('program', function($q) {
+                $q->where('kode', '!=', 'sdss');
+            });
 
         if ($periodeAktif) {
             $baseQuery->where('periode_id', $periodeAktif->id);
@@ -47,11 +50,50 @@ class KabupatenController extends Controller
             'lulus' => (clone $baseQuery)->where('status', 'lulus')->count(),
         ];
 
+        // SLA Warning: Data lolos verifikasi (siap dinilai/ditetapkan) lebih dari 3 hari (Tanpa SDSS)
+        $slaWarning = (clone $baseQuery)
+            ->where('status', 'lolos_verifikasi')
+            ->where('updated_at', '<', now()->subDays(3))
+            ->count();
+
+        // Chart 1: Sebaran Kecamatan
+        $monitoringKecamatan = \Illuminate\Support\Facades\DB::table('pendaftarans')
+            ->join('pendaftaran_identitas', 'pendaftarans.id', '=', 'pendaftaran_identitas.pendaftaran_id')
+            ->join('kecamatan', 'pendaftaran_identitas.kecamatan_id', '=', 'kecamatan.id')
+            ->whereIn('pendaftarans.status', self::KABUPATEN_STATUSES);
+            
+        if ($periodeAktif) {
+            $monitoringKecamatan->where('pendaftarans.periode_id', $periodeAktif->id);
+        }
+            
+        $monitoringKecamatan = $monitoringKecamatan->select(
+                'kecamatan.nama_kecamatan',
+                \Illuminate\Support\Facades\DB::raw('COUNT(*) as total')
+            )
+            ->groupBy('kecamatan.nama_kecamatan')
+            ->orderByDesc('total')
+            ->get();
+
+        // Chart 2: Komposisi Status
+        $komposisiStatus = \Illuminate\Support\Facades\DB::table('pendaftarans')
+            ->whereIn('status', self::KABUPATEN_STATUSES);
+            
+        if ($periodeAktif) {
+            $komposisiStatus->where('periode_id', $periodeAktif->id);
+        }
+        
+        $komposisiStatus = $komposisiStatus->select(
+                'status',
+                \Illuminate\Support\Facades\DB::raw('COUNT(*) as total')
+            )
+            ->groupBy('status')
+            ->get();
+
         $aktivitasTerbaru = Pendaftaran::with(['program', 'jalur', 'identitas'])
             ->whereIn('status', self::KABUPATEN_STATUSES)
-            ->latest()->take(10)->get();
+            ->latest()->take(5)->get();
 
-        return view('kabupaten.dashboard', compact('stats', 'aktivitasTerbaru', 'periodeAktif'));
+        return view('kabupaten.dashboard', compact('stats', 'aktivitasTerbaru', 'periodeAktif', 'slaWarning', 'monitoringKecamatan', 'komposisiStatus'));
     }
 
     public function riwayatPenetapan(Request $request)
@@ -137,9 +179,18 @@ class KabupatenController extends Controller
             $jalur = $program->jalurs->first();
         }
 
-        $query = Pendaftaran::with(['identitas.desa', 'identitas.kecamatan', 'jalur'])
-            ->where('program_id', $program->id)
-            ->whereIn('status', self::KABUPATEN_STATUSES);
+        $isSdss = $program->isSdss();
+        $isBerdayaBerjaya = ($program->kode === 'berdaya_berjaya' || $program->slug === 'berdaya-berjaya');
+
+        if ($isSdss) {
+            $query = Pendaftaran::with(['identitas.desa', 'identitas.kecamatan', 'jalur'])
+                ->where('program_id', $program->id)
+                ->whereIn('status', ['menunggu_penetapan', 'lulus', 'tidak_lulus']);
+        } else {
+            $query = Pendaftaran::with(['identitas.desa', 'identitas.kecamatan', 'jalur'])
+                ->where('program_id', $program->id)
+                ->whereIn('status', self::KABUPATEN_STATUSES);
+        }
 
         if ($jalur) $query->where('jalur_id', $jalur->id);
         
@@ -147,17 +198,62 @@ class KabupatenController extends Controller
         $periodeId = $request->periode_id ?? ($periodeAktif ? $periodeAktif->id : null);
         if ($periodeId) $query->where('periode_id', $periodeId);
 
-        if ($request->status) $query->where('status', $request->status);
+        // Filter berdasarkan status
+        if ($request->filled('status')) {
+            if ($request->status === 'sudah_wawancara') {
+                $query->whereNotNull('nilai_wawancara')->where('nilai_wawancara', '>', 0);
+            } elseif ($request->status === 'menunggu_wawancara') {
+                $query->where('status', 'menunggu_penetapan')->whereNull('nilai_wawancara');
+            } elseif ($request->status === 'menunggu_penetapan') {
+                $query->where('status', 'menunggu_penetapan');
+                if ($isBerdayaBerjaya) {
+                    $query->whereNotNull('nilai_wawancara');
+                }
+            } else {
+                $query->where('status', $request->status);
+            }
+        }
+        
+        // Filter Pencarian (Nama / NIK)
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->whereHas('identitas', function ($q) use ($searchTerm) {
+                $q->where('nama_lengkap', 'like', "%{$searchTerm}%")
+                  ->orWhere('nik', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        // Filter Kecamatan
+        if ($request->filled('kecamatan_id')) {
+            $query->whereHas('identitas', function ($q) use ($request) {
+                $q->where('kecamatan_id', $request->kecamatan_id);
+            });
+        }
+
+        // Filter Desa
+        if ($request->filled('desa_id')) {
+            $query->whereHas('identitas', function ($q) use ($request) {
+                $q->where('desa_id', $request->desa_id);
+            });
+        }
+
+        // Pagination
+        $perPage = $request->input('per_page', 50);
 
         // Urutkan: yang sudah ada ranking di atas, lalu by total_nilai desc
         $pendaftar = $query->orderByRaw('CASE WHEN ranking IS NOT NULL THEN 0 ELSE 1 END')
             ->orderBy('ranking', 'asc')
             ->orderBy('total_nilai', 'desc')
-            ->paginate(50)->withQueryString();
+            ->paginate($perPage)->withQueryString();
 
         $periodeList = Periode::orderBy('tahun', 'desc')->get();
-        $isSdss = $program->isSdss();
-        $isBerdayaBerjaya = ($program->kode === 'berdaya_berjaya' || $program->slug === 'berdaya-berjaya');
+        
+        // Data untuk Dropdown Wilayah
+        $kecamatanList = \App\Models\Kecamatan::orderBy('nama_kecamatan')->get();
+        $desaList = collect();
+        if ($request->filled('kecamatan_id')) {
+            $desaList = \App\Models\Desa::where('kecamatan_id', $request->kecamatan_id)->orderBy('nama_desa')->get();
+        }
 
         $adaBelumDinilai = false;
         if ($jalur && $periodeId) {
@@ -168,7 +264,7 @@ class KabupatenController extends Controller
                 ->exists();
         }
 
-        return view('kabupaten.index', compact('pendaftar', 'program', 'jalur', 'periodeAktif', 'periodeList', 'periodeId', 'isSdss', 'isBerdayaBerjaya', 'adaBelumDinilai'));
+        return view('kabupaten.index', compact('pendaftar', 'program', 'jalur', 'periodeAktif', 'periodeList', 'periodeId', 'isSdss', 'isBerdayaBerjaya', 'adaBelumDinilai', 'kecamatanList', 'desaList'));
     }
 
     public function show($id)
@@ -274,6 +370,9 @@ class KabupatenController extends Controller
         $pendaftaran = Pendaftaran::findOrFail($id);
         $catatanInfo = $request->catatan ? " | Catatan: " . $request->catatan : "";
 
+        // Jika pendaftar sudah diranking, status kembalinya adalah menunggu_penetapan
+        $statusKembali = ($pendaftaran->ranking !== null && $pendaftaran->total_nilai > 0) ? 'menunggu_penetapan' : 'lolos_verifikasi';
+
         if ($request->action_type === 'gugurkan') {
             $pendaftaran->status = 'gugur_wawancara';
             $pendaftaran->nilai_wawancara = 0;
@@ -283,7 +382,7 @@ class KabupatenController extends Controller
         }
 
         if ($request->action_type === 'lolos') {
-            $pendaftaran->status = 'lolos_verifikasi';
+            $pendaftaran->status = $statusKembali;
             $pendaftaran->nilai_wawancara = 100; // Memberi nilai default penuh jika lolos
             $pendaftaran->save();
             AuditLog::catat('Lolos Wawancara', "Pendaftar berhasil lolos tahap wawancara." . $catatanInfo, Pendaftaran::class, $pendaftaran->id);
@@ -291,7 +390,7 @@ class KabupatenController extends Controller
         }
 
         if ($request->action_type === 'batalkan') {
-            $pendaftaran->status = 'lolos_verifikasi';
+            $pendaftaran->status = $statusKembali;
             $pendaftaran->nilai_wawancara = null;
             $pendaftaran->save();
             AuditLog::catat('Reset Wawancara', "Pilihan wawancara dibatalkan." . $catatanInfo, Pendaftaran::class, $pendaftaran->id);
@@ -421,13 +520,17 @@ class KabupatenController extends Controller
 
         if ($request->verifikasi_tipe) {
             if ($request->verifikasi_tipe === 'sistem') {
+                // Sistem = verifikasi kecamatan dan DPMD belum ada (masih default)
                 $query->whereHas('rekomendasiDesa', function($q) {
-                    $q->whereNull('dpmd_verified_by')->whereNull('kecamatan_verified_by');
+                    $q->where('status_kecamatan', 'belum_diverifikasi')
+                      ->whereNull('dpmd_verified_by');
                 });
             } elseif ($request->verifikasi_tipe === 'manual') {
+                // Manual = sudah ada verifikasi dari kecamatan ATAU DPMD
                 $query->whereHas('rekomendasiDesa', function($q) {
                     $q->where(function($q2) {
-                        $q2->whereNotNull('dpmd_verified_by')->orWhereNotNull('kecamatan_verified_by');
+                        $q2->where('status_kecamatan', '!=', 'belum_diverifikasi')
+                           ->orWhereNotNull('dpmd_verified_by');
                     });
                 });
             }

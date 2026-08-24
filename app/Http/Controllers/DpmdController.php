@@ -36,11 +36,18 @@ class DpmdController extends Controller
             'disetujui_dpmd' => Pendaftaran::whereHas('program', fn($q) => $q->where('kode', 'sdss'))
                 ->whereHas('rekomendasiDesa', fn($q) => $q->where('status_dpmd', 'disetujui'))
                 ->count(),
-            'ditolak_dpmd' => Pendaftaran::whereHas('program', fn($q) => $q->where('kode', 'sdss'))
-                ->where('status', 'ditolak_dpmd')
-                ->count(),
             'lulus' => (clone $pendaftaranQuery)->where('status', 'lulus')->count(),
         ];
+
+        $persentase = $stats['total'] > 0 ? round(($stats['disetujui_dpmd'] / $stats['total']) * 100) : 0;
+
+        $slaWarning = Pendaftaran::whereHas('program', fn($q) => $q->where('kode', 'sdss'))
+            ->where('status', 'diteruskan_ke_kecamatan')
+            ->whereHas('rekomendasiDesa', function ($q) {
+                $q->where('status_dpmd', 'belum_diverifikasi')
+                  ->where('created_at', '<', now()->subDays(3));
+            })
+            ->count();
 
         $aktivitasTerbaru = Pendaftaran::with(['program', 'jalur', 'identitas.desa', 'identitas.kecamatan', 'rekomendasiDesa'])
             ->whereHas('program', fn($q) => $q->where('kode', 'sdss'))
@@ -48,7 +55,7 @@ class DpmdController extends Controller
                 'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd', 'proses_seleksi',
                 'menunggu_penetapan', 'lulus', 'tidak_lulus',
             ])
-            ->latest()->take(10)->get();
+            ->latest()->take(5)->get();
 
         // Monitoring: status per kecamatan
         $monitoringKecamatan = DB::table('pendaftarans')
@@ -70,7 +77,7 @@ class DpmdController extends Controller
             ->orderBy('kecamatan.nama_kecamatan')
             ->get();
 
-        return view('dpmd.dashboard', compact('stats', 'aktivitasTerbaru', 'monitoringKecamatan'));
+        return view('dpmd.dashboard', compact('stats', 'aktivitasTerbaru', 'monitoringKecamatan', 'persentase', 'slaWarning'));
     }
 
     /**
@@ -90,7 +97,7 @@ class DpmdController extends Controller
         $query = Pendaftaran::with(['identitas.desa', 'identitas.kecamatan', 'jalur', 'rekomendasiDesa'])
             ->where('program_id', $program->id)
             ->whereIn('status', [
-                'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd', 'proses_seleksi',
+                'diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'proses_seleksi',
                 'menunggu_penetapan', 'lulus', 'tidak_lulus',
             ]);
 
@@ -121,8 +128,6 @@ class DpmdController extends Controller
             $query->whereHas('rekomendasiDesa', fn($q) => $q->where('status_dpmd', 'belum_diverifikasi'));
         } elseif ($request->filter_dpmd === 'disetujui') {
             $query->whereHas('rekomendasiDesa', fn($q) => $q->where('status_dpmd', 'disetujui'));
-        } elseif ($request->filter_dpmd === 'ditolak') {
-            $query->whereHas('rekomendasiDesa', fn($q) => $q->where('status_dpmd', 'ditolak'));
         }
 
         $pendaftar = $query->latest()->paginate(20)->withQueryString();

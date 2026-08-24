@@ -1,15 +1,25 @@
 <x-layouts.admin :title="'Riwayat Penetapan Beasiswa'">
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h1 class="text-2xl font-bold text-slate-800">Riwayat Penetapan Beasiswa</h1>
-            <p class="text-slate-500 text-sm mt-1">Daftar pendaftar yang telah ditetapkan (LULUS) menerima beasiswa.</p>
-        </div>
-        <div class="flex gap-2">
-            <a href="{{ route('kabupaten.export-riwayat', request()->query()) }}" class="btn text-white bg-green-600 hover:bg-green-700 border-green-600 shadow-sm">
-                <i data-lucide="download" class="w-4 h-4"></i> Export ke Excel
+    <x-page-header title="Riwayat Penetapan Beasiswa" subtitle="Daftar pendaftar yang telah ditetapkan (LULUS) menerima beasiswa.">
+        <x-slot:actions>
+            <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl border shadow-sm"
+                 style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-color: #bbf7d0;">
+                <div class="flex items-center justify-center w-8 h-8 rounded-lg"
+                     style="background: linear-gradient(135deg, #22c55e, #15803d);">
+                    <i data-lucide="trophy" class="w-4 h-4 text-white"></i>
+                </div>
+                <div class="leading-tight">
+                    <p class="text-xs font-medium text-green-600 uppercase tracking-wide">Total Penerima</p>
+                    <p class="text-lg font-bold text-green-900">{{ number_format($riwayatPenetapan->total(), 0, ',', '.') }}</p>
+                </div>
+            </div>
+            <a href="{{ route('kabupaten.export-riwayat', request()->query()) }}"
+               class="flex items-center gap-2 self-stretch px-4 rounded-xl text-white text-sm font-semibold shadow-sm transition-all hover:opacity-90 active:scale-95"
+               style="background: linear-gradient(135deg, #22c55e, #15803d);">
+                <i data-lucide="download" class="w-4 h-4 shrink-0"></i>
+                <span>Export ke Excel</span>
             </a>
-        </div>
-    </div>
+        </x-slot:actions>
+    </x-page-header>
 
     {{-- Filter Form --}}
     <div class="card mb-6">
@@ -92,7 +102,7 @@
                             </td>
                             <td>
                                 <span class="text-sm font-semibold text-slate-700">{{ $p->identitas->desa->nama_desa ?? '-' }}</span>
-                                <p class="text-xs text-slate-500">{{ $p->identitas->kecamatan->nama_kecamatan ?? '-' }}</p>
+                                <p class="text-xs text-slate-500">{{ $p->identitas->desa->kecamatan->nama_kecamatan ?? '-' }}</p>
                             </td>
                             <td class="text-xs text-slate-500">
                                 {{ $p->updated_at ? $p->updated_at->format('d M Y H:i') : '-' }}

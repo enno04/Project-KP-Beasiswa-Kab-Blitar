@@ -60,10 +60,11 @@
                     <label class="form-label">Status Pendaftaran</label>
                     <select name="status" class="form-select" onchange="this.form.submit()">
                         <option value="">Semua Status</option>
-                        <option value="diteruskan_ke_kecamatan" {{ request('status') === 'diteruskan_ke_kecamatan' ? 'selected' : '' }}>Menunggu Verif</option>
+                        <option value="diteruskan_ke_kecamatan" {{ request('status') === 'diteruskan_ke_kecamatan' ? 'selected' : '' }}>Diteruskan ke Kecamatan / DPMD</option>
+                        <option value="ditolak_kecamatan" {{ request('status') === 'ditolak_kecamatan' ? 'selected' : '' }}>Ditolak Kecamatan</option>
                         <option value="proses_seleksi" {{ request('status') === 'proses_seleksi' ? 'selected' : '' }}>Proses Seleksi</option>
                         <option value="menunggu_penetapan" {{ request('status') === 'menunggu_penetapan' ? 'selected' : '' }}>Menunggu Penetapan</option>
-                        <option value="lulus" {{ request('status') === 'lulus' ? 'selected' : '' }}>Lulus</option>
+                        <option value="lulus" {{ request('status') === 'lulus' ? 'selected' : '' }}>Lulus Final</option>
                         <option value="tidak_lulus" {{ request('status') === 'tidak_lulus' ? 'selected' : '' }}>Tidak Lulus</option>
                     </select>
                 </div>

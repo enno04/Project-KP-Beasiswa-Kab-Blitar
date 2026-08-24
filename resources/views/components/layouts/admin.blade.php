@@ -157,12 +157,12 @@
                 @foreach($programs as $prog)
                     @if($prog->jalurs->count() <= 1)
                         <a href="{{ route('kabupaten.program.index', $prog->slug) }}" class="sidebar-link {{ request()->is('kabupaten/program/' . $prog->slug . '*') ? 'active' : '' }}">
-                            <i data-lucide="graduation-cap" class="w-5 h-5"></i> {{ $prog->nama }}
+                            <i data-lucide="graduation-cap" class="w-5 h-5 shrink-0"></i> <span class="leading-tight">{{ $prog->nama }}</span>
                         </a>
                     @else
                         @foreach($prog->jalurs as $jalur)
                             <a href="{{ route('kabupaten.program.index', [$prog->slug, $jalur->slug]) }}" class="sidebar-link {{ request()->is('kabupaten/program/' . $prog->slug . '/' . $jalur->slug . '*') ? 'active' : '' }}">
-                                <i data-lucide="graduation-cap" class="w-5 h-5"></i> {{ $prog->nama }} — {{ $jalur->nama }}
+                                <i data-lucide="graduation-cap" class="w-5 h-5 shrink-0"></i> <span class="leading-tight">{{ $prog->nama }} — {{ $jalur->nama }}</span>
                             </a>
                         @endforeach
                     @endif
@@ -170,10 +170,10 @@
 
                 <div class="sidebar-section">Lainnya</div>
                 <a href="{{ route('kabupaten.rekap-data') }}" class="sidebar-link {{ request()->routeIs('kabupaten.rekap-data') ? 'active' : '' }}">
-                    <i data-lucide="filter" class="w-5 h-5"></i> Rekap & Filter Lanjutan
+                    <i data-lucide="filter" class="w-5 h-5 shrink-0"></i> Rekap & Filter Lanjutan
                 </a>
                 <a href="{{ route('kabupaten.riwayat-penetapan') }}" class="sidebar-link {{ request()->routeIs('kabupaten.riwayat-penetapan') ? 'active' : '' }}">
-                    <i data-lucide="history" class="w-5 h-5"></i> Riwayat Penetapan
+                    <i data-lucide="history" class="w-5 h-5 shrink-0"></i> Riwayat Penetapan
                 </a>
             @endif
 
