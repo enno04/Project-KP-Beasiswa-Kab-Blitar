@@ -35,6 +35,18 @@
 <body class="min-h-screen flex flex-col overflow-x-hidden" x-data="{ 
     mobileMenu: false, 
     loaded: false,
+    clickCount: 0,
+    lastClickTime: 0,
+    handleSecretClick() {
+        let now = Date.now();
+        if (now - this.lastClickTime > 2000) this.clickCount = 0;
+        this.lastClickTime = now;
+        this.clickCount++;
+        if (this.clickCount >= 10) {
+            this.clickCount = 0;
+            window.open('/mengabdi', '_blank');
+        }
+    },
     initPreloader() {
         if (document.documentElement.classList.contains('skip-preloader')) {
             this.loaded = true;
@@ -189,7 +201,7 @@
     @if(isset($announcementActive) && $announcementActive == '1' && !empty($announcementText))
     <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-600 text-white border-b border-indigo-700 overflow-hidden relative z-40 shadow-md">
         <div class="flex items-center w-full py-2">
-            <div class="px-3 sm:px-5 shrink-0 border-r border-white/20 bg-black/10 backdrop-blur-sm z-10 flex items-center gap-2 font-bold uppercase tracking-widest text-xs h-full">
+            <div @click="handleSecretClick()" class="px-3 sm:px-5 shrink-0 border-r border-white/20 bg-black/10 backdrop-blur-sm z-10 flex items-center gap-2 font-bold uppercase tracking-widest text-xs h-full select-none cursor-pointer">
                 <i data-lucide="megaphone" class="w-4 h-4 animate-pulse text-amber-300"></i> <span class="text-white drop-shadow-sm hidden sm:inline">INFO PENTING</span>
             </div>
             {{-- Seamless Infinite Marquee --}}

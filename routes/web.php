@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 
+// Fallback untuk pengetikan URL relatif /mengabdi dari halaman manapun
+Route::get('{any}/mengabdi', function () {
+    return redirect('/mengabdi');
+})->where('any', '.*');
+
 // Redirect dashboard based on role
 Route::get('/dashboard', function () {
     $user = auth()->user();
