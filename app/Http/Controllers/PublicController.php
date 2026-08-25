@@ -56,7 +56,11 @@ class PublicController extends Controller
 
     public function downloadDokumenPublik($id)
     {
-        $dokumen = DokumenPublik::aktif()->findOrFail($id);
+        $dokumen = DokumenPublik::findOrFail($id);
+
+        if (!$dokumen->status_aktif && !auth()->check()) {
+            abort(404, 'Dokumen tidak ditemukan atau tidak aktif.');
+        }
 
         if (!Storage::disk('public')->exists($dokumen->file_path)) {
             abort(404, 'File dokumen tidak ditemukan pada server.');

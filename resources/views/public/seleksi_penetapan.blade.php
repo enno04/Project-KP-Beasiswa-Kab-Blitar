@@ -57,8 +57,8 @@
 
                                             <div class="card-body">
                                                 @if(isset($penerima[$jalur->id]) && $penerima[$jalur->id]->count() > 0)
-                                                    <div class="overflow-x-auto">
-                                                        <table class="data-table">
+                                                    <div class="overflow-x-auto" x-data="{ page: 1, totalPages: {{ ceil($penerima[$jalur->id]->count() / 10) }} }">
+                                                        <table class="data-table w-full">
                                                             <thead>
                                                                 <tr>
                                                                     <th class="text-center w-16">Peringkat</th>
@@ -69,8 +69,9 @@
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                @foreach($penerima[$jalur->id] as $p)
-                                                                    <tr>
+                                                                @foreach($penerima[$jalur->id] as $index => $p)
+                                                                    @php $itemPage = floor($index / 10) + 1; @endphp
+                                                                    <tr x-show="page === {{ $itemPage }}" {!! $itemPage === 1 ? '' : 'style="display: none;"' !!}>
                                                                         <td class="text-center">
                                                                             <span
                                                                                 class="w-7 h-7 rounded-full flex items-center justify-center font-bold text-xs mx-auto {{ $loop->iteration <= 3 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600' }}">
@@ -93,6 +94,29 @@
                                                                 @endforeach
                                                             </tbody>
                                                         </table>
+
+                                                        @if($penerima[$jalur->id]->count() > 10)
+                                                            <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-4 px-2 py-3 border-t border-slate-100">
+                                                                <div class="text-sm text-slate-500">
+                                                                    Menampilkan <span class="font-bold text-slate-700" x-text="(page - 1) * 10 + 1"></span> - 
+                                                                    <span class="font-bold text-slate-700" x-text="Math.min(page * 10, {{ $penerima[$jalur->id]->count() }})"></span> 
+                                                                    dari <span class="font-bold text-slate-700">{{ $penerima[$jalur->id]->count() }}</span> penerima
+                                                                </div>
+                                                                <div class="flex items-center gap-1">
+                                                                    <button @click="if(page > 1) page--" :disabled="page === 1" 
+                                                                        class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-slate-600">
+                                                                        Sebelumnya
+                                                                    </button>
+                                                                    <div class="px-3 py-1.5 text-sm font-bold text-slate-700 bg-slate-50 rounded-lg border border-slate-100">
+                                                                        <span x-text="page"></span> / <span x-text="totalPages"></span>
+                                                                    </div>
+                                                                    <button @click="if(page < totalPages) page++" :disabled="page === totalPages" 
+                                                                        class="px-3 py-1.5 text-sm rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-slate-600">
+                                                                        Selanjutnya
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 @else
                                                     <x-empty-state icon="award" title="Belum Ada Penetapan"
@@ -119,16 +143,16 @@
                     @foreach([
                             [
                                 'title' => 'Satu Desa Satu Sarjana (SDSS)',
-                                'subtitle' => 'Melibatkan Desa & Kecamatan',
+                                'subtitle' => 'Melibatkan Desa, Kecamatan & DPMD',
                                 'color' => '#2B5C92',
                                 'bg' => 'bg-primary-light',
                                 'text' => 'text-primary-dark',
                                 'steps' => [
                                     'Calon mahasiswa mendaftar online melalui portal Beasiswa.',
                                     'Verifikasi berkas & dokumen oleh Tim OPD terkait.',
-                                    'Verifikasi faktual Desa & penerbitan Surat Rekomendasi Kades.',
-                                    'Peninjauan data pendaftar oleh Pihak Kecamatan.',
-                                    'Pemeringkatan (SPK) & penetapan SK oleh Bupati Blitar.',
+                                    'Penilaian SPK, Perangkingan, & Penetapan calon terbaik tingkat Desa.',
+                                    'Unggah Surat Rekomendasi Kades & Persetujuan Paralel Kecamatan / DPMD.',
+                                    'Penetapan akhir & penerbitan SK Penerima oleh Bupati Blitar.',
                                 ]
                             ],
                             [
@@ -152,11 +176,11 @@
                                 'bg' => 'bg-purple-100',
                                 'text' => 'text-purple-700',
                                 'steps' => [
-                                    'Calon mendaftar via Jalur Prestasi atau Kurang Mampu.',
-                                    'Verifikasi dokumen persyaratan & bukti pendukung oleh OPD.',
-                                    'Penilaian otomatis SPK berbasis Model Berbobot (Weighted Sum).',
-                                    'Penyusunan urutan perolehan nilai & perangkingan.',
-                                    'Penetapan SK Penerima Beasiswa oleh Bupati Blitar.',
+                                    'Calon mendaftar online melalui Jalur Prestasi atau Kurang Mampu.',
+                                    'Verifikasi kelengkapan dokumen persyaratan oleh Tim Seleksi.',
+                                    'Penilaian dan perhitungan skor akhir peserta.',
+                                    'Penyusunan peringkat (ranking) berdasarkan total nilai tertinggi.',
+                                    'Penetapan akhir & penerbitan SK Penerima oleh Bupati Blitar.',
                                 ]
                             ],
                         ] as $alur)

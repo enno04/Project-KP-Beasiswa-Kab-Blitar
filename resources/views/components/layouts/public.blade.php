@@ -90,8 +90,10 @@
                         class="h-12 sm:h-12 lg:h-12 w-auto object-contain">
                 </a>
 
-                {{-- Desktop Nav --}}
-                <div class="hidden lg:flex items-center gap-1">
+                {{-- Wrapper Kanan untuk Nav & Actions --}}
+                <div class="flex items-center gap-2 lg:gap-6">
+                    {{-- Desktop Nav --}}
+                    <div class="hidden lg:flex items-center gap-1">
                     @php
                         $navItems = [
                             ['route' => 'home', 'label' => 'Beranda', 'is' => 'home'],
@@ -146,10 +148,6 @@
                                 Keluar
                             </button>
                         </form>
-                    @else
-                        <a href="{{ route('login') }}" class="btn btn-sm btn-outline hidden sm:flex">
-                            <i data-lucide="log-in" class="w-4 h-4"></i> Login Admin
-                        </a>
                     @endauth
 
                     <button @click="mobileMenu = !mobileMenu"
@@ -157,6 +155,7 @@
                         <i data-lucide="menu" class="w-5 h-5" x-show="!mobileMenu"></i>
                         <i data-lucide="x" class="w-5 h-5" x-show="mobileMenu" x-cloak></i>
                     </button>
+                </div>
                 </div>
             </div>
         </div>
@@ -181,14 +180,7 @@
                     <a href="{{ route('cek.status') }}"
                         class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('cek.status') ? 'bg-primary-light text-primary-dark' : 'text-slate-600 hover:bg-slate-50' }}">Cek Status & Cetak Bukti</a>
                 </div>
-                @guest
-                <div class="border-t border-slate-100 pt-2 mt-2 sm:hidden">
-                    <a href="{{ route('login') }}"
-                        class="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
-                        <i data-lucide="log-in" class="w-4 h-4"></i> Login Admin
-                    </a>
-                </div>
-                @endguest
+
             </div>
         </div>
     </nav>

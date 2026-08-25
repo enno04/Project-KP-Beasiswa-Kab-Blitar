@@ -25,19 +25,26 @@ class WebSettingController extends Controller
 
         // Proses Contact Persons
         $contactPersons = array_values($request->contact_persons);
-        WebSetting::where('key', 'contact_persons')->update([
-            'value' => json_encode($contactPersons)
-        ]);
+        WebSetting::updateOrCreate(
+            ['key' => 'contact_persons'],
+            ['value' => json_encode($contactPersons)]
+        );
 
         // Proses Settings Biasa
         if ($request->has('settings')) {
             // Handle checkbox (jika tidak dicentang maka tidak ikut di request, kita force set 0 jika tidak ada)
             $activeAnnouncement = isset($request->settings['announcement_active']) ? '1' : '0';
-            WebSetting::where('key', 'announcement_active')->update(['value' => $activeAnnouncement]);
+            WebSetting::updateOrCreate(
+                ['key' => 'announcement_active'],
+                ['value' => $activeAnnouncement]
+            );
 
             foreach ($request->settings as $key => $value) {
                 if ($key !== 'announcement_active') {
-                    WebSetting::where('key', $key)->update(['value' => $value]);
+                    WebSetting::updateOrCreate(
+                        ['key' => $key],
+                        ['value' => $value]
+                    );
                 }
             }
         }
