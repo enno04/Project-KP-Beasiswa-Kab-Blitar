@@ -41,7 +41,42 @@ Pastikan server sudah terpasang semua kebutuhan berikut sebelum memulai:
 
 Selesaikan seluruh poin berikut sebelum sistem digunakan secara resmi.
 
-### A. Konfigurasi `.env`
+### A. Pembersihan File & Folder Development ⚠️
+
+> Ini adalah langkah yang **sering terlewat**. File dan folder di bawah ini hanya boleh ada di komputer lokal (development) — **jangan sampai ikut ke GitHub atau ke server produksi**.
+
+**Folder `scratch/`** — berisi skrip-skrip sementara yang dibuat selama pengembangan (PHP, Python, txt). Tidak ada fungsinya di server.
+
+```bash
+# Hapus folder scratch dari project (jalankan di root project)
+rm -rf scratch/
+```
+
+Atau hapus manual via File Explorer jika di Windows.
+
+Selain itu, pastikan `scratch/` sudah masuk ke `.gitignore` (sudah ditambahkan):
+
+```
+# Di file .gitignore
+/scratch
+```
+
+**File lain yang tidak boleh di-push ke GitHub:**
+
+| File / Folder | Keterangan | Status .gitignore |
+|---|---|---|
+| `.env` | Berisi password & secret key | ✅ Sudah dikecualikan |
+| `node_modules/` | Dependensi frontend (diinstall ulang di server) | ✅ Sudah dikecualikan |
+| `vendor/` | Dependensi PHP (diinstall ulang di server) | ✅ Sudah dikecualikan |
+| `public/build/` | Hasil build frontend (dibangun ulang di server) | ✅ Sudah dikecualikan |
+| `storage/logs/` | File log (dibuat otomatis oleh Laravel) | ✅ Sudah dikecualikan |
+| `scratch/` | Skrip-skrip sementara development | ✅ Baru ditambahkan |
+
+Setelah memastikan seluruh file di atas bersih, lanjutkan ke checklist berikutnya.
+
+---
+
+### B. Konfigurasi `.env`
 
 - [ ] Salin file `.env.example` menjadi `.env`
 - [ ] Set `APP_ENV=production`
@@ -52,22 +87,22 @@ Selesaikan seluruh poin berikut sebelum sistem digunakan secara resmi.
 - [ ] Set `TURNSTILE_SITE_KEY` dan `TURNSTILE_SECRET_KEY` dengan kunci produksi (bukan kunci test)
 - [ ] Set konfigurasi email jika diperlukan untuk notifikasi
 
-### B. Keamanan Akun
+### C. Keamanan Akun
 
 - [ ] Ubah password seluruh akun administrator bawaan (seeder) — jangan biarkan menggunakan `password`
 - [ ] Pastikan tidak ada akun test yang tidak sengaja aktif
 
-### C. File & Folder Permission
+### D. File & Folder Permission
 
 - [ ] Folder `storage/` wajib dapat ditulis oleh web server: `chmod -R 775 storage`
 - [ ] Folder `bootstrap/cache/` wajib dapat ditulis: `chmod -R 775 bootstrap/cache`
 - [ ] Owner folder disesuaikan: `chown -R www-data:www-data /path/ke/proyek` (untuk Nginx/Apache di Linux)
 
-### D. Fitur Khusus Testing
+### E. Fitur Khusus Testing
 
 - [ ] Pastikan akses menu **Bypass OPD** dan **Data Dummy** di dashboard Super Admin **tidak dapat diakses** oleh pengguna selain Super Admin. Jika perlu, nonaktifkan route tersebut di `routes/super-admin.php`.
 
-### E. Konfigurasi Web Server (Nginx)
+### F. Konfigurasi Web Server (Nginx)
 
 Contoh konfigurasi Nginx untuk Laravel:
 

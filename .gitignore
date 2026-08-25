@@ -30,3 +30,6 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Folder skrip sementara (development only — jangan deploy ke server)
+/scratch
