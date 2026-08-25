@@ -3,7 +3,7 @@
 # Struktur Menu
 ## Website Beasiswa Blitar Mengabdi
 
-Versi : 2.3
+Versi : 2.4
 
 ---
 
@@ -27,9 +27,11 @@ Dokumen ini menjelaskan struktur menu pada Website Beasiswa Blitar Mengabdi. Men
 
 - **Dashboard** (Statistik & Overview System)
 - **Master Referensi** (Users, Role, OPD, Kecamatan, Desa)
-- **Konfigurasi System** (Periode, Program, Jalur, Tahapan, Persyaratan, Dokumen, Kriteria, Pilihan, Bobot)
+- **Konfigurasi System** (Periode, Program, Jalur, Tahapan, Persyaratan, Dokumen, Kriteria, Pilihan, Bobot, Custom Fields)
 - **Dokumen Publik** (Manajemen Ebook & Juknis Publik)
-- **Monitoring & Log** (Monitoring Pendaftaran, Histori Penerima, Audit Log)
+- **Pengaturan Website** (WebSetting — teks & kontak publik)
+- **Monitoring & Log** (Monitoring Pendaftaran, Histori Penerima, Import Legacy, Audit Log)
+- **Fitur Khusus** (Auto-Verify SLA, Bypass OPD, Data Dummy — khusus lingkungan testing)
 
 ---
 
@@ -37,8 +39,9 @@ Dokumen ini menjelaskan struktur menu pada Website Beasiswa Blitar Mengabdi. Men
 
 - **Dashboard**
 - **Program Beasiswa** (SDSS, Berdaya Berjaya, BBP)
+- **Kontrol Penilaian Desa** (Buka/Kunci akses penilaian & penetapan Desa per program SDSS)
 - **Evaluasi & SPK** (Input Nilai Wawancara, Kalkulasi SPK & Ranking, Penetapan SK)
-- **Hasil & Output** (Draft SK Bupati, Rekapitulasi Penerima, Data Pembayaran)
+- **Hasil & Output** (Draft SK Bupati, Rekapitulasi Penerima, Export Excel)
 
 ---
 

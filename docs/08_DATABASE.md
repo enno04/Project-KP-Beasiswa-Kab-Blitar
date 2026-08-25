@@ -19,10 +19,10 @@ Database dirancang agar mampu mendukung Multi Periode, Multi Program, Multi Jalu
 
 Database dibagi menjadi lima kelompok utama:
 1. Master Referensi (`roles`, `users`, `opd`, `kecamatan`, `desa`)
-2. Master Konfigurasi (`periode`, `programs`, `jalurs`, `tahapans`, `persyaratans`, `dokumens`, `kelompok_kriterias`, `kriterias`, `pilihan_kriterias`, `bobot_penilaians`)
-3. Transaksi (`pendaftarans`, `pendaftaran_identitas`, `pendaftaran_orangtuas`, `jawaban_kriterias`, `upload_dokumens`, `verifikasi_dokumens`, `penilaians`, `wawancaras`, `rekomendasi_desas`, `penetapans`)
+2. Master Konfigurasi (`periode`, `programs`, `jalurs`, `tahapans`, `persyaratans`, `dokumens`, `kelompok_kriterias`, `kriterias`, `pilihan_kriterias`, `bobot_penilaians`, `custom_fields`)
+3. Transaksi (`pendaftarans`, `pendaftaran_identitas`, `pendaftaran_orangtuas`, `jawaban_kriterias`, `custom_field_answers`, `upload_dokumens`, `verifikasi_dokumens`, `penilaians`, `wawancaras`, `rekomendasi_desas`, `penetapans`)
 4. Output & Documentation (`draft_sks`, `penerima_beasiswas`, `histori_penerimas`, `dokumen_publiks`)
-5. Sistem (`audit_logs`)
+5. Sistem (`audit_logs`, `web_settings`)
 
 ---
 
@@ -74,7 +74,7 @@ ALTER TABLE pendaftarans MODIFY COLUMN status ENUM(
     'tidak_lolos_desa',
     'diteruskan_ke_kecamatan',
     'ditolak_kecamatan',
-    'ditolak_dpmd', -- Baru v2.3
+    'ditolak_dpmd',
     'proses_seleksi',
     'menunggu_wawancara',
     'proses_wawancara',
@@ -84,9 +84,7 @@ ALTER TABLE pendaftarans MODIFY COLUMN status ENUM(
     'menunggu_penetapan',
     'lulus',
     'tidak_lulus',
-    'sk_terbit',
-    'pembayaran_diproses',
-    'selesai'
+    'sk_terbit'
 ) DEFAULT 'menunggu_verifikasi';
 ```
 
@@ -97,12 +95,15 @@ ALTER TABLE pendaftarans MODIFY COLUMN status ENUM(
 - `Pendaftaran` `hasOne` `PendaftaranIdentitas`
 - `Pendaftaran` `hasOne` `PendaftaranOrangtua`
 - `Pendaftaran` `hasMany` `JawabanKriteria`
+- `Pendaftaran` `hasMany` `CustomFieldAnswer`
 - `Pendaftaran` `hasMany` `UploadDokumen`
 - `Pendaftaran` `hasMany` `Penilaian`
 - `Pendaftaran` `hasOne` `RekomendasiDesa` (SDSS)
 - `RekomendasiDesa` `belongsTo` `User` (as `kecamatanVerifier`, `dpmdVerifier`)
 - `Pendaftaran` `hasOne` `PenetapanModel`
 - `Pendaftaran` `hasOne` `PenerimaBeasiswa`
+- `Jalur` `hasMany` `CustomField`
+- `CustomField` `hasMany` `CustomFieldAnswer`
 
 ---
 

@@ -3,7 +3,7 @@
 # Master Data
 ## Website Beasiswa Blitar Mengabdi
 
-Versi : 2.3
+Versi : 2.4
 
 ---
 
@@ -77,14 +77,35 @@ Master Desa/Kelurahan (248 Desa/Kelurahan).
 
 ---
 
-## 3.6 Perguruan Tinggi
-
-Master Perguruan Tinggi (Negeri / Swasta, Dalam / Luar Daerah, Akreditasi).
+> **Catatan:** Tabel `perguruan_tinggi` telah dihapus dari sistem. Data perguruan tinggi sekarang diisi sebagai teks bebas oleh pendaftar pada field `asal_perguruan_tinggi` di tabel `pendaftaran_identitas`.
 
 ---
 
 # 4. Master Konfigurasi
 
-Master Konfigurasi merupakan data yang dapat berubah pada setiap Periode Beasiswa (Periode, Program, Jalur, Tahapan, Persyaratan, Dokumen, Kelompok Kriteria, Kriteria, Pilihan Kriteria, Bobot Penilaian).
+Master Konfigurasi merupakan data yang dapat berubah pada setiap Periode Beasiswa:
+
+- Periode
+- Program Beasiswa (dilengkapi flag `kunci_hitung_nilai` untuk mengontrol akses penilaian desa)
+- Jalur
+- Tahapan
+- Persyaratan
+- Dokumen (beserta mapping OPD verifikator)
+- Kelompok Kriteria
+- Kriteria
+- Pilihan Kriteria
+- Bobot Penilaian
+- **Custom Fields** — pertanyaan tambahan (tipe: text, textarea, select, radio, checkbox) yang dapat dikonfigurasi per Jalur dan ditempatkan di tahap Ekonomi atau Akademik.
+
+---
+
+# 5. Pengaturan Website (WebSetting)
+
+Konfigurasi konten statis halaman publik yang dapat diubah oleh Super Admin tanpa mengubah kode, seperti:
+- Teks hero banner
+- Nomor WhatsApp contact person
+- Informasi program publik
+
+Disimpan dalam tabel `web_settings` dengan format key-value.
 
 Seluruh Master Konfigurasi dikelola oleh Super Admin.

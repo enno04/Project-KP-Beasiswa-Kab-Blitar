@@ -3,7 +3,7 @@
 # UI/UX Design Guideline
 ## Website Beasiswa Blitar Mengabdi
 
-Versi : 2.3
+Versi : 2.4
 
 ---
 
@@ -49,7 +49,7 @@ Dokumen ini menjadi pedoman desain antarmuka (UI) dan pengalaman pengguna (UX) W
 
 # 6. Dashboard Berdasarkan Role
 
-- **Super Admin:** Overview statistik, management Master Referensi & Master Konfigurasi, Dokumen Publik, Audit Log.
+- **Super Admin:** Overview statistik, management Master Referensi & Master Konfigurasi (termasuk Custom Fields), Dokumen Publik, Pengaturan Website (WebSetting), Audit Log.
 - **Admin Kabupaten:** Dashboard SPK, Input Wawancara, Pemeringkatan, & Penetapan SK Terbit.
 - **Admin OPD:** Tabel Verifikasi Berkas Teknis sesuai kewenangan OPD.
 - **Admin Kecamatan:** Monitoring musyawarah desa & verifikasi persetujuan wilayah kecamatan (SDSS).

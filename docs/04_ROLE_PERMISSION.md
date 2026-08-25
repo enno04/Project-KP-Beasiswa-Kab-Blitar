@@ -3,7 +3,7 @@
 # ROLE & PERMISSION
 ## Website Beasiswa Blitar Mengabdi
 
-Versi : 2.3
+Versi : 2.4
 
 ---
 
@@ -37,9 +37,11 @@ Merupakan pengelola utama sistem. Memiliki akses penuh terhadap seluruh modul.
 
 ### Hak Akses
 - ✔ Kelola Master Referensi (User, Role, OPD, Kecamatan, Desa)
-- ✔ Kelola Master Konfigurasi (Periode, Program, Jalur, Tahapan, Persyaratan, Dokumen, Kriteria, Pilihan, Bobot)
+- ✔ Kelola Master Konfigurasi (Periode, Program, Jalur, Tahapan, Persyaratan, Dokumen, Kriteria, Pilihan, Bobot, Custom Fields)
 - ✔ Kelola Dokumen Publik & Juknis
+- ✔ Kelola Pengaturan Website (WebSetting)
 - ✔ Monitoring Seluruh Pendaftaran, Verifikasi, Penilaian, Penetapan, & Audit Log
+- ✔ Menjalankan Auto-Verify SLA secara manual
 
 ---
 
@@ -50,6 +52,7 @@ Merupakan Tim Seleksi Kabupaten.
 ### Hak Akses
 - ✔ Melihat seluruh pendaftaran
 - ✔ Melihat hasil verifikasi OPD, Kecamatan, & DPMD
+- ✔ Membuka/Mengunci akses penilaian & penetapan desa (SDSS) via flag `kunci_hitung_nilai`
 - ✔ Input Nilai Wawancara (Berdaya Berjaya) / Gugurkan Peserta
 - ✔ Kalkulasi SPK & Pemeringkatan (Ranking)
 - ✔ Penetapan Penerima Beasiswa & Penerbitan SK Terbit (Tahap Final)

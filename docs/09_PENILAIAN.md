@@ -3,7 +3,7 @@
 # Sistem Penilaian
 ## Website Beasiswa Blitar Mengabdi
 
-Versi : 2.3
+Versi : 2.4
 
 ---
 

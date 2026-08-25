@@ -3,7 +3,7 @@
 # DAFTAR HALAMAN
 ## Website Beasiswa Blitar Mengabdi
 
-Versi : 2.3
+Versi : 2.4
 
 ---
 
@@ -65,9 +65,11 @@ Masyarakat tidak memiliki akun dan tidak melakukan login.
 
 - **Dashboard:** Overview statistik, total user, OPD, kecamatan, desa, & pendaftar.
 - **Master Referensi:** Management User, Role, OPD, Kecamatan, Desa.
-- **Master Konfigurasi:** Management Periode, Program, Jalur, Tahapan, Persyaratan, Dokumen, Kriteria, Pilihan, Bobot.
+- **Master Konfigurasi:** Management Periode, Program, Jalur, Tahapan, Persyaratan, Dokumen, Kriteria, Pilihan, Bobot, Custom Fields.
 - **Dokumen Publik:** Management Ebook Panduan & SK Juknis Publik.
+- **Pengaturan Website (WebSetting):** Konfigurasi teks/konten publik (hero banner, contact person, dll).
 - **Monitoring & Histori:** Monitoring Pendaftaran, Import Histori Legacy, Audit Log.
+- **Fitur Khusus:** Tombol Jalankan Auto-Verify SLA, Bypass OPD (testing), Data Dummy (testing).
 
 ---
 
@@ -75,7 +77,8 @@ Masyarakat tidak memiliki akun dan tidak melakukan login.
 
 - **Dashboard:** Summary data lolos verifikasi, diproses SPK, dan lulus.
 - **Daftar Pendaftar per Program/Jalur:** Tabel pendaftar, Input Nilai Wawancara (Berdaya Berjaya), kalkulasi SPK & Ranking inline, Penetapan inline (`lulus` / `tidak_lulus`).
-- **Hasil & Output:** Ranking SPK, Penetapan Final, Penerbitan SK Terbit.
+- **Kontrol Penilaian Desa (SDSS):** Tombol buka/kunci akses penilaian & penetapan desa per program.
+- **Hasil & Output:** Ranking SPK, Penetapan Final, Penerbitan SK Terbit, Export Excel daftar penerima.
 
 ---
 

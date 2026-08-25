@@ -3,7 +3,7 @@
 # BUSINESS RULE
 ## Sistem Beasiswa Blitar Mengabdi
 
-Versi : 2.3
+Versi : 2.4
 
 ---
 
@@ -70,10 +70,12 @@ Setelah tombol Submit ditekan:
 
 Khusus Program SDSS:
 1. **Penetapan Desa:** Desa melihat nilai SPK & ranking pendaftar di desanya, lalu menetapkan **1 (satu) calon perwakilan desa**. Pendaftar lain di desa tersebut otomatis gugur (`tidak_lolos_desa`).
-2. **Upload Rekomendasi:** Admin Desa wajib mengunggah Surat Rekomendasi Kades/Lurah & Berita Acara Musyawarah Desa.
-3. **Persetujuan Paralel:** Berkas rekomendasi diteruskan secara paralel ke **Dashboard Kecamatan** DAN **Dashboard DPMD**.
-4. **Aturan Kelulusan Berkas:** Pendaftaran **baru dapat diteruskan ke Admin Kabupaten (`menunggu_penetapan`)** apabila **Kecamatan DAN DPMD KEDUANYA memberikan keputusan `disetujui`**.
-5. Jika ditolak salah satu pihak, berkas berstatus `ditolak_kecamatan` atau `ditolak_dpmd`.
+2. **Kunci Penilaian Desa:** Fitur penghitungan nilai & penetapan desa hanya dapat diakses setelah Admin Kabupaten mengaktifkan flag `kunci_hitung_nilai` pada program yang bersangkutan.
+3. **Upload Rekomendasi:** Admin Desa wajib mengunggah Surat Rekomendasi Kades/Lurah & Berita Acara Musyawarah Desa.
+4. **Persetujuan Paralel:** Berkas rekomendasi diteruskan secara paralel ke **Dashboard Kecamatan** DAN **Dashboard DPMD**.
+5. **Auto-Approve SLA:** Jika salah satu pihak (Kecamatan atau DPMD) belum memberikan keputusan dalam **3 hari**, sistem secara otomatis menyetujui bagian tersebut dengan catatan otomatis.
+6. **Aturan Kelulusan Berkas:** Pendaftaran **baru dapat diteruskan ke Admin Kabupaten (`menunggu_penetapan`)** apabila **Kecamatan DAN DPMD KEDUANYA memberikan keputusan `disetujui`** (baik manual maupun otomatis).
+7. Jika ditolak salah satu pihak, berkas berstatus `ditolak_kecamatan` atau `ditolak_dpmd`.
 
 ---
 
@@ -106,6 +108,7 @@ Khusus Program SDSS:
 
 # 12. Hak Akses & Konfigurasi
 
-- Seluruh Master Konfigurasi (Periode, Program, Jalur, Kriteria, Bobot, Dokumen, Persyaratan) **hanya dapat dikelola oleh Super Admin**.
+- Seluruh Master Konfigurasi (Periode, Program, Jalur, Kriteria, Bobot, Dokumen, Persyaratan, Custom Fields) **hanya dapat dikelola oleh Super Admin**.
+- Pengaturan tampilan website (hero banner, contact person, dll) dikelola melalui menu **WebSetting** oleh Super Admin.
 - Role lain hanya menjalankan tugas sesuai kewenangannya (RBAC).
 - Seluruh perubahan data penting wajib dicatat dalam **Audit Log**.

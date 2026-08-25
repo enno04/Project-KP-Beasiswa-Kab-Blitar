@@ -3,7 +3,7 @@
 # Website Beasiswa Blitar Mengabdi
 
 Versi : 2.4
-Status : Draft Final
+Status : Final
 Platform : Website
 Backend : Laravel 12
 Frontend : Blade + Tailwind CSS + Alpine.js
@@ -41,16 +41,18 @@ Sistem mencakup seluruh proses berikut.
 - Pengaturan Periode
 - Pengaturan Program Beasiswa
 - Pengaturan Jalur Beasiswa
-- Pengaturan Master Data
+- Pengaturan Master Data (Kriteria, Bobot, Dokumen, Custom Fields)
 - Pendaftaran Online (5-Step Tanpa Login)
 - Verifikasi Dokumen OPD
 - Verifikasi & Penetapan 1 Calon Desa (SDSS)
 - Verifikasi & Persetujuan Paralel Kecamatan & DPMD (SDSS)
+- Auto-Approve SLA 3 Hari (Kecamatan & DPMD)
 - Penilaian SPK (Weighted Sum Model)
 - Wawancara (Berdaya Berjaya)
 - Penetapan Kabupaten & Penerbitan SK (Tahap Final)
 - Modul Dokumen Publik & Ebook Juknis
-- Output Administrasi
+- Manajemen Pengaturan Website (WebSetting)
+- Histori Penerima & Import Data Legacy
 - Monitoring & Audit Log
 
 ---
@@ -166,10 +168,11 @@ Data yang relatif jarang berubah. Meliputi:
 
 - Kecamatan
 - Desa / Kelurahan
-- Perguruan Tinggi
 - OPD
 - User
 - Role
+
+> Catatan: Tabel `perguruan_tinggi` telah dihapus. Data perguruan tinggi kini diisi langsung oleh pendaftar sebagai field teks bebas (`asal_perguruan_tinggi`).
 
 ---
 
@@ -183,9 +186,11 @@ Data yang dapat berubah pada setiap Periode. Meliputi:
 - Tahapan
 - Persyaratan
 - Dokumen
+- Kelompok Kriteria
 - Kriteria
-- Pilihan
-- Bobot
+- Pilihan Kriteria
+- Bobot Penilaian
+- Custom Fields (Pertanyaan Tambahan per Jalur)
 
 Seluruh Master Konfigurasi hanya dapat diubah oleh Super Admin.
 
@@ -237,7 +242,7 @@ Setelah SK diterbitkan (`Lulus — SK Terbit`), alur pendaftaran dinyatakan sele
 
 # 12. Monitoring
 
-Monitoring dapat dilakukan secara real-time berdasarkan Periode, Program, Jalur, maupun Tahapan Seleksi oleh Super Admin & Admin Kabupaten.
+Monitoring dapat dilakukan secara real-time berdasarkan Periode, Program, Jalur, maupun Status Pendaftaran oleh Super Admin & Admin Kabupaten. Seluruh perubahan data penting tercatat otomatis pada Audit Log.
 
 ---
 
@@ -273,25 +278,31 @@ Seluruh informasi publik pada Website bersifat statis dan didukung modul Dokumen
 MASTER REFERENSI
         │
         ▼
-MASTER KONFIGURASI
+MASTER KONFIGURASI (Periode, Program, Jalur, Kriteria, Bobot, Custom Fields)
         │
         ▼
-PENDAFTARAN (5-Step)
+PENDAFTARAN PUBLIK (5-Step Tanpa Login)
         │
         ▼
-VERIFIKASI OPD (Paralel)
+VERIFIKASI OPD (Paralel — setiap OPD memverifikasi dokumen kewenangannya)
         │
         ▼
-[SDSS: Desa Tetapkan 1 Calon ──► Persetujuan Paralel Kec. & DPMD]
+[SDSS]
+Desa Tetapkan 1 Perwakilan + Upload Rekomendasi
         │
         ▼
-PENILAIAN OTOMATIS & WAWANCARA
+Persetujuan Paralel Kecamatan & DPMD
+(Auto-Approve jika melewati SLA 3 Hari)
+        │
+        ▼
+[BBP / Berdaya Berjaya]
+PENILAIAN OTOMATIS SPK + WAWANCARA (Berdaya Berjaya)
         │
         ▼
 PENETAPAN KABUPATEN
         │
         ▼
-OUTPUT & SK TERBIT (TAHAP FINAL)
+SK TERBIT (TAHAP FINAL)
         │
         ▼
 MONITORING & AUDIT LOG
@@ -312,5 +323,6 @@ Dokumen ini menjadi acuan utama seluruh dokumentasi proyek:
 - 09_PENILAIAN.md
 - 10_DESIGN.md
 - 11_README_AI.md
-- CHANGELOG.md
 - ROADMAP.md
+- MANUAL_USER.md
+- MANUAL_ADMIN.md

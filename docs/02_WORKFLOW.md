@@ -1,7 +1,7 @@
 # WORKFLOW SISTEM
 ## Website Beasiswa Blitar Mengabdi
 
-Versi : 2.3
+Versi : 2.4
 
 ---
 
@@ -77,6 +77,19 @@ Dokumen yang diunggah diverifikasi secara paralel oleh OPD berwenang (Disdukcapi
 
 - Jika ada dokumen **Tidak Valid**, status pendaftaran menjadi **Tidak Lolos Verifikasi**.
 - Jika seluruh dokumen wajib **Valid**, status pendaftaran menjadi **Lolos Verifikasi** dan diteruskan ke tahapan seleksi berikutnya.
+- Verifikasi berjalan **paralel** antar OPD; setiap OPD hanya melihat dokumen sesuai kewenangannya (mapping dokumen-OPD).
+
+---
+
+# 6.1 Auto-Approve SLA Kecamatan & DPMD (Khusus SDSS)
+
+Jika Admin Kecamatan atau Admin DPMD belum memberikan keputusan dalam **3 hari** setelah berkas dikirim oleh Desa, sistem secara otomatis mengubah status verifikasi pihak tersebut menjadi **Disetujui** dengan catatan:
+
+> *"Disetujui otomatis oleh sistem karena melewati batas waktu (SLA 3 Hari)."*
+
+- Proses ini dapat dijalankan secara manual oleh Super Admin melalui tombol **"Jalankan Auto-Verify SLA"** di dashboard.
+- Idealnya dikonfigurasi via **Laravel Scheduler** (cron job) di server produksi.
+- Seluruh aksi auto-approve dicatat di **Audit Log** dengan label `Auto-Verifikasi Sistem`.
 
 ---
 
@@ -182,7 +195,7 @@ Super Admin & Admin Kabupaten dapat memonitor seluruh proses secara real-time. E
 14. `menunggu_penilaian`
 15. `proses_penilaian`
 16. `menunggu_penetapan`
-17. `lulus` / `sk_terbit` (Final Selesai)
+17. `lulus` / `sk_terbit` (Final — Selesai)
 18. `tidak_lulus`
 
 ---
