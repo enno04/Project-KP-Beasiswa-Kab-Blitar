@@ -44,7 +44,16 @@
                         </div>
                         <div>
                             <p class="font-semibold text-slate-900">{{ $user->nama }}</p>
-                            <p class="text-xs text-slate-400">{{ $user->username }}</p>
+                            <div class="flex items-center gap-1.5 mt-0.5" x-data="{ copied: false }">
+                                <code class="text-[11px] text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{{ $user->username }}</code>
+                                <button type="button" 
+                                    @click="navigator.clipboard.writeText('{{ $user->username }}'); copied = true; setTimeout(() => copied = false, 2000)" 
+                                    class="text-slate-400 hover:text-primary transition-colors focus:outline-none" 
+                                    :title="copied ? 'Tersalin!' : 'Salin Username'">
+                                    <i data-lucide="copy" x-show="!copied" class="w-3.5 h-3.5"></i>
+                                    <i data-lucide="check-check" x-show="copied" x-cloak style="display: none;" class="w-3.5 h-3.5 text-green-500"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </td>

@@ -473,3 +473,92 @@ php artisan up
 ---
 
 > Dokumen ini mencakup dua skenario deployment: server dengan akses internet (GitHub Actions) dan server intranet (Cron Script). Pilih salah satu yang sesuai dengan kondisi infrastruktur Anda.
+
+---
+
+## 7. Masalah CSS & JS Tidak Terbaca di Server (Wajib Dibaca!) ⚠️
+
+Ini adalah masalah yang **hampir pasti terjadi** jika Anda lupa menanganinya. Website akan tampil **polos putih tanpa styling** sama sekali — semua tampilan hilang, tidak ada warna, tidak ada layout.
+
+### Mengapa ini terjadi?
+
+Proyek ini menggunakan **Vite** untuk memproses CSS (Tailwind) dan JavaScript. Hasil kompilasinya disimpan di folder `public/build/`. Folder ini **sengaja dikecualikan dari GitHub** (ada di `.gitignore`):
+
+```
+/public/build   ← tidak ikut ke GitHub
+```
+
+Artinya: saat server melakukan `git pull`, folder `public/build/` **tidak akan ada**. Semua layout (`app.blade.php`, `admin.blade.php`, `guest.blade.php`, `public.blade.php`) menggunakan `@vite(...)`:
+
+```html
+<!-- resources/views/components/layouts/app.blade.php -->
+@vite(['resources/css/app.css', 'resources/js/app.js'])
+```
+
+Jika folder build tidak ada → direktif `@vite` tidak bisa menemukan file → **seluruh CSS dan JS tidak terbaca**.
+
+### Solusinya
+
+**Wajib jalankan `npm run build` di server setiap kali deploy.** Perintah ini sudah tercantum di seluruh script deploy di dokumen ini (langkah 5 deploy pertama, GitHub Actions, maupun Cron Script).
+
+Verifikasi build berhasil dengan mengecek apakah folder dan file berikut ada di server:
+
+```
+public/
+└── build/
+    ├── manifest.json     ← file ini yang dibaca Laravel untuk load aset
+    └── assets/
+        ├── app-XXXXXXXX.css
+        └── app-XXXXXXXX.js
+```
+
+Jika folder `public/build/` tidak ada atau kosong → build belum berjalan. Jalankan ulang:
+
+```bash
+cd /var/www/beasiswa
+npm install
+npm run build
+```
+
+### Masalah Tambahan: APP_URL Salah
+
+Jika CSS sudah di-build tapi masih tidak terbaca, kemungkinan `APP_URL` di `.env` tidak sesuai dengan URL yang diakses. Laravel menggunakan `APP_URL` untuk membentuk URL aset.
+
+```bash
+# Contoh jika diakses via IP:
+APP_URL=http://192.168.1.100
+
+# Contoh jika diakses via domain:
+APP_URL=https://beasiswa.blitarkab.go.id
+```
+
+Setelah ubah `APP_URL`, wajib jalankan:
+
+```bash
+php artisan optimize:clear
+php artisan optimize
+```
+
+### Checklist Diagnosis Cepat
+
+Jika website tampil polos setelah deploy, jalankan urutan ini:
+
+```bash
+# 1. Cek apakah folder build ada
+ls -la public/build/
+
+# 2. Jika tidak ada, build ulang
+npm install && npm run build
+
+# 3. Bersihkan semua cache Laravel
+php artisan optimize:clear
+
+# 4. Rebuild cache
+php artisan optimize
+
+# 5. Pastikan storage link ada
+php artisan storage:link
+
+# 6. Cek log jika masih error
+tail -n 30 storage/logs/laravel.log
+```

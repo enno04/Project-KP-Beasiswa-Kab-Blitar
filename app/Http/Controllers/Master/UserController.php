@@ -28,11 +28,14 @@ class UserController extends Controller
         }
 
         if (request('urutan_waktu') === 'terlama') {
-            $query->orderBy('created_at', 'asc');
+            $query->orderBy('created_at', 'asc')->orderBy('id', 'asc');
         } elseif (request('urutan_waktu') === 'terbaru') {
-            $query->orderBy('created_at', 'desc');
+            $query->orderBy('created_at', 'desc')->orderBy('id', 'desc');
         } else {
             $query->sort(request('sort', 'created_at'), request('dir', 'desc'));
+            if (!request('sort') || request('sort') === 'created_at') {
+                $query->orderBy('id', request('dir', 'desc') === 'asc' ? 'asc' : 'desc');
+            }
         }
 
         $users = $query->paginate(15)->withQueryString();
