@@ -229,7 +229,7 @@
     @endif
 
     {{-- ═══ MAIN CONTENT ═══ --}}
-    <main class="flex-1 bg-cover bg-center bg-fixed" style="background-image: url('{{ asset('images/background.jpeg') }}');">
+    <main class="flex-1 bg-cover bg-center md:bg-fixed" style="background-image: url('{{ asset('images/background.jpeg') }}');">
         {{ $slot }}
     </main>
 

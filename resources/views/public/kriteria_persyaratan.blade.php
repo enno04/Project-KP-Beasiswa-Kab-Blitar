@@ -8,7 +8,7 @@
         </div>
     </section>
 
-    <div class="bg-cover bg-center bg-fixed" style="background-image: url('{{ asset('images/background.jpeg') }}')">
+    <div class="bg-cover bg-center md:bg-fixed" style="background-image: url('{{ asset('images/background.jpeg') }}')">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-16">
     @if($programs->count() > 0)
         @php

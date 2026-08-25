@@ -134,7 +134,7 @@
     </div>
 
     {{-- ═══ MAIN CONTENT WITH BACKGROUND ═══ --}}
-    <div class="bg-cover bg-center bg-fixed" style="background-image: url('{{ asset('images/background.jpeg') }}')">
+    <div class="bg-cover bg-center md:bg-fixed" style="background-image: url('{{ asset('images/background.jpeg') }}')">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24 space-y-20">
 
             {{-- ═══ PROGRAM BEASISWA ═══ --}}
@@ -197,10 +197,33 @@
 
             {{-- ═══ STATISTIK PENDAFTAR ═══ --}}
             <section class="lenis-reveal">
-                <div class="text-center mb-14">
-                    <p class="text-sm font-bold text-primary uppercase tracking-widest mb-3">Statistik</p>
-                    <h2 class="text-3xl lg:text-4xl font-extrabold text-slate-900">Total Pendaftar Saat Ini</h2>
-                    <p class="text-slate-600 mt-3 max-w-2xl mx-auto">Jumlah pendaftar yang telah menyelesaikan pendaftaran pada masing-masing program beasiswa (Periode {{ $periodeAktif->tahun ?? date('Y') }})</p>
+                <div class="text-center mb-10">
+                    <p class="text-sm font-bold text-primary uppercase tracking-widest mb-3">Statistik Publik</p>
+                    <h2 class="text-3xl lg:text-4xl font-extrabold text-slate-900">Dashboard Statistik Pendaftar</h2>
+                    <p class="text-slate-600 mt-3 max-w-2xl mx-auto">Transparansi jumlah pendaftar dan penerima beasiswa pada Periode {{ $periodeAktif->tahun ?? date('Y') }}</p>
+                </div>
+
+                {{-- Grand Totals --}}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-4xl mx-auto">
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100/50 border border-blue-200/60 rounded-2xl p-6 flex items-center gap-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="w-16 h-16 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-inner">
+                            <i data-lucide="users" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <p class="text-blue-900 text-xs font-bold uppercase tracking-wider mb-1">Total Pendaftar</p>
+                            <h3 class="text-4xl font-extrabold text-blue-950">{{ number_format($totalPendaftar) }} <span class="text-base font-semibold text-blue-800/80">Siswa/Mahasiswa</span></h3>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-br from-emerald-50 to-emerald-100/50 border border-emerald-200/60 rounded-2xl p-6 flex items-center gap-6 shadow-sm hover:shadow-md transition-shadow">
+                        <div class="w-16 h-16 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-inner">
+                            <i data-lucide="user-check" class="w-8 h-8"></i>
+                        </div>
+                        <div>
+                            <p class="text-emerald-900 text-xs font-bold uppercase tracking-wider mb-1">Total Penerima (Lulus)</p>
+                            <h3 class="text-4xl font-extrabold text-emerald-950">{{ number_format($totalLulus) }} <span class="text-base font-semibold text-emerald-800/80">Siswa/Mahasiswa</span></h3>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -242,7 +265,7 @@
                             ['icon' => 'laptop', 'title' => 'Pendaftaran Online', 'desc' => 'Peserta mengisi formulir dan mengunggah dokumen persyaratan.', 'num' => '01'],
                             ['icon' => 'shield-check', 'title' => 'Verifikasi Dokumen', 'desc' => 'Pemeriksaan keabsahan dokumen oleh Tim Verifikator.', 'num' => '02'],
                             ['icon' => 'clipboard-list', 'title' => 'Penilaian Kriteria', 'desc' => 'Pemberian bobot nilai terhadap kriteria SPK.', 'num' => '03'],
-                            ['icon' => 'bar-chart-2', 'title' => 'Pemeringkatan', 'desc' => 'Perankingan otomatis menggunakan Model Penilaian Berbobot.', 'num' => '04'],
+                            ['icon' => 'bar-chart-2', 'title' => 'Pemeringkatan', 'desc' => 'Perankingan menggunakan Model Penilaian Berbobot.', 'num' => '04'],
                             ['icon' => 'award', 'title' => 'Penetapan', 'desc' => 'Penetapan penerima berdasarkan kuota dan peringkat.', 'num' => '05'],
                         ] as $i => $step)
                         <div

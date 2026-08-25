@@ -26,8 +26,19 @@ class PublicController extends Controller
                 ->get()
             : collect();
         $dokumenPubliks = DokumenPublik::aktif()->ordered()->get();
+        $totalPendaftar = 0;
+        $totalLulus = 0;
 
-        return view('public.home', compact('programs', 'periodeAktif', 'dokumenPubliks'));
+        if ($periodeAktif) {
+            $totalPendaftar = Pendaftaran::where('periode_id', $periodeAktif->id)
+                ->where('status', '!=', 'draft')
+                ->count();
+            $totalLulus = Pendaftaran::where('periode_id', $periodeAktif->id)
+                ->where('status', 'lulus')
+                ->count();
+        }
+
+        return view('public.home', compact('programs', 'periodeAktif', 'dokumenPubliks', 'totalPendaftar', 'totalLulus'));
     }
 
     public function informasi()
