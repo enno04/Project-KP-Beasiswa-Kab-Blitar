@@ -55,7 +55,11 @@ class PublicController extends Controller
 
     public function faq()
     {
-        $faqs = Faq::aktif()->ordered()->get();
+        try {
+            $faqs = Faq::aktif()->ordered()->get();
+        } catch (\Exception $e) {
+            $faqs = collect();
+        }
         return view('public.faq', compact('faqs'));
     }
 
