@@ -123,16 +123,16 @@
                                 <div class="mt-4 space-y-4">
                                     <div>
                                         <label class="form-label">Pertanyaan <span class="text-red-500">*</span></label>
-                                        <textarea name="pertanyaan" id="pertanyaan" rows="2" class="form-input" required></textarea>
+                                        <textarea name="pertanyaan" id="pertanyaan" rows="2" class="form-input w-full border border-slate-300 rounded-lg p-2.5 focus:border-primary focus:ring focus:ring-primary/20" required></textarea>
                                     </div>
                                     <div>
                                         <label class="form-label">Jawaban <span class="text-red-500">*</span></label>
-                                        <textarea name="jawaban" id="jawaban" rows="4" class="form-input" required></textarea>
+                                        <textarea name="jawaban" id="jawaban" rows="4" class="form-input w-full border border-slate-300 rounded-lg p-2.5 focus:border-primary focus:ring focus:ring-primary/20" required></textarea>
                                     </div>
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>
                                             <label class="form-label">Urutan</label>
-                                            <input type="number" name="urutan" id="urutan" class="form-input" value="0" min="0" required>
+                                            <input type="number" name="urutan" id="urutan" class="form-input w-full border border-slate-300 rounded-lg p-2.5 focus:border-primary focus:ring focus:ring-primary/20" value="0" min="0" required>
                                             <p class="text-[11px] text-slate-500 mt-1">Angka kecil tampil lebih dulu</p>
                                         </div>
                                         <div>
