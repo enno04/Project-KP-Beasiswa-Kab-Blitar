@@ -142,12 +142,7 @@
                 </a>
 
                 <div class="sidebar-section">Manajemen Sistem</div>
-                <a href="{{ route('super-admin.pembersihan-data.index') }}" class="sidebar-link {{ request()->routeIs('super-admin.pembersihan-data.*') ? 'active' : '' }}">
-                    <i data-lucide="trash-2" class="w-5 h-5"></i> Pembersihan Data
-                </a>
-                <a href="{{ route('super-admin.data-dummy.index') }}" class="sidebar-link {{ request()->routeIs('super-admin.data-dummy.*') ? 'active' : '' }}">
-                    <i data-lucide="flask-conical" class="w-5 h-5"></i> Generator Dummy
-                </a>
+                {{-- (Menu Pembersihan Data dan Generator Dummy disembunyikan. Akses manual via URL) --}}
                 <a href="{{ route('super-admin.pengaturan.index') }}" class="sidebar-link {{ request()->routeIs('super-admin.pengaturan.*') ? 'active' : '' }}">
                     <i data-lucide="settings" class="w-5 h-5"></i> Pengaturan Web
                 </a>
