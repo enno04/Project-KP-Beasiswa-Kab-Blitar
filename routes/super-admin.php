@@ -7,6 +7,7 @@ use App\Http\Controllers\Master\ReferensiController;
 use App\Http\Controllers\Master\KonfigurasiController;
 use App\Http\Controllers\Master\KriteriaController;
 use App\Http\Controllers\Master\DokumenPublikController;
+use App\Http\Controllers\Master\FaqController;
 
 Route::middleware(['auth', 'role:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
@@ -88,6 +89,13 @@ Route::middleware(['auth', 'role:super_admin'])->prefix('super-admin')->name('su
         Route::put('/dokumen-publik/{id}', [DokumenPublikController::class, 'update'])->name('dokumen-publik.update');
         Route::delete('/dokumen-publik/{id}', [DokumenPublikController::class, 'destroy'])->name('dokumen-publik.destroy');
         Route::patch('/dokumen-publik/{id}/toggle', [DokumenPublikController::class, 'toggleStatus'])->name('dokumen-publik.toggle');
+
+        // FAQ
+        Route::get('/faq', [FaqController::class, 'index'])->name('faq.index');
+        Route::post('/faq', [FaqController::class, 'store'])->name('faq.store');
+        Route::put('/faq/{id}', [FaqController::class, 'update'])->name('faq.update');
+        Route::delete('/faq/{id}', [FaqController::class, 'destroy'])->name('faq.destroy');
+        Route::patch('/faq/{id}/toggle', [FaqController::class, 'toggleStatus'])->name('faq.toggle');
     });
 
     // Monitoring & Histori

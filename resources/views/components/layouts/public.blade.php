@@ -110,6 +110,7 @@
                         $navItems = [
                             ['route' => 'home', 'label' => 'Beranda', 'is' => 'home'],
                             ['route' => 'informasi', 'label' => 'Informasi & Juknis', 'is' => 'informasi'],
+                            ['route' => 'faq', 'label' => 'FAQ / Bantuan', 'is' => 'faq'],
                             ['route' => 'kriteria.persyaratan', 'label' => 'Persyaratan & SPK', 'is' => 'kriteria.persyaratan'],
                             ['route' => 'seleksi.penetapan', 'label' => 'Hasil Seleksi', 'is' => 'seleksi.penetapan'],
                         ];
@@ -181,6 +182,8 @@
                     class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('home') ? 'bg-primary-light text-primary-dark' : 'text-slate-600 hover:bg-slate-50' }}">Beranda</a>
                 <a href="{{ route('informasi') }}"
                     class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('informasi') ? 'bg-primary-light text-primary-dark' : 'text-slate-600 hover:bg-slate-50' }}">Informasi & Juknis</a>
+                <a href="{{ route('faq') }}"
+                    class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('faq') ? 'bg-primary-light text-primary-dark' : 'text-slate-600 hover:bg-slate-50' }}">FAQ / Bantuan</a>
                 <a href="{{ route('kriteria.persyaratan') }}"
                     class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('kriteria.persyaratan') ? 'bg-primary-light text-primary-dark' : 'text-slate-600 hover:bg-slate-50' }}">Persyaratan & SPK</a>
                 <a href="{{ route('seleksi.penetapan') }}"

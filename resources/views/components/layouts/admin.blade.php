@@ -126,6 +126,9 @@
                 <a href="{{ route('super-admin.master.dokumen-publik.index') }}" class="sidebar-link {{ request()->routeIs('super-admin.master.dokumen-publik.*') ? 'active' : '' }}">
                     <i data-lucide="file-text" class="w-5 h-5"></i> Dokumen Publik
                 </a>
+                <a href="{{ route('super-admin.master.faq.index') }}" class="sidebar-link {{ request()->routeIs('super-admin.master.faq.*') ? 'active' : '' }}">
+                    <i data-lucide="message-square" class="w-5 h-5"></i> FAQ (Tanya Jawab)
+                </a>
 
                 <div class="sidebar-section">Monitoring</div>
                 <a href="{{ route('super-admin.monitoring.pendaftaran') }}" class="sidebar-link {{ request()->routeIs('super-admin.monitoring.pendaftaran') ? 'active' : '' }}">

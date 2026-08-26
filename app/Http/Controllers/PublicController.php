@@ -7,6 +7,7 @@ use App\Models\PendaftaranIdentitas;
 use App\Models\Periode;
 use App\Models\Program;
 use App\Models\DokumenPublik;
+use App\Models\Faq;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -50,6 +51,12 @@ class PublicController extends Controller
         $dokumenPubliks = DokumenPublik::aktif()->ordered()->get();
 
         return view('public.informasi_umum', compact('programs', 'periodeAktif', 'dokumenPubliks'));
+    }
+
+    public function faq()
+    {
+        $faqs = Faq::aktif()->ordered()->get();
+        return view('public.faq', compact('faqs'));
     }
 
     public function kriteriaPersyaratan()

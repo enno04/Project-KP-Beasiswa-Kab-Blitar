@@ -188,7 +188,7 @@
             @endif
 
             {{-- Contact Person Card --}}
-            <div class="card bg-white/95 backdrop-blur-md border border-white/80 shadow-md">
+            <div id="pusat-bantuan" class="card bg-white/95 backdrop-blur-md border border-white/80 shadow-md scroll-mt-24">
                 <div class="card-body p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-2xl bg-primary-light text-primary flex items-center justify-center shrink-0">
@@ -216,4 +216,24 @@
             </div>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('scroll') === 'bantuan') {
+                // Beri sedikit jeda agar halaman selesai me-render komponen visual lainnya (seperti gambar)
+                setTimeout(() => {
+                    const target = document.getElementById('pusat-bantuan');
+                    if (target) {
+                        // Hilangkan ?scroll=bantuan dari URL address bar tanpa me-refresh halaman agar rapi
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                        // Mulai gulir pelan-pelan ke target
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 400); 
+            }
+        });
+    </script>
+    @endpush
 </x-layouts.public>

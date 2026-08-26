@@ -7,6 +7,7 @@ use App\Http\Controllers\Master\ReferensiController;
 
 Route::get('/', [PublicController::class, 'home'])->name('home');
 Route::get('/informasi', [PublicController::class, 'informasi'])->name('informasi');
+Route::get('/faq', [PublicController::class, 'faq'])->name('faq');
 Route::get('/kriteria-persyaratan', [PublicController::class, 'kriteriaPersyaratan'])->name('kriteria.persyaratan');
 Route::get('/seleksi-penetapan', [PublicController::class, 'seleksiPenetapan'])->name('seleksi.penetapan');
 Route::get('/cek-status', [PublicController::class, 'cekStatus'])->name('cek.status');
