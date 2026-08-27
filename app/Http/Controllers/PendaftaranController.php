@@ -20,7 +20,9 @@ class PendaftaranController extends Controller
     {
         $periodeAktif = Periode::aktif()->first();
         $programs = $periodeAktif
-            ? Program::where('periode_id', $periodeAktif->id)->aktif()->with('jalurs')->orderBy('urutan')->get()
+            ? Program::where('periode_id', $periodeAktif->id)->aktif()
+                ->with(['jalurs', 'jalurs.dokumens' => fn($q) => $q->where('wajib', true)->orderBy('urutan')])
+                ->orderBy('urutan')->get()
             : collect();
 
         return view('pendaftaran.index', compact('programs', 'periodeAktif'));

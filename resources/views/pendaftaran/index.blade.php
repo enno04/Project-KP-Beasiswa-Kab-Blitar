@@ -19,7 +19,33 @@
         </div>
     </section>
 
-    <section class="py-12 min-h-[40vh]">
+    <section class="py-12 min-h-[40vh]" x-data="{
+        modalOpen: false,
+        jalurNama: '',
+        progNama: '',
+        daftarUrl: '',
+        persyaratans: [],
+        checks: {},
+        openModal(jalurNama, progNama, daftarUrl, persyaratans) {
+            this.jalurNama = jalurNama;
+            this.progNama = progNama;
+            this.daftarUrl = daftarUrl;
+            this.persyaratans = persyaratans;
+            this.checks = {};
+            persyaratans.forEach((p, i) => { this.checks[i] = false; });
+            this.modalOpen = true;
+        },
+        get checkedCount() {
+            return Object.values(this.checks).filter(v => v).length;
+        },
+        get allChecked() {
+            return this.persyaratans.length > 0 && this.checkedCount === this.persyaratans.length;
+        },
+        get progressPct() {
+            if (this.persyaratans.length === 0) return 0;
+            return Math.round((this.checkedCount / this.persyaratans.length) * 100);
+        }
+    }">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             @if($periodeAktif && $programs->count() > 0)
                 <div class="space-y-8">
@@ -59,11 +85,23 @@
                                                     </div>
                                                 </div>
                                                 @if($prog->status_pendaftaran === 'Sedang Dibuka')
-                                                    <a href="{{ route('pendaftaran.create', ['programSlug' => $prog->slug, 'jalurSlug' => $jalur->slug]) }}" class="btn btn-primary btn-sm w-full justify-center">
-                                                        <i data-lucide="edit-3" class="w-4 h-4"></i> Daftar Jalur Ini
-                                                    </a>
+                                                    @if($jalur->dokumens->count() > 0)
+                                                        <button type="button" class="btn btn-primary btn-sm w-full justify-center mt-3"
+                                                            @click="openModal(
+                                                                '{{ addslashes($jalur->nama) }}',
+                                                                '{{ addslashes($prog->nama) }}',
+                                                                '{{ route('pendaftaran.create', ['programSlug' => $prog->slug, 'jalurSlug' => $jalur->slug]) }}',
+                                                                {{ $jalur->dokumens->map(fn($d) => ['nama' => $d->nama])->toJson() }}
+                                                            )">
+                                                            <i data-lucide="clipboard-check" class="w-4 h-4"></i> Cek Syarat & Daftar
+                                                        </button>
+                                                    @else
+                                                        <a href="{{ route('pendaftaran.create', ['programSlug' => $prog->slug, 'jalurSlug' => $jalur->slug]) }}" class="btn btn-primary btn-sm w-full justify-center mt-3">
+                                                            <i data-lucide="edit-3" class="w-4 h-4"></i> Daftar Jalur Ini
+                                                        </a>
+                                                    @endif
                                                 @else
-                                                    <button disabled class="btn btn-sm w-full justify-center bg-slate-200 text-slate-500 cursor-not-allowed">Belum Dibuka</button>
+                                                    <button disabled class="btn btn-sm w-full justify-center bg-slate-200 text-slate-500 cursor-not-allowed mt-3">Belum Dibuka</button>
                                                 @endif
                                             </div>
                                         @endforeach
@@ -78,6 +116,89 @@
             @elseif($periodeAktif)
                 <x-empty-state icon="folder-open" title="Belum Ada Program" text="Program beasiswa untuk periode ini belum dikonfigurasi oleh panitia." />
             @endif
+        </div>
+        {{-- ===== MODAL CHECKLIST PERSYARATAN ===== --}}
+        <div x-show="modalOpen" x-cloak style="display:none;"
+            class="fixed inset-0 z-50 flex items-center justify-center p-4">
+
+            {{-- Backdrop --}}
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="modalOpen = false"></div>
+
+            {{-- Modal Card --}}
+            <div class="relative z-10 w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95">
+
+                {{-- Header --}}
+                <div class="p-6 border-b border-slate-100" style="background: linear-gradient(135deg, #2B5C92, #0C1446);">
+                    <div class="flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-bold text-white/60 uppercase tracking-widest mb-1" x-text="progNama"></p>
+                            <h3 class="text-lg font-extrabold text-white" x-text="jalurNama"></h3>
+                            <p class="text-sm text-white/70 mt-1">Pastikan semua dokumen berikut sudah siap sebelum mengisi formulir.</p>
+                        </div>
+                        <button @click="modalOpen = false"
+                            class="shrink-0 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                {{-- Progress Bar --}}
+                <div class="px-6 pt-5">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-xs font-semibold text-slate-500">Progress Kelengkapan</span>
+                        <span class="text-xs font-bold text-primary" x-text="checkedCount + ' / ' + persyaratans.length + ' terpenuhi'"></span>
+                    </div>
+                    <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500"
+                            :class="allChecked ? 'bg-emerald-500' : 'bg-primary'"
+                            :style="'width: ' + progressPct + '%'"></div>
+                    </div>
+                </div>
+
+                {{-- Checklist Items --}}
+                <div class="p-6 space-y-3 max-h-[60vh] overflow-y-auto overscroll-contain" @wheel.stop @touchmove.stop>
+                    <template x-for="(item, index) in persyaratans" :key="index">
+                        <label class="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all"
+                            :class="checks[index] ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-50 border-slate-200 hover:border-primary/50'">
+                            <input type="checkbox" x-model="checks[index]"
+                                class="mt-0.5 w-5 h-5 rounded accent-emerald-500 shrink-0 cursor-pointer">
+                            <span class="text-sm font-medium leading-relaxed flex-1 transition-colors"
+                                :class="checks[index] ? 'text-emerald-700 line-through opacity-70' : 'text-slate-700'"
+                                x-text="item.nama"></span>
+                            <i data-lucide="check-circle" class="w-5 h-5 text-emerald-500 shrink-0 mt-0.5 transition-opacity"
+                                :class="checks[index] ? 'opacity-100' : 'opacity-0'"></i>
+                        </label>
+                    </template>
+                </div>
+
+                {{-- Footer --}}
+                <div class="px-6 pb-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row gap-3 items-center">
+                    <div class="flex-1 text-xs rounded-lg px-3 py-2 flex items-center gap-2"
+                        :class="allChecked
+                            ? 'text-emerald-700 bg-emerald-50 border border-emerald-200'
+                            : 'text-amber-600 bg-amber-50 border border-amber-200'">
+                        <template x-if="!allChecked">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
+                        </template>
+                        <template x-if="allChecked">
+                            <i data-lucide="check-circle" class="w-4 h-4 shrink-0"></i>
+                        </template>
+                        <span x-text="allChecked ? 'Semua dokumen siap! Anda bisa melanjutkan.' : 'Centang semua persyaratan untuk melanjutkan.'"></span>
+                    </div>
+                    <a :href="allChecked ? daftarUrl : '#'"
+                        :class="allChecked
+                            ? 'btn btn-primary btn-sm shrink-0 justify-center'
+                            : 'btn btn-sm shrink-0 justify-center bg-slate-200 text-slate-400 cursor-not-allowed pointer-events-none'">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i> Lanjut Isi Form
+                    </a>
+                </div>
+            </div>
         </div>
     </section>
 </x-layouts.public>

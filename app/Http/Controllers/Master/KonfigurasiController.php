@@ -288,3 +288,4 @@ class KonfigurasiController extends Controller
         return redirect()->route('super-admin.master.dokumen.index', $jalurId)->with('success', 'Dokumen berhasil dihapus.');
     }
 }
+
