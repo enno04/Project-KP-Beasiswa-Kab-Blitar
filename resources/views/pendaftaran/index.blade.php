@@ -125,7 +125,7 @@
             <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="modalOpen = false"></div>
 
             {{-- Modal Card --}}
-            <div class="relative z-10 w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden"
+            <div class="relative z-10 w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 scale-95"
                 x-transition:enter-end="opacity-100 scale-100"
@@ -162,9 +162,9 @@
                 </div>
 
                 {{-- Checklist Items --}}
-                <div class="p-6 space-y-3 max-h-[60vh] overflow-y-auto overscroll-contain" @wheel.stop @touchmove.stop>
+                <div class="p-5 space-y-2 max-h-[45vh] overflow-y-auto overscroll-contain" @wheel.stop @touchmove.stop>
                     <template x-for="(item, index) in persyaratans" :key="index">
-                        <label class="flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all"
+                        <label class="flex items-start gap-3 px-3 py-2.5 rounded-xl border cursor-pointer transition-all"
                             :class="checks[index] ? 'bg-emerald-50 border-emerald-300' : 'bg-slate-50 border-slate-200 hover:border-primary/50'">
                             <input type="checkbox" x-model="checks[index]"
                                 class="mt-0.5 w-5 h-5 rounded accent-emerald-500 shrink-0 cursor-pointer">
