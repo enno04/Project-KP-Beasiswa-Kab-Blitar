@@ -138,9 +138,18 @@ class SuperAdminController extends Controller
                 $query->where('jenis_beasiswa', $request->jenis_beasiswa);
             }
 
-            $histori = $query->orderBy('tahun', 'desc')
-                ->orderBy('nama_lengkap', 'asc')
-                ->paginate($request->get('per_page', 50))
+            if ($request->filled('sort_added')) {
+                if ($request->sort_added === 'terbaru') {
+                    $query->orderBy('id', 'desc');
+                } else if ($request->sort_added === 'terlama') {
+                    $query->orderBy('id', 'asc');
+                }
+            } else {
+                $query->orderBy('tahun', 'desc')
+                      ->orderBy('nama_lengkap', 'asc');
+            }
+
+            $histori = $query->paginate($request->get('per_page', 50))
                 ->withQueryString();
 
             $tahunList = DB::table('histori_penerimas')
@@ -159,50 +168,8 @@ class SuperAdminController extends Controller
                 ->pluck('jenis_beasiswa');
                 
         } else {
-            // Tab Baru: Menggabungkan data penerima live & data histori sistem (import)
-            $queryLive = DB::table('penerima_beasiswas')
-                ->join('pendaftarans', 'penerima_beasiswas.pendaftaran_id', '=', 'pendaftarans.id')
-                ->join('pendaftaran_identitas', 'pendaftarans.id', '=', 'pendaftaran_identitas.pendaftaran_id')
-                ->join('programs', 'pendaftarans.program_id', '=', 'programs.id')
-                ->leftJoin('kecamatan', 'pendaftaran_identitas.kecamatan_id', '=', 'kecamatan.id')
-                ->leftJoin('desa', 'pendaftaran_identitas.desa_id', '=', 'desa.id')
-                ->select(
-                    'pendaftarans.tahun',
-                    'pendaftaran_identitas.nik',
-                    'pendaftaran_identitas.nama_lengkap',
-                    'pendaftaran_identitas.asal_perguruan_tinggi',
-                    'programs.nama as jenis_beasiswa',
-                    'pendaftarans.nomor_pendaftaran',
-                    DB::raw("NULL as jalur_beasiswa"), // Tidak ada di tabel pendaftarans secara langsung
-                    'pendaftarans.total_nilai as ipk_nilai',
-                    DB::raw("NULL as asal_sekolah"),
-                    'kecamatan.nama_kecamatan as kecamatan',
-                    'desa.nama_desa as desa',
-                    'pendaftarans.updated_at as waktu_penetapan'
-                );
-
-            $queryImported = DB::table('histori_penerimas')
-                ->where('sumber_data', 'sistem')
-                ->select(
-                    'tahun',
-                    'nik',
-                    'nama_lengkap',
-                    'asal_perguruan_tinggi',
-                    'jenis_beasiswa',
-                    'nomor_pendaftaran',
-                    'jalur_beasiswa',
-                    'ipk_nilai',
-                    'asal_sekolah',
-                    'kecamatan',
-                    'desa',
-                    'waktu_penetapan'
-                );
-
-            $query = $queryLive->union($queryImported);
-
-            // Kita harus membungkus query union sebagai subquery untuk mempermudah filter & order
-            $query = DB::table(DB::raw("({$query->toSql()}) as combined_table"))
-                ->mergeBindings($query);
+            // Tab Baru: HANYA menampilkan data histori sistem (import), TANPA data live pendaftarans
+            $query = DB::table('histori_penerimas')->where('sumber_data', 'sistem');
 
             if ($request->filled('search')) {
                 $search = '%' . trim($request->search) . '%';
@@ -223,18 +190,34 @@ class SuperAdminController extends Controller
                 $query->where('jenis_beasiswa', $request->jenis_beasiswa);
             }
 
-            $histori = $query->orderBy('tahun', 'desc')
-                ->orderBy('nama_lengkap', 'asc')
-                ->paginate($request->get('per_page', 50))
+            if ($request->filled('sort_added')) {
+                if ($request->sort_added === 'terbaru') {
+                    $query->orderBy('id', 'desc');
+                } else if ($request->sort_added === 'terlama') {
+                    $query->orderBy('id', 'asc');
+                }
+            } else {
+                $query->orderBy('tahun', 'desc')
+                      ->orderBy('nama_lengkap', 'asc');
+            }
+
+            $histori = $query->paginate($request->get('per_page', 50))
                 ->withQueryString();
 
-            $tahunList = Periode::pluck('tahun')->sortDesc()->values();
+            $tahunList = DB::table('histori_penerimas')
+                ->where('sumber_data', 'sistem')
+                ->select('tahun')
+                ->distinct()
+                ->orderBy('tahun', 'desc')
+                ->pluck('tahun');
             
-            $programList = DB::table('programs')
-                ->whereNull('deleted_at')
-                ->select('nama')
-                ->orderBy('nama', 'asc')
-                ->pluck('nama');
+            $programList = DB::table('histori_penerimas')
+                ->where('sumber_data', 'sistem')
+                ->whereNotNull('jenis_beasiswa')
+                ->select('jenis_beasiswa')
+                ->distinct()
+                ->orderBy('jenis_beasiswa', 'asc')
+                ->pluck('jenis_beasiswa');
         }
 
         return view('super-admin.histori', compact('histori', 'tahunList', 'programList', 'tab'));

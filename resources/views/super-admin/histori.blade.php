@@ -63,6 +63,12 @@
                     @endforeach
                 </select>
 
+                <select name="sort_added" onchange="this.form.submit()" class="form-select w-full sm:w-auto sm:min-w-[150px]">
+                    <option value="">Urutkan (Default)</option>
+                    <option value="terbaru" {{ request('sort_added') == 'terbaru' ? 'selected' : '' }}>Baru Di-import</option>
+                    <option value="terlama" {{ request('sort_added') == 'terlama' ? 'selected' : '' }}>Terlama Di-import</option>
+                </select>
+
                 <select name="per_page" onchange="this.form.submit()" class="form-select w-full sm:w-auto">
                     <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10 baris</option>
                     <option value="25" {{ request('per_page') == '25' ? 'selected' : '' }}>25 baris</option>
