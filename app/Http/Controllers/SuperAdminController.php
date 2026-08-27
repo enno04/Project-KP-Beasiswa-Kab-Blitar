@@ -312,12 +312,67 @@ class SuperAdminController extends Controller
             });
         }
 
+        // Metrik Ringkas
+        $today = now()->toDateString();
+        $totalHariIni = AuditLog::whereDate('created_at', $today)->count();
+        $totalKritis = AuditLog::whereDate('created_at', $today)
+            ->where(function($q) {
+                $q->where('aktivitas', 'like', '%Hapus%')
+                  ->orWhere('aktivitas', 'like', '%Gagal%')
+                  ->orWhere('aktivitas', 'like', '%Error%');
+            })->count();
+            
+        $topUserObj = AuditLog::whereDate('created_at', $today)
+            ->whereNotNull('user_id')
+            ->select('user_id', DB::raw('count(*) as total'))
+            ->groupBy('user_id')
+            ->orderByDesc('total')
+            ->first();
+        $topUser = $topUserObj ? User::find($topUserObj->user_id)?->nama : 'Belum Ada';
+
+        // Ekspor ke CSV
+        if ($request->get('export') === 'csv') {
+            $exportQuery = clone $query;
+            $exportData = $exportQuery->get();
+            
+            $filename = "audit_log_" . date('Ymd_His') . ".csv";
+            $headers = [
+                "Content-type"        => "text/csv",
+                "Content-Disposition" => "attachment; filename=$filename",
+                "Pragma"              => "no-cache",
+                "Cache-Control"       => "must-revalidate, post-check=0, pre-check=0",
+                "Expires"             => "0"
+            ];
+
+            $callback = function() use ($exportData) {
+                $file = fopen('php://output', 'w');
+                fputcsv($file, ['Waktu', 'User', 'IP Address', 'Aktivitas', 'Modul', 'ID Data', 'Deskripsi', 'Data Lama', 'Data Baru']);
+                
+                foreach ($exportData as $row) {
+                    fputcsv($file, [
+                        $row->created_at?->format('Y-m-d H:i:s'),
+                        $row->user?->nama ?? 'Sistem',
+                        $row->ip_address,
+                        $row->aktivitas,
+                        class_basename($row->model_type),
+                        $row->model_id,
+                        $row->deskripsi,
+                        $row->data_lama ? json_encode($row->data_lama) : '',
+                        $row->data_baru ? json_encode($row->data_baru) : ''
+                    ]);
+                }
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        }
+
         $logs = $query->paginate(50)->withQueryString();
         
         $users = User::orderBy('nama')->get(['id', 'nama']);
         $aktivitasList = AuditLog::select('aktivitas')->distinct()->pluck('aktivitas');
 
-        return view('super-admin.log.index', compact('logs', 'users', 'aktivitasList'));
+        return view('super-admin.log.index', compact('logs', 'users', 'aktivitasList', 'totalHariIni', 'totalKritis', 'topUser'));
     }
 
     public function pembersihanData()

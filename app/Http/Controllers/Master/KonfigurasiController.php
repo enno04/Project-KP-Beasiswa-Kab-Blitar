@@ -220,7 +220,9 @@ class KonfigurasiController extends Controller
             'kode.unique' => 'Kode jalur ini sudah terdaftar pada program ini. Silakan gunakan kode lain.'
         ]);
         $jalur = Jalur::create(array_merge($request->only(['nama', 'kode', 'deskripsi', 'aktif']), ['program_id' => $programId, 'urutan' => 1]));
-        AuditLog::catat('Tambah Jalur', "Jalur: {$jalur->nama}", Jalur::class, $jalur->id, null, $jalur->only(['nama', 'kode', 'aktif']));
+        $program = \App\Models\Program::find($programId);
+        $progNama = $program ? $program->nama : 'Unknown';
+        AuditLog::catat('Tambah Jalur', "Jalur: {$jalur->nama} (Program: {$progNama})", Jalur::class, $jalur->id, null, $jalur->only(['nama', 'kode', 'aktif']));
         return redirect()->route('super-admin.master.jalur.index', $programId)->with('success', 'Jalur berhasil ditambahkan.');
     }
 
@@ -243,14 +245,18 @@ class KonfigurasiController extends Controller
         ]);
         $dataLama = $jalur->only(['nama', 'kode', 'aktif']);
         $jalur->update($request->only(['nama', 'kode', 'deskripsi', 'aktif']));
-        AuditLog::catat('Ubah Jalur', "Jalur: {$jalur->nama}", Jalur::class, $jalur->id, $dataLama, $jalur->only(['nama', 'kode', 'aktif']));
+        $program = \App\Models\Program::find($programId);
+        $progNama = $program ? $program->nama : 'Unknown';
+        AuditLog::catat('Ubah Jalur', "Jalur: {$jalur->nama} (Program: {$progNama})", Jalur::class, $jalur->id, $dataLama, $jalur->only(['nama', 'kode', 'aktif']));
         return redirect()->route('super-admin.master.jalur.index', $programId)->with('success', 'Jalur berhasil diperbarui.');
     }
 
     public function jalurDestroy($programId, $id)
     {
         $jalur = Jalur::findOrFail($id);
-        AuditLog::catat('Hapus Jalur', "Jalur: {$jalur->nama}", Jalur::class, $jalur->id, $jalur->only(['nama', 'kode', 'aktif']), null);
+        $program = \App\Models\Program::find($programId);
+        $progNama = $program ? $program->nama : 'Unknown';
+        AuditLog::catat('Hapus Jalur', "Jalur: {$jalur->nama} (Program: {$progNama})", Jalur::class, $jalur->id, $jalur->only(['nama', 'kode', 'aktif']), null);
         $jalur->delete();
         return redirect()->route('super-admin.master.jalur.index', $programId)->with('success', 'Jalur berhasil dihapus.');
     }
@@ -267,7 +273,10 @@ class KonfigurasiController extends Controller
     {
         $request->validate(['nama' => 'required|string|max:255', 'wajib' => 'required|boolean', 'urutan' => 'required|integer']);
         $dok = Dokumen::create(array_merge($request->only(['nama', 'deskripsi', 'wajib', 'opd_id', 'urutan']), ['jalur_id' => $jalurId]));
-        AuditLog::catat('Tambah Dokumen', "Dokumen: {$dok->nama}", Dokumen::class, $dok->id, null, $dok->only(['nama', 'wajib', 'urutan']));
+        $jalur = Jalur::find($jalurId);
+        $jalurNama = $jalur ? $jalur->nama : 'Unknown';
+        $programNama = $jalur && $jalur->program ? $jalur->program->nama : 'Unknown';
+        AuditLog::catat('Tambah Dokumen', "Dokumen: {$dok->nama} (Jalur: {$jalurNama}, Program: {$programNama})", Dokumen::class, $dok->id, null, $dok->only(['nama', 'wajib', 'urutan']));
         return redirect()->route('super-admin.master.dokumen.index', $jalurId)->with('success', 'Dokumen berhasil ditambahkan.');
     }
 
@@ -276,14 +285,20 @@ class KonfigurasiController extends Controller
         $dok = Dokumen::findOrFail($id);
         $dataLama = $dok->only(['nama', 'wajib', 'urutan', 'opd_id']);
         $dok->update($request->only(['nama', 'deskripsi', 'wajib', 'opd_id', 'urutan']));
-        AuditLog::catat('Ubah Dokumen', "Dokumen: {$dok->nama}", Dokumen::class, $dok->id, $dataLama, $dok->only(['nama', 'wajib', 'urutan', 'opd_id']));
+        $jalur = Jalur::find($jalurId);
+        $jalurNama = $jalur ? $jalur->nama : 'Unknown';
+        $programNama = $jalur && $jalur->program ? $jalur->program->nama : 'Unknown';
+        AuditLog::catat('Ubah Dokumen', "Dokumen: {$dok->nama} (Jalur: {$jalurNama}, Program: {$programNama})", Dokumen::class, $dok->id, $dataLama, $dok->only(['nama', 'wajib', 'urutan', 'opd_id']));
         return redirect()->route('super-admin.master.dokumen.index', $jalurId)->with('success', 'Dokumen berhasil diperbarui.');
     }
 
     public function dokumenDestroy($jalurId, $id)
     {
         $dok = Dokumen::findOrFail($id);
-        AuditLog::catat('Hapus Dokumen', "Dokumen: {$dok->nama}", Dokumen::class, $dok->id, $dok->only(['nama', 'wajib', 'urutan']), null);
+        $jalur = Jalur::find($jalurId);
+        $jalurNama = $jalur ? $jalur->nama : 'Unknown';
+        $programNama = $jalur && $jalur->program ? $jalur->program->nama : 'Unknown';
+        AuditLog::catat('Hapus Dokumen', "Dokumen: {$dok->nama} (Jalur: {$jalurNama}, Program: {$programNama})", Dokumen::class, $dok->id, $dok->only(['nama', 'wajib', 'urutan']), null);
         $dok->delete();
         return redirect()->route('super-admin.master.dokumen.index', $jalurId)->with('success', 'Dokumen berhasil dihapus.');
     }

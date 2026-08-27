@@ -57,7 +57,12 @@ class KriteriaController extends Controller
             'bobot' => 'required|numeric|min:0|max:100',
         ]);
         $kriteria = Kriteria::create($request->only(['kelompok_kriteria_id', 'nama', 'kode', 'tipe_input', 'urutan', 'nilai_min', 'nilai_max', 'bobot']));
-        AuditLog::catat('Tambah Kriteria', "Kriteria: {$kriteria->nama} (Bobot: {$kriteria->bobot}%)", Kriteria::class, $kriteria->id, null, $kriteria->only(['nama', 'kode', 'tipe_input', 'bobot', 'nilai_min', 'nilai_max']));
+        $kelompok = KelompokKriteria::find($request->kelompok_kriteria_id);
+        $kelompokNama = $kelompok ? $kelompok->nama : 'Unknown';
+        $jalur = Jalur::find($jalurId);
+        $progNama = $jalur && $jalur->program ? $jalur->program->nama : 'Unknown';
+        $jalurKonteks = $jalur ? " (Jalur: {$jalur->nama}, Program: {$progNama})" : '';
+        AuditLog::catat('Tambah Kriteria', "Kriteria: {$kriteria->nama} (Bobot: {$kriteria->bobot}%) pada Kelompok {$kelompokNama}{$jalurKonteks}", Kriteria::class, $kriteria->id, null, $kriteria->only(['nama', 'kode', 'tipe_input', 'bobot', 'nilai_min', 'nilai_max']));
 
         $this->syncGroupBobot($jalurId, $request->kelompok_kriteria_id);
 
@@ -68,7 +73,12 @@ class KriteriaController extends Controller
     {
         $kriteria = Kriteria::findOrFail($id);
         $kelompokId = $kriteria->kelompok_kriteria_id;
-        AuditLog::catat('Hapus Kriteria', "Kriteria: {$kriteria->nama} (Bobot: {$kriteria->bobot}%)", Kriteria::class, $kriteria->id, $kriteria->only(['nama', 'kode', 'bobot', 'tipe_input']), null);
+        $kelompok = KelompokKriteria::find($kelompokId);
+        $kelompokNama = $kelompok ? $kelompok->nama : 'Unknown';
+        $jalur = Jalur::find($jalurId);
+        $progNama = $jalur && $jalur->program ? $jalur->program->nama : 'Unknown';
+        $jalurKonteks = $jalur ? " (Jalur: {$jalur->nama}, Program: {$progNama})" : '';
+        AuditLog::catat('Hapus Kriteria', "Kriteria: {$kriteria->nama} (Bobot: {$kriteria->bobot}%) pada Kelompok {$kelompokNama}{$jalurKonteks}", Kriteria::class, $kriteria->id, $kriteria->only(['nama', 'kode', 'bobot', 'tipe_input']), null);
         $kriteria->delete();
 
         $this->syncGroupBobot($jalurId, $kelompokId);
@@ -89,7 +99,12 @@ class KriteriaController extends Controller
         $dataLama = $kriteria->only(['nama', 'kode', 'tipe_input', 'bobot', 'nilai_min', 'nilai_max', 'kelompok_kriteria_id']);
         $oldKelompokId = $kriteria->kelompok_kriteria_id;
         $kriteria->update($request->only(['kelompok_kriteria_id', 'nama', 'kode', 'tipe_input', 'urutan', 'nilai_min', 'nilai_max', 'bobot']));
-        AuditLog::catat('Ubah Kriteria', "Kriteria: {$kriteria->nama} (Bobot: {$dataLama['bobot']}% → {$kriteria->bobot}%)", Kriteria::class, $kriteria->id, $dataLama, $kriteria->only(['nama', 'kode', 'tipe_input', 'bobot', 'nilai_min', 'nilai_max', 'kelompok_kriteria_id']));
+        $kelompok = KelompokKriteria::find($kriteria->kelompok_kriteria_id);
+        $kelompokNama = $kelompok ? $kelompok->nama : 'Unknown';
+        $jalur = Jalur::find($jalurId);
+        $progNama = $jalur && $jalur->program ? $jalur->program->nama : 'Unknown';
+        $jalurKonteks = $jalur ? " (Jalur: {$jalur->nama}, Program: {$progNama})" : '';
+        AuditLog::catat('Ubah Kriteria', "Kriteria: {$kriteria->nama} (Bobot: {$dataLama['bobot']}% → {$kriteria->bobot}%) pada Kelompok {$kelompokNama}{$jalurKonteks}", Kriteria::class, $kriteria->id, $dataLama, $kriteria->only(['nama', 'kode', 'tipe_input', 'bobot', 'nilai_min', 'nilai_max', 'kelompok_kriteria_id']));
 
         $this->syncGroupBobot($jalurId, $request->kelompok_kriteria_id);
         if ($oldKelompokId != $request->kelompok_kriteria_id) {
@@ -119,14 +134,24 @@ class KriteriaController extends Controller
             'label' => 'required|string|max:255', 'skor' => 'required|numeric', 'urutan' => 'required|integer',
         ]);
         $pilihan = PilihanKriteria::create($request->only(['kriteria_id', 'label', 'skor', 'urutan']));
-        AuditLog::catat('Tambah Pilihan Kriteria', "Pilihan: {$pilihan->label} (Skor: {$pilihan->skor})", PilihanKriteria::class, $pilihan->id, null, $pilihan->only(['label', 'skor', 'urutan']));
+        $kriteria = Kriteria::find($request->kriteria_id);
+        $kriteriaNama = $kriteria ? $kriteria->nama : 'Unknown';
+        $jalur = Jalur::find($jalurId);
+        $progNama = $jalur && $jalur->program ? $jalur->program->nama : 'Unknown';
+        $jalurKonteks = $jalur ? " (Jalur: {$jalur->nama}, Program: {$progNama})" : '';
+        AuditLog::catat('Tambah Pilihan Kriteria', "Pilihan: {$pilihan->label} (Skor: {$pilihan->skor}) pada Kriteria {$kriteriaNama}{$jalurKonteks}", PilihanKriteria::class, $pilihan->id, null, $pilihan->only(['label', 'skor', 'urutan']));
         return redirect()->back()->with('success', 'Pilihan berhasil ditambahkan.');
     }
 
     public function pilihanDestroy($jalurId, $id)
     {
         $pilihan = PilihanKriteria::findOrFail($id);
-        AuditLog::catat('Hapus Pilihan Kriteria', "Pilihan: {$pilihan->label} (Skor: {$pilihan->skor})", PilihanKriteria::class, $pilihan->id, $pilihan->only(['label', 'skor', 'urutan']), null);
+        $kriteria = Kriteria::find($pilihan->kriteria_id);
+        $kriteriaNama = $kriteria ? $kriteria->nama : 'Unknown';
+        $jalur = Jalur::find($jalurId);
+        $progNama = $jalur && $jalur->program ? $jalur->program->nama : 'Unknown';
+        $jalurKonteks = $jalur ? " (Jalur: {$jalur->nama}, Program: {$progNama})" : '';
+        AuditLog::catat('Hapus Pilihan Kriteria', "Pilihan: {$pilihan->label} (Skor: {$pilihan->skor}) pada Kriteria {$kriteriaNama}{$jalurKonteks}", PilihanKriteria::class, $pilihan->id, $pilihan->only(['label', 'skor', 'urutan']), null);
         $pilihan->delete();
         return redirect()->back()->with('success', 'Pilihan berhasil dihapus.');
     }
