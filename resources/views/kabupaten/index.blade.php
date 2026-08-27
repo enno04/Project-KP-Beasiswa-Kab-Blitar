@@ -73,7 +73,6 @@
                     <select name="status" class="form-select w-full" onchange="this.form.submit()">
                         <option value="">Semua Status</option>
                         <option value="lolos_verifikasi" {{ request('status') === 'lolos_verifikasi' ? 'selected' : '' }}>Lolos Verifikasi</option>
-                        <option value="proses_penilaian" {{ request('status') === 'proses_penilaian' ? 'selected' : '' }}>Proses Penilaian</option>
                         
                         @if(isset($isBerdayaBerjaya) && $isBerdayaBerjaya)
                             <option value="menunggu_wawancara" {{ request('status') === 'menunggu_wawancara' ? 'selected' : '' }}>Menunggu Wawancara</option>

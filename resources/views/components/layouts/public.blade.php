@@ -92,107 +92,130 @@
     </div>
 
     {{-- ═══ NAVBAR ═══ --}}
-    <nav class="sticky top-0 z-50 bg-white border-b border-slate-200/80"
-        style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                {{-- Logo --}}
-                <a href="{{ route('home') }}" class="flex items-center gap-3 group">
-                    <img src="{{ asset('images/logo.png') }}" alt="Logo Beasiswa Blitar Mengabdi"
-                        class="h-12 sm:h-12 lg:h-12 w-auto object-contain">
-                </a>
+    <nav class="sticky top-0 z-50 bg-white border-b border-slate-200/80" style="box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+        <div class="relative w-full">
+            {{-- Bagian Konten Tengah (Sejajar dengan Card) --}}
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center pr-12 lg:pr-16">
+                    {{-- Logo --}}
+                    <a href="{{ route('home') }}" class="flex items-center gap-3 group">
+                        <img src="{{ asset('images/logo.png') }}" alt="Logo Beasiswa Blitar Mengabdi"
+                            class="h-12 sm:h-12 lg:h-12 w-auto object-contain">
+                    </a>
 
-                {{-- Wrapper Kanan untuk Nav & Actions --}}
-                <div class="flex items-center gap-2 lg:gap-6">
-                    {{-- Desktop Nav --}}
-                    <div class="hidden lg:flex items-center gap-1">
-                    @php
-                        $navItems = [
-                            ['route' => 'home', 'label' => 'Beranda', 'is' => 'home'],
-                            ['route' => 'informasi', 'label' => 'Informasi & Juknis', 'is' => 'informasi'],
-                            ['route' => 'faq', 'label' => 'FAQ / Bantuan', 'is' => 'faq'],
-                            ['route' => 'kriteria.persyaratan', 'label' => 'Persyaratan & SPK', 'is' => 'kriteria.persyaratan'],
-                            ['route' => 'seleksi.penetapan', 'label' => 'Hasil Seleksi', 'is' => 'seleksi.penetapan'],
-                        ];
-                    @endphp
-                    @foreach($navItems as $nav)
-                        <a href="{{ route($nav['route']) }}"
-                            class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs($nav['is']) ? 'bg-primary-light text-primary-dark font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                            {{ $nav['label'] }}
-                        </a>
-                    @endforeach
-
-                    {{-- Dropdown Pendaftaran --}}
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" @click.away="open = false"
-                            class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-all duration-200 {{ request()->routeIs('pendaftaran.*') || request()->routeIs('cek.status') ? 'bg-primary-light text-primary-dark font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
-                            Pendaftaran
-                            <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform"
-                                :class="open ? 'rotate-180' : ''"></i>
-                        </button>
-                        <div x-show="open" x-transition:enter="transition ease-out duration-200"
-                            x-transition:enter-start="opacity-0 -translate-y-1"
-                            x-transition:enter-end="opacity-100 translate-y-0"
-                            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
-                            x-transition:leave-end="opacity-0"
-                            class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50">
-                            <a href="{{ route('pendaftaran.index') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i> Formulir Pendaftaran
+                    {{-- Wrapper Navigasi Tengah --}}
+                    <div class="flex items-center gap-2 lg:gap-6">
+                        {{-- Desktop Nav --}}
+                        <div class="hidden lg:flex items-center gap-1">
+                        @php
+                            $navItems = [
+                                ['route' => 'home', 'label' => 'Beranda', 'is' => 'home'],
+                                ['route' => 'informasi', 'label' => 'Informasi & Juknis', 'is' => 'informasi'],
+                                ['route' => 'faq', 'label' => 'FAQ / Bantuan', 'is' => 'faq'],
+                                ['route' => 'kriteria.persyaratan', 'label' => 'Persyaratan & SPK', 'is' => 'kriteria.persyaratan'],
+                                ['route' => 'seleksi.penetapan', 'label' => 'Hasil Seleksi', 'is' => 'seleksi.penetapan'],
+                            ];
+                        @endphp
+                        @foreach($navItems as $nav)
+                            <a href="{{ route($nav['route']) }}"
+                                class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 {{ request()->routeIs($nav['is']) ? 'bg-primary-light text-primary-dark font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                                {{ $nav['label'] }}
                             </a>
-                            <a href="{{ route('cek.status') }}"
-                                class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary">
-                                <i data-lucide="search" class="w-4 h-4"></i> Cek Status & Cetak Bukti
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                        @endforeach
 
-                {{-- Right Actions --}}
-                <div class="flex items-center gap-3">
-                    @auth
-                        {{-- Desktop Admin Menu --}}
-                        <div class="hidden lg:block relative" x-data="{ userOpen: false }">
-                            <button @click="userOpen = !userOpen" @click.away="userOpen = false" class="relative group outline-none">
-                                <div class="flex items-center justify-center w-10 h-10 rounded-full shadow-sm group-hover:shadow-md transition-all duration-200 border border-white ring-2 ring-slate-100 bg-gradient-to-br from-blue-400 to-blue-50">
-                                    <span class="font-extrabold text-sm text-white drop-shadow-sm group-hover:scale-110 transition-transform" style="text-shadow: 0 1px 2px rgba(0,0,0,0.25);">
-                                        {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
-                                    </span>
-                                </div>
-                                {{-- Badge Icon Dropdown --}}
-                                <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm text-slate-600 transition-transform duration-200"
-                                     :class="userOpen ? 'rotate-180' : ''">
-                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
-                                </div>
+                        {{-- Dropdown Pendaftaran --}}
+                        <div class="relative" x-data="{ open: false }">
+                            <button @click="open = !open" @click.away="open = false"
+                                class="px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-all duration-200 {{ request()->routeIs('pendaftaran.*') || request()->routeIs('cek.status') ? 'bg-primary-light text-primary-dark font-semibold' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' }}">
+                                Pendaftaran
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform"
+                                    :class="open ? 'rotate-180' : ''"></i>
                             </button>
-                            <div x-show="userOpen" x-transition:enter="transition ease-out duration-200"
+                            <div x-show="open" x-transition:enter="transition ease-out duration-200"
                                 x-transition:enter-start="opacity-0 -translate-y-1"
                                 x-transition:enter-end="opacity-100 translate-y-0"
                                 x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
                                 x-transition:leave-end="opacity-0"
-                                class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50">
-                                <a href="{{ route('dashboard') }}"
-                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary">
-                                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard Admin
+                                class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50">
+                                <a href="{{ route('pendaftaran.index') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i> Formulir Pendaftaran
                                 </a>
-                                <form method="POST" action="{{ route('logout') }}" class="block">
-                                    @csrf
-                                    <button type="submit"
-                                        class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left">
-                                        <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
-                                    </button>
-                                </form>
+                                <a href="{{ route('cek.status') }}"
+                                    class="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary">
+                                    <i data-lucide="search" class="w-4 h-4"></i> Cek Status & Cetak Bukti
+                                </a>
                             </div>
                         </div>
-                    @endauth
+                    </div>
+                </div>
+            </div>
 
-                    <button @click="mobileMenu = !mobileMenu"
-                        class="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500">
-                        <i data-lucide="menu" class="w-5 h-5" x-show="!mobileMenu"></i>
-                        <i data-lucide="x" class="w-5 h-5" x-show="mobileMenu" x-cloak></i>
-                    </button>
-                </div>
-                </div>
+            {{-- Bagian Action Kanan (Mentok ke Pinggir Layar) --}}
+            <div class="absolute right-4 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 flex items-center gap-3 z-50">
+                @auth
+                    {{-- Desktop Admin Menu --}}
+                    <div class="hidden lg:flex items-center gap-2 relative" x-data="{ userOpen: false }">
+                        @php
+                            $user = auth()->user();
+                            $shortRole = 'Admin';
+                            if (method_exists($user, 'getRoleKode')) {
+                                $shortRole = match($user->getRoleKode()) {
+                                    'super_admin' => 'Super Admin',
+                                    'admin_kabupaten' => 'Admin Kab',
+                                    'admin_opd' => 'Admin OPD',
+                                    'admin_kecamatan' => 'Admin Kec',
+                                    'admin_desa' => 'Admin Desa',
+                                    'admin_dpmd' => 'Admin DPMD',
+                                    default => 'Admin'
+                                };
+                            }
+                        @endphp
+                        <div class="text-xs font-bold text-slate-500 uppercase tracking-widest text-right hidden sm:block">
+                            {{ $shortRole }}
+                        </div>
+                        <button @click="userOpen = !userOpen" @click.away="userOpen = false" class="relative group outline-none">
+                            <div class="flex items-center justify-center w-10 h-10 rounded-full shadow-sm group-hover:shadow-md transition-all duration-200 border border-white ring-2 ring-slate-100 bg-gradient-to-br from-blue-400 to-blue-50">
+                                <span class="font-extrabold text-sm text-white drop-shadow-sm group-hover:scale-110 transition-transform" style="text-shadow: 0 1px 2px rgba(0,0,0,0.25);">
+                                    {{ substr(auth()->user()->nama ?? auth()->user()->name ?? 'A', 0, 1) }}
+                                </span>
+                            </div>
+                            {{-- Badge Icon Dropdown --}}
+                            <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm text-slate-600 transition-transform duration-200"
+                                 :class="userOpen ? 'rotate-180' : ''">
+                                <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                            </div>
+                        </button>
+                        <div x-show="userOpen" x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 -translate-y-1"
+                            x-transition:enter-end="opacity-100 translate-y-0"
+                            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+                            x-transition:leave-end="opacity-0"
+                            class="absolute right-0 top-full mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50 overflow-hidden">
+                            <div class="px-4 py-2 border-b border-slate-100 bg-slate-50/50 mb-1">
+                                <p class="text-sm font-bold text-slate-700 truncate">{{ auth()->user()->nama ?? auth()->user()->name ?? 'Admin' }}</p>
+                                <p class="text-[10px] font-bold text-blue-500 uppercase tracking-wider mt-0.5">{{ auth()->user()->role_label ?? 'Administrator' }}</p>
+                            </div>
+                            <a href="{{ route('dashboard') }}"
+                                class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary">
+                                <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard Admin
+                            </a>
+                            <form method="POST" action="{{ route('logout') }}" class="block">
+                                @csrf
+                                <button type="submit"
+                                    class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left">
+                                    <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                @endauth
+
+                <button @click="mobileMenu = !mobileMenu"
+                    class="lg:hidden p-2 rounded-lg hover:bg-slate-100 text-slate-500">
+                    <i data-lucide="menu" class="w-5 h-5" x-show="!mobileMenu"></i>
+                    <i data-lucide="x" class="w-5 h-5" x-show="mobileMenu" x-cloak></i>
+                </button>
             </div>
         </div>
 
@@ -221,14 +244,14 @@
 
                 @auth
                 <div class="border-t border-slate-100 pt-2 mt-2 pb-2">
-                    <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Admin</p>
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-primary">
-                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard Admin
+                    <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Akun ({{ auth()->user()->role_label ?? 'Admin' }})</p>
+                    <a href="{{ route('dashboard') }}" class="block px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">
+                        <div class="flex items-center gap-2"><i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard Admin</div>
                     </a>
                     <form method="POST" action="{{ route('logout') }}" class="block">
                         @csrf
-                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 text-left">
-                            <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+                        <button type="submit" class="w-full text-left block px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50">
+                            <div class="flex items-center gap-2"><i data-lucide="log-out" class="w-4 h-4"></i> Keluar</div>
                         </button>
                     </form>
                 </div>
