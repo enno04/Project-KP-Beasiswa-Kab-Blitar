@@ -151,16 +151,39 @@
                 {{-- Right Actions --}}
                 <div class="flex items-center gap-3">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="btn btn-sm btn-primary">
-                            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
-                        </a>
-                        <form method="POST" action="{{ route('logout') }}" class="inline">
-                            @csrf
-                            <button type="submit"
-                                class="btn btn-sm btn-outline text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300">
-                                Keluar
+                        {{-- Desktop Admin Menu --}}
+                        <div class="hidden lg:block relative" x-data="{ userOpen: false }">
+                            <button @click="userOpen = !userOpen" @click.away="userOpen = false" class="relative group outline-none">
+                                <div class="flex items-center justify-center w-10 h-10 rounded-full shadow-sm group-hover:shadow-md transition-all duration-200 border border-white ring-2 ring-slate-100 bg-gradient-to-br from-blue-400 to-blue-50">
+                                    <span class="font-extrabold text-sm text-white drop-shadow-sm group-hover:scale-110 transition-transform" style="text-shadow: 0 1px 2px rgba(0,0,0,0.25);">
+                                        {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
+                                    </span>
+                                </div>
+                                {{-- Badge Icon Dropdown --}}
+                                <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm text-slate-600 transition-transform duration-200"
+                                     :class="userOpen ? 'rotate-180' : ''">
+                                    <i data-lucide="chevron-down" class="w-3 h-3"></i>
+                                </div>
                             </button>
-                        </form>
+                            <div x-show="userOpen" x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 -translate-y-1"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100"
+                                x-transition:leave-end="opacity-0"
+                                class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-100 py-2 z-50">
+                                <a href="{{ route('dashboard') }}"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 hover:text-primary">
+                                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard Admin
+                                </a>
+                                <form method="POST" action="{{ route('logout') }}" class="block">
+                                    @csrf
+                                    <button type="submit"
+                                        class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 text-left">
+                                        <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
                     @endauth
 
                     <button @click="mobileMenu = !mobileMenu"
@@ -195,6 +218,21 @@
                     <a href="{{ route('cek.status') }}"
                         class="block px-4 py-2.5 rounded-lg text-sm font-medium {{ request()->routeIs('cek.status') ? 'bg-primary-light text-primary-dark' : 'text-slate-600 hover:bg-slate-50' }}">Cek Status & Cetak Bukti</a>
                 </div>
+
+                @auth
+                <div class="border-t border-slate-100 pt-2 mt-2 pb-2">
+                    <p class="px-4 text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Admin</p>
+                    <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 hover:text-primary">
+                        <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard Admin
+                    </a>
+                    <form method="POST" action="{{ route('logout') }}" class="block">
+                        @csrf
+                        <button type="submit" class="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 text-left">
+                            <i data-lucide="log-out" class="w-4 h-4"></i> Keluar
+                        </button>
+                    </form>
+                </div>
+                @endauth
 
             </div>
         </div>
