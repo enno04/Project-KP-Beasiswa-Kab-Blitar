@@ -52,13 +52,16 @@ class SuperAdminController extends Controller
      */
     public function monitoringPendaftaran(Request $request)
     {
-        $query = Pendaftaran::with(['program', 'desa', 'kecamatan', 'uploadDokumens.dokumen.opd'])->latest();
+        $query = Pendaftaran::with(['program', 'jalur', 'desa', 'kecamatan', 'identitas', 'uploadDokumens.dokumen.opd'])->latest();
 
         if ($request->filled('tahun')) {
             $query->where('tahun', $request->tahun);
         }
         if ($request->filled('program_id')) {
             $query->where('program_id', $request->program_id);
+        }
+        if ($request->filled('jalur_id')) {
+            $query->where('jalur_id', $request->jalur_id);
         }
         if ($request->filled('status')) {
             if ($request->status === 'menunggu_verifikasi') {
@@ -106,8 +109,9 @@ class SuperAdminController extends Controller
         $programs = Program::orderBy('urutan')->get();
         $tahunList = Periode::orderBy('tahun', 'desc')->pluck('tahun');
         $kecamatanList = Kecamatan::orderBy('nama_kecamatan')->get();
+        $jalurList = \App\Models\Jalur::orderBy('nama')->get();
 
-        return view('super-admin.monitoring.pendaftaran', compact('pendaftaran', 'programs', 'tahunList', 'kecamatanList'));
+        return view('super-admin.monitoring.pendaftaran', compact('pendaftaran', 'programs', 'tahunList', 'kecamatanList', 'jalurList'));
     }
 
     /**
