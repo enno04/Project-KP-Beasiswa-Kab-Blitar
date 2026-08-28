@@ -176,9 +176,7 @@
                         </div>
                         <button @click="userOpen = !userOpen" @click.away="userOpen = false" class="relative group outline-none">
                             <div class="flex items-center justify-center w-10 h-10 rounded-full shadow-sm group-hover:shadow-md transition-all duration-200 border border-white ring-2 ring-slate-100 bg-gradient-to-br from-blue-400 to-blue-50">
-                                <span class="font-extrabold text-sm text-white drop-shadow-sm group-hover:scale-110 transition-transform" style="text-shadow: 0 1px 2px rgba(0,0,0,0.25);">
-                                    {{ substr(auth()->user()->nama ?? auth()->user()->name ?? 'A', 0, 1) }}
-                                </span>
+                                <i data-lucide="user" class="w-5 h-5 text-white drop-shadow-sm group-hover:scale-110 transition-transform"></i>
                             </div>
                             {{-- Badge Icon Dropdown --}}
                             <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm text-slate-600 transition-transform duration-200"

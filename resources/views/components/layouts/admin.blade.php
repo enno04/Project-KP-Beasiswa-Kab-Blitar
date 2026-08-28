@@ -49,8 +49,8 @@
             <span class="badge badge-primary text-xs">{{ auth()->user()->role_label }}</span>
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold" style="background: linear-gradient(135deg, #2B5C92, #0C1446);">
-                        {{ strtoupper(substr(auth()->user()->nama, 0, 2)) }}
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white shadow-sm" style="background: linear-gradient(135deg, #2B5C92, #0C1446);">
+                        <i data-lucide="user" class="w-4 h-4"></i>
                     </div>
                     <span class="text-sm font-medium text-slate-700 hidden sm:inline">{{ auth()->user()->nama }}</span>
                     <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-400" :class="open ? 'rotate-180' : ''" style="transition: transform 200ms;"></i>
