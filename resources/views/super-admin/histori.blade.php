@@ -26,6 +26,23 @@
         </nav>
     </div>
 
+    @if($tab === 'baru')
+    {{-- Info Card Import Data Baru --}}
+    <div class="mb-6 p-4 rounded-xl border shadow-sm" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #bfdbfe;">
+        <div class="flex gap-3">
+            <div class="shrink-0 mt-0.5">
+                <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-blue-900 mb-1">Informasi Import Data Penetapan</h4>
+                <p class="text-sm text-blue-800 leading-relaxed">
+                    Untuk melakukan pemasukan data penerima beasiswa baru, gunakan <em>file</em> Excel hasil dari <strong>Export Data Sekaligus</strong> yang diunduh melalui halaman <strong>Riwayat Penetapan Beasiswa</strong> pada akun <strong>Admin Kabupaten</strong>. Sistem akan membaca format <em>file</em> tersebut secara otomatis.
+                </p>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- Modern Stat Card for Total History --}}
     <div class="mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex items-center justify-between relative overflow-hidden group">

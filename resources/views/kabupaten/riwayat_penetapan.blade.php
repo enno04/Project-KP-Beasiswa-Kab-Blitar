@@ -21,6 +21,21 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- Info Card Export --}}
+    <div class="mb-6 p-4 rounded-xl border shadow-sm" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #bfdbfe;">
+        <div class="flex gap-3">
+            <div class="shrink-0 mt-0.5">
+                <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+            </div>
+            <div>
+                <h4 class="text-sm font-bold text-blue-900 mb-1">Informasi Ekspor Data Sekaligus</h4>
+                <p class="text-sm text-blue-800 leading-relaxed">
+                    Gunakan tombol <strong>Export ke Excel</strong> di pojok kanan atas untuk mengunduh seluruh data riwayat penetapan sekaligus. Data hasil unduhan ini nantinya sangat berguna untuk melakukan <strong>import (Pemasukan Data) pada halaman Superadmin</strong> di bagian fitur "Histori Penerima -> Data Baru".
+                </p>
+            </div>
+        </div>
+    </div>
+
     {{-- Filter Form --}}
     <div class="card mb-6">
         <div class="card-body">

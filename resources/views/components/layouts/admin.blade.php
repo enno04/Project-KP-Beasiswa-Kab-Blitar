@@ -41,6 +41,11 @@
             </a>
         </div>
         <div class="flex items-center gap-3">
+            @if(in_array(auth()->user()->getRoleKode(), ['admin_desa', 'admin_kecamatan', 'admin_dpmd', 'admin_opd', 'admin_kabupaten']))
+                <button type="button" @click="$dispatch('open-faq')" class="flex items-center gap-1.5 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-orange-950 px-3 py-1.5 rounded-lg shadow-sm shadow-orange-500/20 transition-all text-xs font-bold border border-orange-300/50 transform hover:-translate-y-0.5">
+                    <i data-lucide="book-open-check" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Panduan</span>
+                </button>
+            @endif
             <span class="badge badge-primary text-xs">{{ auth()->user()->role_label }}</span>
             <div x-data="{ open: false }" class="relative">
                 <button @click="open = !open" class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-slate-50 transition-colors">
@@ -92,7 +97,21 @@
             </button>
         </div>
 
-        <nav class="p-4 space-y-1 flex-1 overflow-y-auto">
+        {{-- Wrapper for Nav + Scroll Indicator --}}
+        <div class="flex-1 relative overflow-hidden flex flex-col" x-data="{ 
+            canScroll: false,
+            checkScroll() {
+                if(!this.$refs.nav) return;
+                const nav = this.$refs.nav;
+                const maxScroll = nav.scrollHeight - nav.clientHeight;
+                this.canScroll = maxScroll > 0 && (nav.scrollHeight - nav.scrollTop - nav.clientHeight) > 30;
+            }
+        }" x-init="
+            checkScroll();
+            window.addEventListener('resize', () => checkScroll());
+            setTimeout(() => checkScroll(), 300);
+        ">
+            <nav x-ref="nav" @scroll.passive="checkScroll()" class="p-4 pb-12 space-y-1 flex-1 overflow-y-auto overscroll-contain custom-scrollbar">
             @php $roleKode = auth()->user()->getRoleKode(); @endphp
 
             {{-- Dashboard --}}
@@ -250,6 +269,16 @@
                 </a>
             @endif
         </nav>
+
+            {{-- Scroll Indicator Overlay --}}
+            <div x-cloak x-show="canScroll" 
+                 x-transition.opacity.duration.300ms
+                 class="absolute bottom-2 left-0 right-0 pointer-events-none flex justify-center z-10">
+                 <div class="bg-white/90 backdrop-blur-sm border border-slate-200 text-slate-500 rounded-full p-1.5 shadow-md animate-bounce">
+                     <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                 </div>
+            </div>
+        </div>
   
         {{-- Sidebar Footer --}}
         <div class="p-4 border-t border-slate-100 mt-auto shrink-0 space-y-3">
@@ -427,6 +456,629 @@
             }));
         });
     </script>
+
+    @if(auth()->check() && auth()->user()->getRoleKode() === 'admin_desa')
+    {{-- Alpine FAQ Component for Admin Desa --}}
+    <div x-data="{ showFaq: false, showIntro: false }" 
+         x-init="
+            let currentSession = '{{ session()->getId() }}';
+            if(localStorage.getItem('desa_intro_session') !== currentSession) { 
+                setTimeout(() => showIntro = true, 500); 
+            }
+         "
+         @open-faq.window="showFaq = true">
+         
+         {{-- Intro Modal --}}
+         <div x-show="showIntro" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-transition.opacity>
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all" @click.away="showIntro = false; localStorage.setItem('desa_intro_session', '{{ session()->getId() }}')">
+                <div class="p-6 text-center">
+                    <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="info" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Selamat Datang di Dashboard Desa!</h3>
+                    <p class="text-slate-600 mb-6 leading-relaxed">
+                        Jika Anda belum mengetahui alur kerja atau tugas sebagai Admin Desa, silakan klik tombol <strong><i data-lucide="book-open-check" class="w-4 h-4 inline-block -mt-1 text-orange-600"></i> Panduan</strong> di bagian bilah menu (header) paling atas.
+                    </p>
+                    <button type="button" @click="showIntro = false; localStorage.setItem('desa_intro_session', '{{ session()->getId() }}')" class="btn btn-primary w-full py-2.5 font-bold text-base shadow-lg shadow-primary/30">
+                        Mengerti
+                    </button>
+                </div>
+            </div>
+         </div>
+
+         {{-- FAQ Modal --}}
+         <div x-show="showFaq" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-transition.opacity>
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all" @click.away="showFaq = false">
+                <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="help-circle" class="w-5 h-5 text-emerald-600"></i> Panduan Penggunaan Admin Desa
+                    </h3>
+                    <button @click="showFaq = false" class="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto custom-scrollbar">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {{-- Kolom Kiri: Alur Utama --}}
+                        <div class="lg:col-span-2 space-y-6">
+                            <h4 class="font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                                <span class="text-xl">🚀</span> Alur Kerja Utama Admin Desa
+                            </h4>
+                            
+                            <div class="relative border-l-2 border-emerald-100 ml-3 space-y-8 pb-4">
+                                {{-- Step 1 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-emerald-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="download" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">1. Menerima Data & Menunggu Pendaftaran Tutup</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Anda akan menerima data pendaftar yang status dokumennya sudah diverifikasi oleh OPD. Pada tahap awal ini, Anda hanya perlu <strong>menunggu hingga masa pendaftaran program SDSS ini resmi ditutup</strong>.</p>
+                                </div>
+                                
+                                {{-- Step 2 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-amber-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="edit-3" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">2. Melakukan Penilaian (Tombol Nilai Muncul)</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Setelah masa pendaftaran ditutup, barulah <strong>tombol Nilai akan muncul</strong> di dashboard Anda. Silakan klik tombol tersebut untuk langsung melakukan penilaian kriteria pada masing-masing pendaftar.</p>
+                                </div>
+
+                                {{-- Step 3 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-blue-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="bar-chart-2" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">3. Mencari Kandidat Peringkat Satu</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Sistem akan memproses seluruh nilai secara otomatis untuk mencari dan menentukan siapa kandidat penerima beasiswa yang berhak menduduki <strong>Peringkat 1 (Satu)</strong> dari desa Anda.</p>
+                                </div>
+
+                                {{-- Step 4 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-purple-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="send" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">4. Ekspor Data & Unggah Rekomendasi</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Terakhir, silakan <strong>Ekspor Data Excel</strong> si penerima beasiswa tersebut, lalu unggah <strong>Surat Rekomendasi Kepala Desa & Berita Acara</strong> ke dalam sistem agar otomatis terkirim ke Kecamatan dan DPMD.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{-- Kolom Kanan: Fitur & Tips --}}
+                        <div class="space-y-4">
+                            <h4 class="font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2 mb-2 lg:mt-0 mt-6">
+                                <span class="text-xl">💡</span> Fitur Tambahan
+                            </h4>
+
+                            <div class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
+                                <h5 class="font-bold text-indigo-900 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-indigo-600"></i> Pantau Dashboard
+                                </h5>
+                                <p class="text-xs text-indigo-800 leading-relaxed">Gunakan halaman awal (Dashboard) untuk memantau ringkasan statistik warga yang sedang diproses. Terdapat juga kolom pencarian cepat (Search) untuk menemukan nama pendaftar tertentu.</p>
+                            </div>
+
+                            <div class="bg-amber-50/70 p-4 rounded-xl border border-amber-100">
+                                <h5 class="font-bold text-amber-900 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-amber-600"></i> Ekspor Data (Excel)
+                                </h5>
+                                <p class="text-xs text-amber-800 leading-relaxed">Buka menu Data Pendaftar, klik tombol <strong>Export Data</strong> di pojok kanan atas. Sistem akan mengunduh seluruh rekap warga Anda ke format Excel untuk keperluan arsip cetak desa.</p>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h5 class="font-bold text-slate-700 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="monitor" class="w-4 h-4 text-slate-500"></i> Tip Perangkat
+                                </h5>
+                                <p class="text-xs text-slate-600 leading-relaxed">Sangat disarankan mengelola pendaftaran menggunakan <strong>Komputer/Laptop</strong>. Layar yang lebih besar memudahkan pengecekan berkas dan pengisian nilai, sehingga meminimalisir risiko salah klik.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+                    <button @click="showFaq = false" class="btn btn-outline bg-white font-medium shadow-sm">Tutup Panduan</button>
+                </div>
+            </div>
+         </div>
+    </div>
+    @elseif(auth()->check() && auth()->user()->getRoleKode() === 'admin_kecamatan')
+    {{-- Alpine FAQ Component for Admin Kecamatan --}}
+    <div x-data="{ showFaq: false, showIntro: false }" 
+         x-init="
+            let currentSession = '{{ session()->getId() }}';
+            if(localStorage.getItem('kecamatan_intro_session') !== currentSession) { 
+                setTimeout(() => showIntro = true, 500); 
+            }
+         "
+         @open-faq.window="showFaq = true">
+         
+         {{-- Intro Modal --}}
+         <div x-show="showIntro" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-transition.opacity>
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all" @click.away="showIntro = false; localStorage.setItem('kecamatan_intro_session', '{{ session()->getId() }}')">
+                <div class="p-6 text-center">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="info" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Selamat Datang di Dashboard Kecamatan!</h3>
+                    <p class="text-slate-600 mb-6 leading-relaxed">
+                        Jika Anda belum mengetahui alur kerja atau tugas sebagai Admin Kecamatan, silakan klik tombol <strong><i data-lucide="book-open-check" class="w-4 h-4 inline-block -mt-1 text-orange-600"></i> Panduan</strong> di bagian bilah menu (header) paling atas.
+                    </p>
+                    <button type="button" @click="showIntro = false; localStorage.setItem('kecamatan_intro_session', '{{ session()->getId() }}')" class="btn btn-primary w-full py-2.5 font-bold text-base shadow-lg shadow-primary/30">
+                        Mengerti
+                    </button>
+                </div>
+            </div>
+         </div>
+
+         {{-- FAQ Modal --}}
+         <div x-show="showFaq" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-transition.opacity>
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all" @click.away="showFaq = false">
+                <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="help-circle" class="w-5 h-5 text-blue-600"></i> Panduan Penggunaan Admin Kecamatan
+                    </h3>
+                    <button @click="showFaq = false" class="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto custom-scrollbar">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {{-- Kolom Kiri: Alur Utama --}}
+                        <div class="lg:col-span-2 space-y-6">
+                            <h4 class="font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                                <span class="text-xl">🚀</span> Alur Kerja Utama Admin Kecamatan
+                            </h4>
+                            
+                            <div class="relative border-l-2 border-blue-100 ml-3 space-y-8 pb-4">
+                                {{-- Step 1 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-emerald-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="inbox" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">1. Memantau & Menerima Usulan Desa</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Setelah pendaftar ditetapkan sebagai Peringkat 1 oleh Desa dan berkasnya diunggah, data tersebut akan otomatis masuk ke Admin Kecamatan. Buka menu <strong>Data Pendaftar</strong> untuk melihat seluruh usulan dari desa-desa di wilayah Anda.</p>
+                                </div>
+                                
+                                {{-- Step 2 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-amber-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="search" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">2. Mengecek Detail Pendaftar</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Klik tombol <strong>Detail</strong> pada tabel pendaftar. Anda bertugas untuk melihat ringkasan biodata kandidat dan meninjau dokumen yang telah diunggah oleh pihak desa (seperti Surat Rekomendasi dan Berita Acara).</p>
+                                </div>
+
+                                {{-- Step 3 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-blue-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="send" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">3. Meneruskan ke Kabupaten</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Kecamatan <strong>tidak memiliki kewenangan untuk menolak</strong>. Tugas Anda hanyalah memastikan data bisa dilihat, lalu klik tombol <strong>Setujui / Teruskan</strong> agar berkas usulan pendaftar tersebut secara sistem terkirim ke tingkat Kabupaten.</p>
+                                </div>
+
+                                {{-- Step 4 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-purple-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="arrow-right-left" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">4. Persetujuan Paralel Bersama DPMD</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Penerusan berkas dari Kecamatan berjalan paralel/bersamaan dengan pihak DPMD. Data usulan hanya akan masuk secara utuh ke Kabupaten apabila telah diteruskan oleh <em>Kecamatan DAN DPMD</em> sekaligus.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{-- Kolom Kanan: Fitur & Tips --}}
+                        <div class="space-y-4">
+                            <h4 class="font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2 mb-2 lg:mt-0 mt-6">
+                                <span class="text-xl">💡</span> Fitur Tambahan
+                            </h4>
+
+                            <div class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
+                                <h5 class="font-bold text-indigo-900 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-indigo-600"></i> Pantau Status Desa
+                                </h5>
+                                <p class="text-xs text-indigo-800 leading-relaxed">Melalui halaman Dashboard, Anda bisa melihat desa mana saja di wilayah Anda yang sudah mengusulkan kandidat, dan desa mana yang belum menyelesaikan penilaian/rekomendasi.</p>
+                            </div>
+
+                            <div class="bg-amber-50/70 p-4 rounded-xl border border-amber-100">
+                                <h5 class="font-bold text-amber-900 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-amber-600"></i> Ekspor Data (Excel)
+                                </h5>
+                                <p class="text-xs text-amber-800 leading-relaxed">Anda bisa mengunduh rekap pendaftar dalam format Excel untuk pelaporan camat melalui menu Export Data. Tersedia juga opsi export berdasarkan status persetujuannya.</p>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h5 class="font-bold text-slate-700 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="monitor" class="w-4 h-4 text-slate-500"></i> Tip Perangkat
+                                </h5>
+                                <p class="text-xs text-slate-600 leading-relaxed">Sangat disarankan mengelola persetujuan menggunakan <strong>Komputer/Laptop</strong>. Layar yang lebih besar memudahkan pengecekan berkas surat dan meminimalisir risiko salah klik saat memberikan keputusan.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+                    <button @click="showFaq = false" class="btn btn-outline bg-white font-medium shadow-sm">Tutup Panduan</button>
+                </div>
+            </div>
+         </div>
+    </div>
+    @elseif(auth()->check() && auth()->user()->getRoleKode() === 'admin_dpmd')
+    {{-- Alpine FAQ Component for Admin DPMD --}}
+    <div x-data="{ showFaq: false, showIntro: false }" 
+         x-init="
+            let currentSession = '{{ session()->getId() }}';
+            if(localStorage.getItem('dpmd_intro_session') !== currentSession) { 
+                setTimeout(() => showIntro = true, 500); 
+            }
+         "
+         @open-faq.window="showFaq = true">
+         
+         {{-- Intro Modal --}}
+         <div x-show="showIntro" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-transition.opacity>
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all" @click.away="showIntro = false; localStorage.setItem('dpmd_intro_session', '{{ session()->getId() }}')">
+                <div class="p-6 text-center">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="info" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Selamat Datang di Dashboard DPMD!</h3>
+                    <p class="text-slate-600 mb-6 leading-relaxed">
+                        Jika Anda belum mengetahui alur kerja atau tugas sebagai Admin DPMD, silakan klik tombol <strong><i data-lucide="book-open-check" class="w-4 h-4 inline-block -mt-1 text-orange-600"></i> Panduan</strong> di bagian bilah menu (header) paling atas.
+                    </p>
+                    <button type="button" @click="showIntro = false; localStorage.setItem('dpmd_intro_session', '{{ session()->getId() }}')" class="btn btn-primary w-full py-2.5 font-bold text-base shadow-lg shadow-primary/30">
+                        Mengerti
+                    </button>
+                </div>
+            </div>
+         </div>
+
+         {{-- FAQ Modal --}}
+         <div x-show="showFaq" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-transition.opacity>
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all" @click.away="showFaq = false">
+                <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="help-circle" class="w-5 h-5 text-blue-600"></i> Panduan Penggunaan Admin DPMD
+                    </h3>
+                    <button @click="showFaq = false" class="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto custom-scrollbar">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {{-- Kolom Kiri: Alur Utama --}}
+                        <div class="lg:col-span-2 space-y-6">
+                            <h4 class="font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                                <span class="text-xl">🚀</span> Alur Kerja Utama Admin DPMD
+                            </h4>
+                            
+                            <div class="relative border-l-2 border-blue-100 ml-3 space-y-8 pb-4">
+                                {{-- Step 1 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-emerald-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="inbox" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">1. Memantau & Menerima Usulan Desa</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Setelah pendaftar ditetapkan sebagai Peringkat 1 oleh Desa dan berkasnya diunggah, data tersebut akan otomatis masuk ke Admin DPMD. Buka menu <strong>Data Pendaftar</strong> untuk melihat seluruh usulan dari desa-desa di seluruh kabupaten.</p>
+                                </div>
+                                
+                                {{-- Step 2 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-amber-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="search" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">2. Mengecek Detail Pendaftar</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Klik tombol <strong>Detail</strong> pada tabel pendaftar. Anda bertugas untuk melihat ringkasan biodata kandidat dan meninjau dokumen yang telah diunggah oleh pihak desa (seperti Surat Rekomendasi dan Berita Acara).</p>
+                                </div>
+
+                                {{-- Step 3 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-blue-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="send" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">3. Meneruskan ke Kabupaten</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">DPMD <strong>tidak memiliki kewenangan untuk menolak</strong>. Tugas Anda hanyalah memastikan data bisa dilihat, lalu klik tombol <strong>Setujui / Teruskan</strong> agar berkas usulan pendaftar tersebut secara sistem terkirim ke tingkat Kabupaten.</p>
+                                </div>
+
+                                {{-- Step 4 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-purple-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="arrow-right-left" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">4. Persetujuan Paralel Bersama Kecamatan</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Penerusan berkas dari DPMD berjalan paralel/bersamaan dengan pihak Kecamatan. Data usulan hanya akan masuk secara utuh ke Kabupaten apabila telah diteruskan oleh <em>Kecamatan DAN DPMD</em> sekaligus.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{-- Kolom Kanan: Fitur & Tips --}}
+                        <div class="space-y-4">
+                            <h4 class="font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2 mb-2 lg:mt-0 mt-6">
+                                <span class="text-xl">💡</span> Fitur Tambahan
+                            </h4>
+
+                            <div class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
+                                <h5 class="font-bold text-indigo-900 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-indigo-600"></i> Pantau Status Desa
+                                </h5>
+                                <p class="text-xs text-indigo-800 leading-relaxed">Melalui halaman Dashboard, Anda bisa melihat desa mana saja yang sudah mengusulkan kandidat, dan desa mana yang belum menyelesaikan penilaian/rekomendasi.</p>
+                            </div>
+
+                            <div class="bg-amber-50/70 p-4 rounded-xl border border-amber-100">
+                                <h5 class="font-bold text-amber-900 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="file-spreadsheet" class="w-4 h-4 text-amber-600"></i> Ekspor Data (Excel)
+                                </h5>
+                                <p class="text-xs text-amber-800 leading-relaxed">Anda bisa mengunduh rekap pendaftar dalam format Excel untuk keperluan pelaporan melalui menu Export Data. Tersedia juga opsi export berdasarkan status persetujuannya.</p>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h5 class="font-bold text-slate-700 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="monitor" class="w-4 h-4 text-slate-500"></i> Tip Perangkat
+                                </h5>
+                                <p class="text-xs text-slate-600 leading-relaxed">Sangat disarankan mengelola persetujuan menggunakan <strong>Komputer/Laptop</strong>. Layar yang lebih besar memudahkan pengecekan berkas surat dan meminimalisir risiko salah klik saat memberikan keputusan.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+                    <button @click="showFaq = false" class="btn btn-outline bg-white font-medium shadow-sm">Tutup Panduan</button>
+                </div>
+            </div>
+         </div>
+    </div>
+    @elseif(auth()->check() && auth()->user()->getRoleKode() === 'admin_opd')
+    {{-- Alpine FAQ Component for Admin OPD --}}
+    <div x-data="{ showFaq: false, showIntro: false }" 
+         x-init="
+            let currentSession = '{{ session()->getId() }}';
+            if(localStorage.getItem('opd_intro_session') !== currentSession) { 
+                setTimeout(() => showIntro = true, 500); 
+            }
+         "
+         @open-faq.window="showFaq = true">
+         
+         {{-- Intro Modal --}}
+         <div x-show="showIntro" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-transition.opacity>
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all" @click.away="showIntro = false; localStorage.setItem('opd_intro_session', '{{ session()->getId() }}')">
+                <div class="p-6 text-center">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="info" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Selamat Datang di Dashboard Admin OPD!</h3>
+                    <p class="text-slate-600 mb-6 leading-relaxed">
+                        Jika Anda belum mengetahui alur kerja atau tugas sebagai Admin OPD, silakan klik tombol <strong><i data-lucide="book-open-check" class="w-4 h-4 inline-block -mt-1 text-orange-600"></i> Panduan</strong> di bagian bilah menu (header) paling atas.
+                    </p>
+                    <button type="button" @click="showIntro = false; localStorage.setItem('opd_intro_session', '{{ session()->getId() }}')" class="btn btn-primary w-full py-2.5 font-bold text-base shadow-lg shadow-primary/30">
+                        Mengerti
+                    </button>
+                </div>
+            </div>
+         </div>
+
+         {{-- FAQ Modal --}}
+         <div x-show="showFaq" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-transition.opacity>
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all" @click.away="showFaq = false">
+                <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="help-circle" class="w-5 h-5 text-blue-600"></i> Panduan Penggunaan Admin OPD
+                    </h3>
+                    <button @click="showFaq = false" class="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto custom-scrollbar">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {{-- Kolom Kiri: Alur Utama --}}
+                        <div class="lg:col-span-2 space-y-6">
+                            <h4 class="font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                                <span class="text-xl">🚀</span> Alur Kerja Utama Admin OPD
+                            </h4>
+                            
+                            <div class="relative border-l-2 border-blue-100 ml-3 space-y-8 pb-4">
+                                {{-- Step 1 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-emerald-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="inbox" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">1. Menerima Berkas Masuk</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Pendaftar yang telah menyelesaikan pendaftaran akan otomatis masuk ke sistem. Buka menu <strong>Verifikasi Dokumen</strong> untuk melihat daftar pendaftar yang dokumennya perlu Anda periksa (sistem hanya menampilkan dokumen yang menjadi kewenangan instansi Anda).</p>
+                                </div>
+                                
+                                {{-- Step 2 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-amber-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="search" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">2. Melihat Detail Berkas</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Klik tombol <strong>Detail</strong> pada baris pendaftar untuk melihat pratinjau dokumen. Anda bertugas mengecek dan memastikan keabsahan dokumen sesuai persyaratan.</p>
+                                </div>
+
+                                {{-- Step 3 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-blue-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="check-circle" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">3. Memberikan Keputusan Verifikasi</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Setelah melihat berkas, <em>scroll</em> ke bawah untuk memberikan keputusan. Pilih status <strong>Valid</strong> jika sesuai, atau <strong>Tidak Valid</strong> beserta <strong>Catatan</strong> jika terdapat kekurangan/kesalahan.</p>
+                                </div>
+
+                                {{-- Step 4 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-purple-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="save" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">4. Menyimpan Keputusan & Otomatisasi</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Klik tombol <strong>Simpan</strong>. Proses verifikasi antar OPD berjalan secara paralel. Pendaftar secara keseluruhan hanya akan dinyatakan "Lolos Verifikasi" oleh sistem apabila <em>seluruh</em> dokumen syarat wajib dari <em>berbagai</em> OPD telah dinyatakan Valid.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{-- Kolom Kanan: Fitur & Tips --}}
+                        <div class="space-y-4">
+                            <h4 class="font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2 mb-2 lg:mt-0 mt-6">
+                                <span class="text-xl">💡</span> Fitur Tambahan
+                            </h4>
+
+                            <div class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
+                                <h5 class="font-bold text-indigo-900 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-indigo-600"></i> Pantau Statistik
+                                </h5>
+                                <p class="text-xs text-indigo-800 leading-relaxed">Melalui halaman Dashboard, Anda bisa melihat jumlah berkas yang masuk, serta jumlah berkas yang belum dan sudah Anda verifikasi (Valid / Tidak Valid).</p>
+                            </div>
+
+                            <div class="bg-amber-50/70 p-4 rounded-xl border border-amber-100">
+                                <h5 class="font-bold text-amber-900 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="history" class="w-4 h-4 text-amber-600"></i> Riwayat Verifikasi
+                                </h5>
+                                <p class="text-xs text-amber-800 leading-relaxed">Anda dapat melihat kembali seluruh riwayat verifikasi yang pernah dilakukan oleh instansi Anda pada masa lalu melalui menu khusus Riwayat Verifikasi.</p>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h5 class="font-bold text-slate-700 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="monitor" class="w-4 h-4 text-slate-500"></i> Tip Perangkat
+                                </h5>
+                                <p class="text-xs text-slate-600 leading-relaxed">Sangat disarankan melakukan verifikasi dokumen menggunakan <strong>Komputer/Laptop</strong>. Layar yang lebih besar memudahkan Anda membaca teks kecil pada pratinjau dokumen (pdf/gambar) pendaftar.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+                    <button @click="showFaq = false" class="btn btn-outline bg-white font-medium shadow-sm">Tutup Panduan</button>
+                </div>
+            </div>
+         </div>
+    </div>
+    @elseif(auth()->check() && auth()->user()->getRoleKode() === 'admin_kabupaten')
+    {{-- Alpine FAQ Component for Admin Kabupaten --}}
+    <div x-data="{ showFaq: false, showIntro: false }" 
+         x-init="
+            let currentSession = '{{ session()->getId() }}';
+            if(localStorage.getItem('kab_intro_session') !== currentSession) { 
+                setTimeout(() => showIntro = true, 500); 
+            }
+         "
+         @open-faq.window="showFaq = true">
+         
+         {{-- Intro Modal --}}
+         <div x-show="showIntro" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-transition.opacity>
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden transform transition-all" @click.away="showIntro = false; localStorage.setItem('kab_intro_session', '{{ session()->getId() }}')">
+                <div class="p-6 text-center">
+                    <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="info" class="w-8 h-8"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 mb-2">Selamat Datang di Dashboard Admin Kabupaten!</h3>
+                    <p class="text-slate-600 mb-6 leading-relaxed">
+                        Jika Anda belum mengetahui alur kerja atau tugas sebagai Admin Kabupaten, silakan klik tombol <strong><i data-lucide="book-open-check" class="w-4 h-4 inline-block -mt-1 text-orange-600"></i> Panduan</strong> di bagian bilah menu (header) paling atas.
+                    </p>
+                    <button type="button" @click="showIntro = false; localStorage.setItem('kab_intro_session', '{{ session()->getId() }}')" class="btn btn-primary w-full py-2.5 font-bold text-base shadow-lg shadow-primary/30">
+                        Mengerti
+                    </button>
+                </div>
+            </div>
+         </div>
+
+         {{-- FAQ Modal --}}
+         <div x-show="showFaq" style="display: none;" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4" x-transition.opacity>
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden transform transition-all" @click.away="showFaq = false">
+                <div class="flex justify-between items-center px-6 py-4 border-b border-slate-100 bg-slate-50/50">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="help-circle" class="w-5 h-5 text-blue-600"></i> Panduan Penggunaan Admin Kabupaten
+                    </h3>
+                    <button @click="showFaq = false" class="text-slate-400 hover:text-slate-600 bg-slate-100 hover:bg-slate-200 p-1.5 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                
+                <div class="p-6 overflow-y-auto custom-scrollbar">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {{-- Kolom Kiri: Alur Utama --}}
+                        <div class="lg:col-span-2 space-y-6">
+                            <h4 class="font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2">
+                                <span class="text-xl">🚀</span> Alur Kerja Utama Admin Kabupaten
+                            </h4>
+                            
+                            <div class="relative border-l-2 border-blue-100 ml-3 space-y-8 pb-4">
+                                {{-- Step 1 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-emerald-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="inbox" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">1. Memantau & Menerima Usulan</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Admin Kabupaten bertugas memantau seluruh proses pendaftaran beasiswa dari tingkat OPD, Desa, Kecamatan, hingga DPMD. Usulan akhir yang telah disetujui secara berjenjang akan masuk dan siap untuk Anda proses lebih lanjut.</p>
+                                </div>
+                                
+                                {{-- Step 2 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-amber-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="search" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">2. Mengecek Detail & Validasi Akhir</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Klik tombol <strong>Detail</strong> pada tabel pendaftar untuk melihat kelengkapan biodata, nilai dari instansi terkait, serta dokumen rekomendasi sebelum melakukan penetapan.</p>
+                                </div>
+
+                                {{-- Step 3 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-blue-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="check-circle" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">3. Menetapkan Status Penerima Beasiswa</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Tahap ini merupakan finalisasi dari proses seleksi. Anda berhak <strong>Menetapkan Penerima</strong> untuk kandidat yang lolos seleksi dan memenuhi kuota dari Pemerintah Kabupaten Blitar.</p>
+                                </div>
+
+                                {{-- Step 4 --}}
+                                <div class="relative pl-8">
+                                    <div class="absolute -left-[11px] top-0 w-5 h-5 rounded-full bg-purple-500 ring-4 ring-white flex items-center justify-center">
+                                        <i data-lucide="file-spreadsheet" class="w-3 h-3 text-white"></i>
+                                    </div>
+                                    <h5 class="font-bold text-slate-800 text-sm">4. Rekap Data & Pelaporan</h5>
+                                    <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">Untuk mengekspor data, Anda dapat memilih spesifik program beasiswa yang diinginkan pada menu <strong>Setiap Program Beasiswa</strong>. Jika Anda ingin mengekspor seluruh data sekaligus, Anda dapat masuk ke menu <strong>Riwayat Penetapan</strong> dan klik ekspor ke Excel.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {{-- Kolom Kanan: Fitur & Tips --}}
+                        <div class="space-y-4">
+                            <h4 class="font-extrabold text-slate-800 border-b border-slate-100 pb-3 flex items-center gap-2 mb-2 lg:mt-0 mt-6">
+                                <span class="text-xl">💡</span> Fitur Tambahan
+                            </h4>
+
+                            <div class="bg-indigo-50/70 p-4 rounded-xl border border-indigo-100">
+                                <h5 class="font-bold text-indigo-900 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="layout-dashboard" class="w-4 h-4 text-indigo-600"></i> Manajemen Program
+                                </h5>
+                                <p class="text-xs text-indigo-800 leading-relaxed">Setiap program beasiswa dipisahkan agar Anda lebih mudah melacak progres dari masing-masing program. Silakan akses detail pendaftar di dalam menu spesifik program tersebut.</p>
+                            </div>
+
+                            <div class="bg-amber-50/70 p-4 rounded-xl border border-amber-100">
+                                <h5 class="font-bold text-amber-900 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="history" class="w-4 h-4 text-amber-600"></i> Riwayat Penetapan
+                                </h5>
+                                <p class="text-xs text-amber-800 leading-relaxed">Semua riwayat terkait penetapan yang pernah dilakukan akan terekam secara otomatis. Buka menu Riwayat Penetapan untuk melacak log perubahan yang terjadi.</p>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <h5 class="font-bold text-slate-700 mb-1.5 flex items-center gap-2">
+                                    <i data-lucide="monitor" class="w-4 h-4 text-slate-500"></i> Tip Perangkat
+                                </h5>
+                                <p class="text-xs text-slate-600 leading-relaxed">Sangat disarankan melakukan penetapan dan validasi data menggunakan <strong>Komputer/Laptop</strong> karena cakupan data yang harus ditinjau sangat banyak dan detail.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="px-6 py-4 border-t border-slate-100 bg-slate-50 flex justify-end">
+                    <button @click="showFaq = false" class="btn btn-outline bg-white font-medium shadow-sm">Tutup Panduan</button>
+                </div>
+            </div>
+         </div>
+    </div>
+    @endif
+
     @stack('scripts')
 </body>
 </html>

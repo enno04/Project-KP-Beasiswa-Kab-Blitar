@@ -1,8 +1,36 @@
 <x-layouts.admin :title="'Data Pendaftar — ' . $program->nama">
     <x-page-header :title="'Data Pendaftar: ' . $program->nama" :subtitle="$jalur ? 'Jalur: ' . $jalur->nama : null">
         <x-slot:actions>
-            <div class="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-primary text-white shadow-lg shadow-primary/30 transform transition-transform hover:-translate-y-0.5">
-                <div class="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+            <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                <button type="button" @click="open = !open" class="btn bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm flex items-center h-[54px] rounded-xl px-5 font-semibold transition-all duration-200" title="Export Excel">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-2"></i> Export Data <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+                </button>
+                <div x-show="open" x-transition style="display: none;" class="absolute left-0 sm:right-0 sm:left-auto top-full mt-2 w-64 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                    <a href="{{ route('desa.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'lolos_saja']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="check-circle" class="w-4 h-4 mr-2.5 shrink-0 text-emerald-600 mt-0.5"></i>
+                        <span>Hanya Yang Lolos</span>
+                    </a>
+                    <a href="{{ route('desa.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'tidak_lolos']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-rose-50 hover:text-rose-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="x-circle" class="w-4 h-4 mr-2.5 shrink-0 text-rose-500 mt-0.5"></i>
+                        <span>Tidak Dipilih Desa</span>
+                    </a>
+                    <a href="{{ route('desa.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'sudah_dinilai']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="clipboard-check" class="w-4 h-4 mr-2.5 shrink-0 text-blue-500 mt-0.5"></i>
+                        <span>Sudah Dinilai</span>
+                    </a>
+                    <a href="{{ route('desa.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'belum_dinilai']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="clipboard-x" class="w-4 h-4 mr-2.5 shrink-0 text-amber-500 mt-0.5"></i>
+                        <span>Belum Dinilai</span>
+                    </a>
+                    <a href="{{ route('desa.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->query()) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                        <i data-lucide="users" class="w-4 h-4 mr-2.5 shrink-0 text-indigo-500 mt-0.5"></i>
+                        <span>Semua Pendaftar (Sesuai Filter Data)</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-primary text-white shadow-lg shadow-primary/30 transform transition-transform hover:-translate-y-0.5 h-[54px]">
+                <div class="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center backdrop-blur-sm">
                     <i data-lucide="database" class="w-4 h-4 text-white"></i>
                 </div>
                 <div class="flex flex-col text-left">
@@ -16,8 +44,8 @@
     {{-- Filter --}}
     <div class="card mb-6">
         <div class="card-body py-4">
-            <form method="GET" class="flex flex-col sm:flex-row gap-3 items-end">
-                <div class="w-full sm:w-64">
+            <form method="GET" class="flex flex-col sm:flex-row flex-wrap gap-3 items-end">
+                <div class="flex-1 w-full min-w-[200px]">
                     <label class="form-label">Cari Pendaftar</label>
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
@@ -127,6 +155,33 @@
                 }
             });
         }
+
+        function konfirmasiTetapkan(e, formId, namaPendaftar) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Tetapkan Perwakilan?',
+                html: 'Anda akan menetapkan <b>' + namaPendaftar + '</b> sebagai perwakilan desa.<br><br><span class="text-rose-500 text-sm">⚠️ Perhatian: Pendaftar lain dari desa ini akan otomatis digugurkan dan aksi ini tidak dapat dibatalkan.</span>',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981', // emerald-500
+                cancelButtonColor: '#64748b', // slate-500
+                confirmButtonText: 'Ya, Tetapkan!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Memproses...',
+                        text: 'Menyimpan data penetapan.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+                    document.getElementById(formId).submit();
+                }
+            });
+        }
     </script>
     @endpush
 
@@ -170,9 +225,9 @@
                                 <div class="flex justify-end gap-2">
                                     @if($program->isSdss() && $p->ranking === 1 && $p->status === 'lolos_verifikasi' && $p->total_nilai > 0)
                                         @if(!$p->rekomendasiDesa)
-                                            <form action="{{ route('desa.tetapkan', $p->id) }}" method="POST" class="inline" onsubmit="return confirm('Tetapkan sebagai perwakilan Desa?');">
+                                            <form id="form-tetapkan-{{ $p->id }}" action="{{ route('desa.tetapkan', $p->id) }}" method="POST" class="inline">
                                                 @csrf
-                                                <button type="submit" class="btn btn-xs btn-success"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Tetapkan</button>
+                                                <button type="button" onclick="konfirmasiTetapkan(event, 'form-tetapkan-{{ $p->id }}', '{{ addslashes($p->identitas->nama_lengkap ?? 'Pendaftar') }}')" class="btn btn-xs btn-success"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i> Tetapkan</button>
                                             </form>
                                             <a href="{{ route('desa.show', $p->id) }}" class="btn btn-xs btn-outline"><i data-lucide="eye" class="w-3.5 h-3.5"></i> Detail</a>
                                         @else

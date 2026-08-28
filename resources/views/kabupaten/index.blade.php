@@ -1,6 +1,30 @@
 <x-layouts.admin :title="'Data Pendaftar — ' . $program->nama">
     <x-page-header :title="'Data Pendaftar: ' . $program->nama" :subtitle="$jalur ? 'Jalur: ' . $jalur->nama : 'Semua jalur'">
         <x-slot:actions>
+            <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                <button type="button" @click="open = !open" class="btn bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm flex items-center h-[54px] rounded-xl px-5 font-semibold transition-all duration-200" title="Export Excel">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-2"></i> Export Data <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+                </button>
+                <div x-show="open" x-transition style="display: none;" class="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                    <a href="{{ route('kabupaten.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'lulus']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="check-circle" class="w-4 h-4 mr-2.5 shrink-0 text-emerald-600 mt-0.5"></i>
+                        <span>Lulus</span>
+                    </a>
+                    <a href="{{ route('kabupaten.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'tidak_lulus']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-rose-50 hover:text-rose-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="x-circle" class="w-4 h-4 mr-2.5 shrink-0 text-rose-500 mt-0.5"></i>
+                        <span>Tidak Lulus</span>
+                    </a>
+                    <a href="{{ route('kabupaten.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'menunggu_penetapan']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="clock" class="w-4 h-4 mr-2.5 shrink-0 text-amber-500 mt-0.5"></i>
+                        <span>Menunggu Penetapan</span>
+                    </a>
+                    <a href="{{ route('kabupaten.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->query()) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                        <i data-lucide="users" class="w-4 h-4 mr-2.5 shrink-0 text-indigo-500 mt-0.5"></i>
+                        <span>Sesuai Filter Data</span>
+                    </a>
+                </div>
+            </div>
+            
             <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl border shadow-sm"
                  style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%); border-color: #bfdbfe;">
                 <div class="flex items-center justify-center w-8 h-8 rounded-lg"
@@ -16,8 +40,8 @@
     </x-page-header>
 
     {{-- Filter Kompleks --}}
-    <div class="card mb-6 overflow-hidden">
-        <div class="bg-slate-50/50 border-b border-slate-100 px-5 py-3">
+    <div class="card mb-6 overflow-visible">
+        <div class="bg-slate-50/50 border-b border-slate-100 px-5 py-3 rounded-t-2xl">
             <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
                 <i data-lucide="filter" class="w-4 h-4 text-slate-400"></i> Filter Data
             </h3>

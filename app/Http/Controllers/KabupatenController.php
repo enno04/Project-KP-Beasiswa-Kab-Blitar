@@ -164,6 +164,129 @@ class KabupatenController extends Controller
         return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\RiwayatPenetapanExport($request), $fileName);
     }
 
+    public function exportData(Request $request, $programSlug, $jalurSlug = null)
+    {
+        $program = Program::with('jalurs')->where('slug', $programSlug)->firstOrFail();
+        $periodeAktif = Periode::aktif()->first();
+        
+        $jalur = null;
+        if ($jalurSlug) {
+            $jalur = Jalur::where('program_id', $program->id)->where('slug', $jalurSlug)->firstOrFail();
+        } elseif ($program->jalurs->count() === 1) {
+            $jalur = $program->jalurs->first();
+        }
+
+        $isSdss = $program->isSdss();
+        $isBerdayaBerjaya = ($program->kode === 'berdaya_berjaya' || $program->slug === 'berdaya-berjaya');
+
+        if ($isSdss) {
+            $query = Pendaftaran::with(['identitas.desa', 'identitas.kecamatan', 'jalur'])
+                ->where('program_id', $program->id)
+                ->whereIn('status', ['menunggu_penetapan', 'lulus', 'tidak_lulus']);
+        } else {
+            $query = Pendaftaran::with(['identitas.desa', 'identitas.kecamatan', 'jalur'])
+                ->where('program_id', $program->id)
+                ->whereIn('status', self::KABUPATEN_STATUSES);
+        }
+
+        if ($jalur) $query->where('jalur_id', $jalur->id);
+        
+        // Filter periode
+        $periodeId = $request->periode_id ?? ($periodeAktif ? $periodeAktif->id : null);
+        if ($periodeId) $query->where('periode_id', $periodeId);
+        
+        // Filter export_type khusus kabupaten
+        if ($request->export_type === 'lulus') {
+            $query->where('status', 'lulus');
+        } elseif ($request->export_type === 'tidak_lulus') {
+            $query->whereIn('status', ['tidak_lulus', 'gugur_wawancara']);
+        } elseif ($request->export_type === 'menunggu_penetapan') {
+            $query->where('status', 'menunggu_penetapan');
+        } elseif ($request->status) {
+            if ($request->status === 'sudah_wawancara') {
+                $query->whereNotNull('nilai_wawancara')->where('nilai_wawancara', '>', 0);
+            } elseif ($request->status === 'menunggu_wawancara') {
+                $query->where('status', 'menunggu_penetapan')->whereNull('nilai_wawancara');
+            } elseif ($request->status === 'menunggu_penetapan') {
+                $query->where('status', 'menunggu_penetapan');
+                if ($isBerdayaBerjaya) {
+                    $query->whereNotNull('nilai_wawancara');
+                }
+            } else {
+                $query->where('status', $request->status);
+            }
+        }
+        
+        if ($request->filled('search')) {
+            $searchTerm = $request->search;
+            $query->whereHas('identitas', function ($q) use ($searchTerm) {
+                $q->where('nama_lengkap', 'like', "%{$searchTerm}%")
+                  ->orWhere('nik', 'like', "%{$searchTerm}%");
+            });
+        }
+
+        if ($request->filled('kecamatan_id')) {
+            $query->whereHas('identitas', function ($q) use ($request) {
+                $q->where('kecamatan_id', $request->kecamatan_id);
+            });
+        }
+
+        if ($request->filled('desa_id')) {
+            $query->whereHas('identitas', function ($q) use ($request) {
+                $q->where('desa_id', $request->desa_id);
+            });
+        }
+
+        $query->orderByRaw('CASE WHEN ranking IS NOT NULL THEN 0 ELSE 1 END')
+              ->orderBy('ranking', 'asc')
+              ->orderBy('total_nilai', 'desc')->latest();
+              
+        $pendaftarans = $query->get();
+        
+        if ($pendaftarans->isEmpty()) {
+            $pesanError = 'Tidak ada data pendaftar yang dapat diexport dengan kriteria tersebut.';
+            if ($request->export_type === 'lulus') {
+                $pesanError = 'Belum ada pendaftar yang berstatus Lulus.';
+            } elseif ($request->export_type === 'tidak_lulus') {
+                $pesanError = 'Belum ada pendaftar yang berstatus Tidak Lulus / Gugur.';
+            } elseif ($request->export_type === 'menunggu_penetapan') {
+                $pesanError = 'Tidak ada pendaftar yang sedang menunggu penetapan.';
+            }
+            return redirect()->back()->with('error', $pesanError);
+        }
+
+        $jenisExport = 'Semua_Pendaftar';
+        if ($request->export_type === 'lulus') {
+            $jenisExport = 'Lulus';
+        } elseif ($request->export_type === 'tidak_lulus') {
+            $jenisExport = 'Tidak_Lulus';
+        } elseif ($request->export_type === 'menunggu_penetapan') {
+            $jenisExport = 'Menunggu_Penetapan';
+        }
+
+        $programSingkatan = '';
+        foreach (explode(' ', $program->nama) as $kata) {
+            $programSingkatan .= strtoupper(substr($kata, 0, 1));
+        }
+
+        $fileNameParts = ['Data_Pendaftar', $jenisExport, $programSingkatan];
+        
+        if ($jalur) {
+            $jalurNama = ucwords(strtolower($jalur->nama));
+            $fileNameParts[] = str_replace(' ', '_', $jalurNama);
+        }
+        
+        if ($request->filled('kecamatan_id')) {
+            $kec = \App\Models\Kecamatan::find($request->kecamatan_id);
+            if ($kec) $fileNameParts[] = \Illuminate\Support\Str::slug($kec->nama_kecamatan, '_');
+        }
+        
+        $fileNameParts[] = date('Ymd');
+        $fileName = implode('_', $fileNameParts) . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\DataPendaftarExport($pendaftarans), $fileName);
+    }
+
     /**
      * Daftar pendaftar per program/jalur — dengan fitur penilaian, ranking & penetapan inline.
      */

@@ -7,6 +7,7 @@ Route::middleware(['auth', 'role:admin_kecamatan'])->prefix('kecamatan')->name('
     Route::get('/dashboard', [KecamatanController::class, 'dashboard'])->name('dashboard');
     Route::get('/riwayat', [KecamatanController::class, 'riwayat'])->name('riwayat');
     Route::get('/program/{programSlug}/{jalurSlug?}', [KecamatanController::class, 'index'])->name('program.index');
+    Route::get('/program/{programSlug}/export/{jalurSlug?}', [KecamatanController::class, 'exportData'])->name('program.export');
     Route::get('/pendaftar/{id}', [KecamatanController::class, 'show'])->name('show');
     Route::post('/pendaftar/{id}/verifikasi', [KecamatanController::class, 'verifikasiRekomendasi'])->name('verifikasi.rekomendasi');
 });

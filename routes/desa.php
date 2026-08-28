@@ -6,6 +6,7 @@ use App\Http\Controllers\DesaController;
 Route::middleware(['auth', 'role:admin_desa'])->prefix('desa')->name('desa.')->group(function () {
     Route::get('/dashboard', [DesaController::class, 'dashboard'])->name('dashboard');
     Route::get('/program/{programSlug}/{jalurSlug?}', [DesaController::class, 'index'])->name('program.index');
+    Route::get('/program/{programSlug}/{jalurSlug?}/export', [DesaController::class, 'exportData'])->name('program.export');
     Route::get('/pendaftar/{id}', [DesaController::class, 'show'])->name('show');
     Route::post('/pendaftar/{id}/rekomendasi', [DesaController::class, 'uploadRekomendasi'])->name('rekomendasi');
     

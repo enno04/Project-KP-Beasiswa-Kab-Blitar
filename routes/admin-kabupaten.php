@@ -11,6 +11,7 @@ Route::middleware(['auth', 'role:admin_kabupaten'])->prefix('kabupaten')->name('
 
     // Pendaftar per program (generik)
     Route::get('/program/{programSlug}/{jalurSlug?}', [KabupatenController::class, 'index'])->name('program.index');
+    Route::get('/program/{programSlug}/export/{jalurSlug?}', [KabupatenController::class, 'exportData'])->name('program.export');
     Route::get('/pendaftar/{id}', [KabupatenController::class, 'show'])->name('show');
 
     // Penilaian & Ranking

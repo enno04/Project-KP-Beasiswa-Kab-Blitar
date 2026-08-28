@@ -1,6 +1,38 @@
 <x-layouts.admin :title="'Data Pendaftar SDSS — ' . $program->nama">
     <x-page-header :title="'Data Pendaftar SDSS: ' . $program->nama" :subtitle="$jalur ? 'Jalur: ' . $jalur->nama : null">
         <x-slot:actions>
+            <div class="relative" x-data="{ open: false }" @click.outside="open = false">
+                <button type="button" @click="open = !open" class="btn bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm flex items-center h-[54px] rounded-xl px-5 font-semibold transition-all duration-200" title="Export Excel">
+                    <i data-lucide="file-spreadsheet" class="w-4 h-4 mr-2"></i> Export Data <i data-lucide="chevron-down" class="w-4 h-4 ml-2"></i>
+                </button>
+                <div x-show="open" x-transition style="display: none;" class="absolute left-0 sm:right-0 sm:left-auto top-full mt-2 w-72 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden">
+                    <a href="{{ route('dpmd.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'disetujui_keduanya']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="check-square" class="w-4 h-4 mr-2.5 shrink-0 text-emerald-600 mt-0.5"></i>
+                        <span>Disetujui Keduanya (Kec & DPMD)</span>
+                    </a>
+                    <a href="{{ route('dpmd.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'disetujui_kecamatan']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="check" class="w-4 h-4 mr-2.5 shrink-0 text-blue-500 mt-0.5"></i>
+                        <span>Disetujui Kecamatan</span>
+                    </a>
+                    <a href="{{ route('dpmd.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'disetujui_dpmd']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-purple-50 hover:text-purple-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="check-circle" class="w-4 h-4 mr-2.5 shrink-0 text-purple-600 mt-0.5"></i>
+                        <span>Disetujui DPMD</span>
+                    </a>
+                    <a href="{{ route('dpmd.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'proses_kecamatan']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="clock" class="w-4 h-4 mr-2.5 shrink-0 text-amber-500 mt-0.5"></i>
+                        <span>Proses Persetujuan Kecamatan</span>
+                    </a>
+                    <a href="{{ route('dpmd.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'proses_dpmd']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-orange-50 hover:text-orange-700 border-b border-slate-100 transition-colors">
+                        <i data-lucide="hourglass" class="w-4 h-4 mr-2.5 shrink-0 text-orange-500 mt-0.5"></i>
+                        <span>Proses Persetujuan DPMD</span>
+                    </a>
+                    <a href="{{ route('dpmd.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->query()) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors">
+                        <i data-lucide="users" class="w-4 h-4 mr-2.5 shrink-0 text-indigo-500 mt-0.5"></i>
+                        <span>Semua Pendaftar (Sesuai Filter)</span>
+                    </a>
+                </div>
+            </div>
+
             <div class="flex items-center gap-2.5 px-4 py-2 rounded-xl border shadow-sm"
                  style="background: linear-gradient(135deg, #f0f7ff 0%, #e8f4fd 100%); border-color: #bfdbfe;">
                 <div class="flex items-center justify-center w-8 h-8 rounded-lg"

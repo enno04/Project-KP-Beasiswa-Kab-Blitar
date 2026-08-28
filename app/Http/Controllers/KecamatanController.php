@@ -142,6 +142,112 @@ class KecamatanController extends Controller
         return view('kecamatan.index', compact('pendaftar', 'program', 'jalur', 'desaList'));
     }
 
+    public function exportData(Request $request, $programSlug, $jalurSlug = null)
+    {
+        $user = auth()->user();
+        $program = Program::with('jalurs')->where('slug', $programSlug)->firstOrFail();
+        
+        $jalur = null;
+        if ($jalurSlug) {
+            $jalur = Jalur::where('program_id', $program->id)->where('slug', $jalurSlug)->firstOrFail();
+        } elseif ($program->jalurs->count() === 1) {
+            $jalur = $program->jalurs->first();
+        }
+
+        $query = Pendaftaran::with(['identitas.desa', 'identitas.kecamatan', 'jalur', 'rekomendasiDesa'])
+            ->whereHas('identitas', fn($q) => $q->where('kecamatan_id', $user->kecamatan_id))
+            ->where('program_id', $program->id)
+            ->whereIn('status', ['diteruskan_ke_kecamatan', 'ditolak_kecamatan', 'ditolak_dpmd', 'proses_seleksi', 'menunggu_penetapan', 'lulus', 'tidak_lulus']);
+
+        if ($jalur) $query->where('jalur_id', $jalur->id);
+        if ($request->tahun) $query->where('tahun', $request->tahun);
+        if ($request->desa_id) {
+            $query->whereHas('identitas', fn($q) => $q->where('desa_id', $request->desa_id));
+        }
+        
+        if ($request->export_type === 'disetujui_kecamatan') {
+            $query->whereHas('rekomendasiDesa', function($q) {
+                $q->where('status_kecamatan', 'disetujui');
+            });
+        } elseif ($request->export_type === 'disetujui_dpmd') {
+            $query->whereHas('rekomendasiDesa', function($q) {
+                $q->where('status_dpmd', 'disetujui');
+            });
+        } elseif ($request->export_type === 'disetujui_keduanya') {
+            $query->whereHas('rekomendasiDesa', function($q) {
+                $q->where('status_kecamatan', 'disetujui')->where('status_dpmd', 'disetujui');
+            });
+        } elseif ($request->export_type === 'proses_kecamatan') {
+            $query->whereHas('rekomendasiDesa', function($q) {
+                $q->where('status_kecamatan', 'belum_diverifikasi');
+            });
+        } elseif ($request->export_type === 'proses_dpmd') {
+            $query->whereHas('rekomendasiDesa', function($q) {
+                $q->where('status_dpmd', 'belum_diverifikasi');
+            });
+        } elseif ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('nomor_pendaftaran', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('identitas', function($q2) use ($request) {
+                      $q2->where('nama_lengkap', 'like', '%' . $request->search . '%');
+                  });
+            });
+        }
+
+        $query->orderBy('total_nilai', 'desc')->latest();
+        $pendaftarans = $query->get();
+        
+        if ($pendaftarans->isEmpty()) {
+            $pesanError = 'Tidak ada data pendaftar yang dapat diexport dengan kriteria tersebut.';
+            if ($request->export_type === 'disetujui_kecamatan') {
+                $pesanError = 'Belum ada pendaftar yang disetujui oleh Kecamatan.';
+            } elseif ($request->export_type === 'disetujui_dpmd') {
+                $pesanError = 'Belum ada pendaftar yang disetujui oleh DPMD.';
+            } elseif ($request->export_type === 'disetujui_keduanya') {
+                $pesanError = 'Belum ada pendaftar yang disetujui oleh kedua belah pihak (Kecamatan & DPMD).';
+            } elseif ($request->export_type === 'proses_kecamatan') {
+                $pesanError = 'Tidak ada pendaftar yang sedang menunggu proses persetujuan Kecamatan.';
+            } elseif ($request->export_type === 'proses_dpmd') {
+                $pesanError = 'Tidak ada pendaftar yang sedang menunggu proses persetujuan DPMD.';
+            }
+            return redirect()->back()->with('error', $pesanError);
+        }
+
+        $jenisExport = 'Semua_Pendaftar';
+        if ($request->export_type === 'disetujui_kecamatan') {
+            $jenisExport = 'Disetujui_Kecamatan';
+        } elseif ($request->export_type === 'disetujui_dpmd') {
+            $jenisExport = 'Disetujui_DPMD';
+        } elseif ($request->export_type === 'disetujui_keduanya') {
+            $jenisExport = 'Disetujui_Kecamatan_DPMD';
+        } elseif ($request->export_type === 'proses_kecamatan') {
+            $jenisExport = 'Proses_Persetujuan_Kecamatan';
+        } elseif ($request->export_type === 'proses_dpmd') {
+            $jenisExport = 'Proses_Persetujuan_DPMD';
+        }
+
+        $programSingkatan = '';
+        foreach (explode(' ', $program->nama) as $kata) {
+            $programSingkatan .= strtoupper(substr($kata, 0, 1));
+        }
+
+        $fileNameParts = ['Data_Pendaftar', $jenisExport, $programSingkatan];
+        
+        if ($jalur) {
+            $jalurNama = ucwords(strtolower($jalur->nama));
+            $fileNameParts[] = str_replace(' ', '_', $jalurNama);
+        }
+        
+        $fileNameParts[] = date('Ymd');
+        $fileName = implode('_', $fileNameParts) . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\DataPendaftarExport($pendaftarans), $fileName);
+    }
+
     public function show($id)
     {
         $user = auth()->user();

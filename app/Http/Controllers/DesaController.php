@@ -162,6 +162,110 @@ class DesaController extends Controller
         return view('desa.index', compact('program', 'jalur', 'pendaftar', 'tahun', 'periodeAktif', 'sudahDitetapkan', 'belumDinilai', 'sudahDinilai'));
     }
 
+    public function exportData(Request $request, $programSlug, $jalurSlug = null)
+    {
+        $user = auth()->user();
+        $program = Program::with('jalurs')->where('slug', $programSlug)->firstOrFail();
+        
+        $jalur = null;
+        if ($jalurSlug) {
+            $jalur = Jalur::where('program_id', $program->id)->where('slug', $jalurSlug)->firstOrFail();
+        } elseif ($program->jalurs->count() === 1) {
+            $jalur = $program->jalurs->first();
+        }
+
+        $query = Pendaftaran::with(['identitas.desa', 'identitas.kecamatan', 'jalur'])
+            ->whereHas('identitas', fn($q) => $q->where('desa_id', $user->desa_id))
+            ->where('program_id', $program->id);
+
+        if ($jalur) $query->where('jalur_id', $jalur->id);
+        if ($request->tahun) $query->where('tahun', $request->tahun);
+        
+        if ($request->export_type === 'lolos_saja') {
+            $query->where(function($q) {
+                $q->whereIn('status', ['diteruskan_ke_kecamatan', 'menunggu_penetapan', 'lulus'])
+                  ->orWhereHas('rekomendasiDesa');
+            });
+        } elseif ($request->export_type === 'tidak_lolos') {
+            $query->where('status', 'tidak_lolos_desa');
+        } elseif ($request->export_type === 'sudah_dinilai') {
+            $query->where('total_nilai', '>', 0);
+        } elseif ($request->export_type === 'belum_dinilai') {
+            $query->where(function($q) {
+                $q->whereNull('total_nilai')->orWhere('total_nilai', '<=', 0);
+            });
+        } elseif ($request->status) {
+            $query->where('status', $request->status);
+        }
+        
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('nomor_pendaftaran', 'like', '%' . $request->search . '%')
+                  ->orWhereHas('identitas', function($q2) use ($request) {
+                      $q2->where('nama_lengkap', 'like', '%' . $request->search . '%')
+                         ->orWhere('nik', 'like', '%' . $request->search . '%');
+                  });
+            });
+        }
+
+        // Urutkan
+        if ($request->sort === 'terbaru') {
+            $query->latest();
+        } elseif ($request->sort === 'nilai_tertinggi') {
+            $query->orderBy('total_nilai', 'desc')->latest();
+        } elseif ($request->sort === 'ranking') {
+            $query->orderByRaw('ranking IS NULL, ranking ASC')->latest();
+        } else {
+            $query->orderByRaw('ranking IS NULL, ranking ASC')->orderBy('total_nilai', 'desc')->latest();
+        }
+
+        $pendaftarans = $query->get();
+        
+        if ($pendaftarans->isEmpty()) {
+            $pesanError = 'Tidak ada data pendaftar yang dapat diexport dengan kriteria tersebut.';
+            if ($request->export_type === 'lolos_saja') {
+                $pesanError = 'Belum ada pendaftar yang ditetapkan lolos/diteruskan ke kecamatan.';
+            } elseif ($request->export_type === 'tidak_lolos') {
+                $pesanError = 'Belum ada pendaftar yang digugurkan / tidak dipilih desa.';
+            } elseif ($request->export_type === 'sudah_dinilai') {
+                $pesanError = 'Belum ada pendaftar yang selesai dinilai.';
+            } elseif ($request->export_type === 'belum_dinilai') {
+                $pesanError = 'Semua pendaftar sudah dinilai.';
+            }
+            return redirect()->back()->with('error', $pesanError);
+        }
+
+        $jenisExport = 'Semua_Pendaftar';
+        if ($request->export_type === 'lolos_saja') {
+            $jenisExport = 'Lolos';
+        } elseif ($request->export_type === 'tidak_lolos') {
+            $jenisExport = 'Tidak_Dipilih_Desa';
+        } elseif ($request->export_type === 'sudah_dinilai') {
+            $jenisExport = 'Sudah_Dinilai';
+        } elseif ($request->export_type === 'belum_dinilai') {
+            $jenisExport = 'Belum_Dinilai';
+        }
+
+        // Membuat singkatan untuk nama program (Contoh: "Satu Desa Satu Sarjana" menjadi "SDSS")
+        $programSingkatan = '';
+        foreach (explode(' ', $program->nama) as $kata) {
+            $programSingkatan .= strtoupper(substr($kata, 0, 1));
+        }
+
+        $fileNameParts = ['Data_Pendaftar', $jenisExport, $programSingkatan];
+        
+        if ($jalur) {
+            // Mengkapitalkan awal kata jalur dan mengubah spasi jadi underscore
+            $jalurNama = ucwords(strtolower($jalur->nama));
+            $fileNameParts[] = str_replace(' ', '_', $jalurNama);
+        }
+        
+        $fileNameParts[] = date('Ymd');
+        $fileName = implode('_', $fileNameParts) . '.xlsx';
+
+        return \Maatwebsite\Excel\Facades\Excel::download(new \App\Exports\DataPendaftarExport($pendaftarans), $fileName);
+    }
+
     public function show($id)
     {
         $user = auth()->user();
@@ -306,9 +410,8 @@ class DesaController extends Controller
 
         try {
             $recommendationService->tetapkanPerwakilan($pendaftaran, $user->desa_id);
-            return redirect()->route('desa.show', $pendaftaran->id)
-                ->withFragment('form-rekomendasi')
-                ->with('success', 'Berhasil menetapkan perwakilan. Pendaftar lain dari desa ini telah otomatis digugurkan. Silakan unggah Surat Rekomendasi dan Berita Acara.');
+            return redirect()->back()
+                ->with('success', 'Berhasil menetapkan perwakilan. Pendaftar lain dari desa ini telah otomatis digugurkan. Silakan Export data atau unggah Surat Rekomendasi.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Terjadi kesalahan saat menetapkan perwakilan: ' . $e->getMessage());
         }

@@ -139,4 +139,5 @@
             <x-desa-dashboard-table :pendaftar="$pendaftarGagal" tabName="gagal" />
         </div>
     </div>
+
 </x-layouts.admin>
