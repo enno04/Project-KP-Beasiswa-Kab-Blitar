@@ -171,7 +171,7 @@
                                 };
                             }
                         @endphp
-                        <div class="text-xs font-bold text-slate-500 uppercase tracking-widest text-right hidden sm:block">
+                        <div class="text-sm font-bold text-slate-600 text-right hidden sm:block">
                             {{ $shortRole }}
                         </div>
                         <button @click="userOpen = !userOpen" @click.away="userOpen = false" class="relative group outline-none">
