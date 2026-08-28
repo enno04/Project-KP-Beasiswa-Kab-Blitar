@@ -88,6 +88,27 @@ class StorePendaftaranRequest extends FormRequest
         return $rules;
     }
 
+    public function attributes(): array
+    {
+        $attributes = [];
+        $program = Program::where('slug', $this->program_slug)->first();
+        if ($program) {
+            $jalur = Jalur::where('program_id', $program->id)->where('slug', $this->jalur_slug)->first();
+            if ($jalur) {
+                // Dokumen names
+                foreach ($jalur->dokumens as $dok) {
+                    $attributes["dokumen_{$dok->id}"] = $dok->nama_dokumen;
+                }
+                
+                // Custom fields names
+                foreach ($jalur->customFields()->aktif()->get() as $field) {
+                    $attributes["custom_fields.{$field->id}"] = $field->nama_field;
+                }
+            }
+        }
+        return $attributes;
+    }
+
     public function withValidator($validator)
     {
         $validator->after(function ($validator) {

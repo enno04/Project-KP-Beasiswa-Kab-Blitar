@@ -19,7 +19,7 @@ class CustomFieldController extends Controller
     {
         $request->validate([
             'nama_field' => 'required|string|max:255',
-            'tipe_field' => 'required|in:text,textarea,number,date,select',
+            'tipe_field' => 'required|in:text,textarea,number,date,select,rupiah',
             'options' => 'nullable|string', // We'll parse this to JSON, e.g. comma separated
             'penempatan' => 'required|in:identitas_diri,orang_tua,akademik,tambahan',
             'is_required' => 'boolean',
@@ -50,7 +50,7 @@ class CustomFieldController extends Controller
     {
         $request->validate([
             'nama_field' => 'required|string|max:255',
-            'tipe_field' => 'required|in:text,textarea,number,date,select',
+            'tipe_field' => 'required|in:text,textarea,number,date,select,rupiah',
             'options' => 'nullable|string',
             'penempatan' => 'required|in:identitas_diri,orang_tua,akademik,tambahan',
             'is_required' => 'boolean',

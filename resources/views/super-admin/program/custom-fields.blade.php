@@ -102,6 +102,7 @@
                                 <option value="text">Teks Singkat (Text)</option>
                                 <option value="textarea">Teks Panjang (Textarea)</option>
                                 <option value="number">Angka (Number)</option>
+                                <option value="rupiah">Uang / Rupiah (Rupiah)</option>
                                 <option value="date">Tanggal (Date)</option>
                                 <option value="select">Pilihan Ganda (Dropdown)</option>
                             </select>
@@ -185,6 +186,7 @@
                                         <option value="text" ${tipe === 'text' ? 'selected' : ''}>Teks Singkat</option>
                                         <option value="textarea" ${tipe === 'textarea' ? 'selected' : ''}>Teks Panjang</option>
                                         <option value="number" ${tipe === 'number' ? 'selected' : ''}>Angka</option>
+                                        <option value="rupiah" ${tipe === 'rupiah' ? 'selected' : ''}>Uang / Rupiah</option>
                                         <option value="date" ${tipe === 'date' ? 'selected' : ''}>Tanggal</option>
                                         <option value="select" ${tipe === 'select' ? 'selected' : ''}>Pilihan Ganda</option>
                                     </select>
