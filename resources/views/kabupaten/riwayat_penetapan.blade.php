@@ -30,7 +30,7 @@
             <div>
                 <h4 class="text-sm font-bold text-blue-900 mb-1">Informasi Ekspor Data Sekaligus</h4>
                 <p class="text-sm text-blue-800 leading-relaxed">
-                    Gunakan tombol <strong>Export ke Excel</strong> di pojok kanan atas untuk mengunduh seluruh data riwayat penetapan sekaligus. Data hasil unduhan ini nantinya sangat berguna untuk melakukan <strong>import (Pemasukan Data) pada halaman Superadmin</strong> di bagian fitur "Histori Penerima -> Data Baru".
+                    Gunakan tombol <strong>Export ke Excel</strong> di pojok kanan atas untuk mengunduh seluruh data riwayat penetapan sekaligus. Data hasil unduhan ini nantinya sangat berguna untuk melakukan <strong>import (Pemasukan Data) pada halaman Superadmin</strong> di bagian fitur <strong>"Histori Penerima -> Data Lengkap"</strong>.
                 </p>
             </div>
         </div>

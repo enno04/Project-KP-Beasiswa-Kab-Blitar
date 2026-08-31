@@ -39,8 +39,14 @@ class WebSettingController extends Controller
                 ['value' => $activeAnnouncement]
             );
 
+            $activeEmergencyBanner = isset($request->settings['emergency_banner_active']) ? '1' : '0';
+            WebSetting::updateOrCreate(
+                ['key' => 'emergency_banner_active'],
+                ['value' => $activeEmergencyBanner]
+            );
+
             foreach ($request->settings as $key => $value) {
-                if ($key !== 'announcement_active') {
+                if (!in_array($key, ['announcement_active', 'emergency_banner_active'])) {
                     WebSetting::updateOrCreate(
                         ['key' => $key],
                         ['value' => $value]

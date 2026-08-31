@@ -1,4 +1,27 @@
 <x-layouts.public :title="'Pendaftaran Beasiswa'">
+    {{-- Emergency Banner (Dari Pengaturan Superadmin) --}}
+    @if(isset($webSettings['emergency_banner_active']) && $webSettings['emergency_banner_active'] == '1' && !empty($webSettings['emergency_banner_text']))
+        @php
+            $bgColorClass = 'bg-amber-500';
+            $textColorClass = 'text-amber-900';
+            if (isset($webSettings['emergency_banner_color'])) {
+                if ($webSettings['emergency_banner_color'] === 'red') {
+                    $bgColorClass = 'bg-red-500';
+                    $textColorClass = 'text-red-50';
+                } elseif ($webSettings['emergency_banner_color'] === 'blue') {
+                    $bgColorClass = 'bg-blue-600';
+                    $textColorClass = 'text-blue-50';
+                }
+            }
+        @endphp
+        <div class="{{ $bgColorClass }} {{ $textColorClass }} font-semibold text-sm py-3 px-4 shadow-sm border-b border-black/10 relative z-40 w-full animate-fade-in-down">
+            <div class="max-w-7xl mx-auto flex items-center justify-center gap-2 text-center">
+                <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0 {{ $bgColorClass === 'bg-amber-500' ? 'text-amber-800' : 'text-white' }}"></i>
+                <span>{{ $webSettings['emergency_banner_text'] }}</span>
+            </div>
+        </div>
+    @endif
+
     {{-- Page Hero --}}
     <section class="bg-cover bg-center bg-no-repeat border-b border-slate-200"
         style="background-image: url('{{ asset('images/header_pendaftaran.png') }}');">

@@ -97,7 +97,8 @@ class AppServiceProvider extends ServiceProvider
                  ->with('webInstagram', $webSettings['instagram_link'] ?? '')
                  ->with('webLink', $webSettings['website_link'] ?? '')
                  ->with('announcementActive', $webSettings['announcement_active'] ?? '0')
-                 ->with('announcementText', $webSettings['announcement_text'] ?? '');
+                 ->with('announcementText', $webSettings['announcement_text'] ?? '')
+                 ->with('webSettings', $webSettings);
         });
     }
 }

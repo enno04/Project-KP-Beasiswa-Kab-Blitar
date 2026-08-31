@@ -255,7 +255,12 @@
                                 </div>
                                 @endif
 
-                                <div id="cetak" class="border-t border-slate-100 pt-4 flex justify-end">
+                                <div id="cetak" class="border-t border-slate-100 pt-4 flex gap-3 justify-end">
+                                    @if(in_array($p->status, ['lulus', 'sk_terbit']))
+                                    <a href="{{ route('pendaftaran.sertifikat', $p->id) }}" class="btn btn-success text-white" target="_blank">
+                                        <i data-lucide="download" class="w-4 h-4"></i> Unduh Bukti Lulus (PDF)
+                                    </a>
+                                    @endif
                                     <a href="{{ route('pendaftaran.bukti', $p->id) }}" class="btn btn-outline" target="_blank">
                                         <i data-lucide="printer" class="w-4 h-4"></i> Cetak Tanda Bukti
                                     </a>

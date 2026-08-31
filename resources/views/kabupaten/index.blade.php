@@ -8,11 +8,11 @@
                 <div x-show="open" x-transition style="display: none;" class="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50 overflow-hidden">
                     <a href="{{ route('kabupaten.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'lulus']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 border-b border-slate-100 transition-colors">
                         <i data-lucide="check-circle" class="w-4 h-4 mr-2.5 shrink-0 text-emerald-600 mt-0.5"></i>
-                        <span>Lulus</span>
+                        <span>Lolos/Ditetapkan</span>
                     </a>
                     <a href="{{ route('kabupaten.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'tidak_lulus']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-rose-50 hover:text-rose-700 border-b border-slate-100 transition-colors">
                         <i data-lucide="x-circle" class="w-4 h-4 mr-2.5 shrink-0 text-rose-500 mt-0.5"></i>
-                        <span>Tidak Lulus</span>
+                        <span>Tidak Lulus/Tidak Ditetapkan</span>
                     </a>
                     <a href="{{ route('kabupaten.program.export', ['programSlug' => $program->slug, 'jalurSlug' => $jalur?->slug] + request()->except('status') + ['export_type' => 'menunggu_penetapan']) }}" class="flex items-start px-4 py-3 text-sm font-medium text-slate-700 hover:bg-amber-50 hover:text-amber-700 border-b border-slate-100 transition-colors">
                         <i data-lucide="clock" class="w-4 h-4 mr-2.5 shrink-0 text-amber-500 mt-0.5"></i>

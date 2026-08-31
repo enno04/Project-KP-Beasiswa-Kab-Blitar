@@ -18,10 +18,16 @@ Route::prefix('pendaftaran')->name('pendaftaran.')->group(function () {
     Route::get('/', [PendaftaranController::class, 'index'])->name('index');
     Route::post('/', [PendaftaranController::class, 'store'])->name('store');
     Route::get('/bukti/{id}', [PendaftaranController::class, 'buktiPendaftaran'])->name('bukti');
+    Route::get('/sertifikat/{id}', [PendaftaranController::class, 'downloadSertifikat'])->name('sertifikat');
+    Route::get('/sertifikat-histori/{id}', [PendaftaranController::class, 'downloadSertifikatHistori'])->name('histori.sertifikat');
+    Route::get('/validasi-sertifikat/{nomor_pendaftaran}', [PendaftaranController::class, 'validasiSertifikat'])->name('validasi.sertifikat');
+    Route::get('/validasi-histori/{nomor_pendaftaran}', [PendaftaranController::class, 'validasiSertifikatHistori'])->name('validasi.histori');
     Route::get('/{programSlug}/{jalurSlug}', [PendaftaranController::class, 'create'])->name('create');
 });
 
 // API publik
 Route::get('/api/desa/{kecamatanId}', [PendaftaranController::class, 'getDesaByKecamatan'])->name('api.desa');
+Route::get('/api/desa-by-kecamatan/{kecamatanId}', [ReferensiController::class, 'getDesaByKecamatan'])->name('api.desa.by.kecamatan');
+Route::post('/api/cek-nik', [PendaftaranController::class, 'cekNik'])->name('api.cek_nik');
 Route::get('/api/desa-by-kecamatan/{kecamatanId}', [ReferensiController::class, 'getDesaByKecamatan'])->name('api.desa.by.kecamatan');
 Route::post('/api/cek-nik', [PendaftaranController::class, 'cekNik'])->name('api.cek_nik');

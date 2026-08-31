@@ -1,13 +1,13 @@
 <x-layouts.admin :title="'Histori Penerima Beasiswa'">
-    <x-page-header title="Histori Penerima Beasiswa" subtitle="Data penerima beasiswa tahun-tahun sebelumnya">
+    <x-page-header title="Histori Penerima Beasiswa" subtitle="Data penerima beasiswa tahun lalu dan tahun baru.">
         <x-slot:actions>
             @if($tab === 'lama')
                 <button onclick="document.getElementById('importModalLama').classList.remove('hidden')" class="btn btn-outline">
-                    <i data-lucide="upload" class="w-4 h-4"></i> Import Data Lama
+                    <i data-lucide="upload" class="w-4 h-4"></i> Import Data Sebagian
                 </button>
             @else
                 <button onclick="document.getElementById('importModalBaru').classList.remove('hidden')" class="btn btn-primary">
-                    <i data-lucide="upload-cloud" class="w-4 h-4"></i> Import (Admin Kab)
+                    <i data-lucide="upload-cloud" class="w-4 h-4"></i> Import Data Lengkap
                 </button>
             @endif
         </x-slot:actions>
@@ -17,26 +17,60 @@
         <nav class="flex gap-4" aria-label="Tabs">
             <a href="{{ route('super-admin.histori', ['tab' => 'lama']) }}"
                 class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors {{ $tab === 'lama' ? 'border-primary-main text-primary-main' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
-                <i data-lucide="history" class="w-4 h-4 inline-block mr-1"></i> Data Penerima Lama
+                <i data-lucide="file-spreadsheet" class="w-4 h-4 inline-block mr-1"></i> Data Info Sebagian
             </a>
             <a href="{{ route('super-admin.histori', ['tab' => 'baru']) }}"
                 class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-sm transition-colors {{ $tab === 'baru' ? 'border-primary-main text-primary-main' : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300' }}">
-                <i data-lucide="folder-clock" class="w-4 h-4 inline-block mr-1"></i> Data Baru (Sistem Admin Kab)
+                <i data-lucide="database" class="w-4 h-4 inline-block mr-1"></i> Data Lengkap
             </a>
         </nav>
     </div>
 
-    @if($tab === 'baru')
-    {{-- Info Card Import Data Baru --}}
-    <div class="mb-6 p-4 rounded-xl border shadow-sm" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #bfdbfe;">
-        <div class="flex gap-3">
-            <div class="shrink-0 mt-0.5">
-                <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+    @if($tab === 'lama')
+    {{-- Info Card Import Data Lama (Accordion) --}}
+    <div x-data="{ open: false }" class="mb-6 rounded-xl border shadow-sm bg-amber-50 border-amber-200 overflow-hidden">
+        <button @click="open = !open" type="button" class="w-full flex items-center justify-between p-4 focus:outline-none hover:bg-amber-100/50 transition-colors">
+            <div class="flex items-center gap-3">
+                <i data-lucide="info" class="w-5 h-5 text-amber-600"></i>
+                <h4 class="text-sm font-bold text-amber-900">Informasi Import Data Sebagian</h4>
             </div>
-            <div>
-                <h4 class="text-sm font-bold text-blue-900 mb-1">Informasi Import Data Penetapan</h4>
+            <i data-lucide="chevron-down" class="w-5 h-5 text-amber-600 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+        </button>
+        <div x-show="open" x-collapse x-cloak class="px-4 pb-4 pt-1">
+            <div class="pl-8">
+                <p class="text-sm text-amber-800 leading-relaxed mb-1.5">
+                    Fitur import ini dikhususkan untuk <em>file</em> Excel hasil <em>export</em> yang hanya mengambil informasi sebagian seperti:
+                </p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-y-1 mb-2">
+                    <div class="flex items-center gap-1.5 text-sm text-amber-900"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-amber-600"></i> Tahun</div>
+                    <div class="flex items-center gap-1.5 text-sm text-amber-900"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-amber-600"></i> NIK</div>
+                    <div class="flex items-center gap-1.5 text-sm text-amber-900"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-amber-600"></i> Nama Lengkap</div>
+                    <div class="flex items-center gap-1.5 text-sm text-amber-900"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-amber-600"></i> Asal PT</div>
+                    <div class="flex items-center gap-1.5 text-sm text-amber-900"><i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-amber-600"></i> Jenis Beasiswa</div>
+                </div>
+                <p class="text-sm text-amber-800 leading-relaxed">
+                    <strong>Penting:</strong> Berbeda dengan tab <strong>Data Lengkap</strong> yang membutuhkan <em>file</em> Excel yang lengkap hasil dari <strong>"Export Ke Excel"</strong> di halaman Riwayat Penetapan Beasiswa (Admin Kab).
+                </p>
+            </div>
+        </div>
+    </div>
+    @elseif($tab === 'baru')
+    {{-- Info Card Import Data Lengkap (Accordion) --}}
+    <div x-data="{ open: false }" class="mb-6 rounded-xl border shadow-sm overflow-hidden" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-color: #bfdbfe;">
+        <button @click="open = !open" type="button" class="w-full flex items-center justify-between p-4 focus:outline-none hover:bg-blue-100/30 transition-colors">
+            <div class="flex items-center gap-3">
+                <i data-lucide="info" class="w-5 h-5 text-blue-600"></i>
+                <h4 class="text-sm font-bold text-blue-900">Informasi Import Data Lengkap</h4>
+            </div>
+            <i data-lucide="chevron-down" class="w-5 h-5 text-blue-600 transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+        </button>
+        <div x-show="open" x-collapse x-cloak class="px-4 pb-4 pt-1">
+            <div class="pl-8">
+                <p class="text-sm text-blue-800 leading-relaxed mb-2">
+                    Fitur ini ditujukan untuk meng-import <em>file</em> Excel yang berisi <strong>seluruh detail</strong> data penerima beasiswa, mulai dari NIK, nilai IPK, wilayah (Desa/Kecamatan), jalur masuk, hingga waktu penetapan akhir.
+                </p>
                 <p class="text-sm text-blue-800 leading-relaxed">
-                    Untuk melakukan pemasukan data penerima beasiswa baru, gunakan <em>file</em> Excel hasil dari <strong>Export Data Sekaligus</strong> yang diunduh melalui halaman <strong>Riwayat Penetapan Beasiswa</strong> pada akun <strong>Admin Kabupaten</strong>. Sistem akan membaca format <em>file</em> tersebut secara otomatis.
+                    <strong>Penting:</strong> <em>File</em> Excel yang di-import wajib berasal langsung dari sistem (tanpa diubah format susunannya). Anda bisa mendapatkan format resminya dengan menekan tombol <strong>"Export Ke Excel"</strong> yang berada pada menu <strong>Riwayat Penetapan Beasiswa</strong> (khusus Admin Kabupaten).
                 </p>
             </div>
         </div>

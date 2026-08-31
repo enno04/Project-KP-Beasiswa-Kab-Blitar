@@ -98,26 +98,80 @@
 
                 <div class="mt-8 pt-6 border-t border-slate-100">
                     <div class="mb-5">
-                        <label class="block text-base font-bold text-slate-800">Pengumuman Global (Beranda Utama)</label>
-                        <p class="text-xs text-slate-500 mt-1">Pengumuman akan muncul berupa <b>Teks Berjalan Warna Biru</b> tepat di bawah halaman utama Beranda.</p>
+                        <label class="block text-base font-bold text-slate-800">Sistem Broadcast & Pengumuman Global</label>
+                        <p class="text-xs text-slate-500 mt-1">Sistem ini memungkinkan Anda untuk memberikan informasi secara massal dan *real-time* kepada pengunjung situs publik.</p>
                     </div>
-                    <div class="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
-                        <div class="flex items-center gap-3 border-b border-slate-200 pb-4">
-                            <label class="relative inline-flex items-center cursor-pointer">
-                                <input type="checkbox" name="settings[announcement_active]" value="1" class="sr-only peer" {{ (old('settings.announcement_active', $settings['announcement_active']->value ?? '0') == '1') ? 'checked' : '' }}>
-                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                            </label>
-                            <div>
-                                <span class="text-sm font-bold text-slate-800 block">Tampilkan Pengumuman di Halaman Publik</span>
+                    
+                    <div class="grid md:grid-cols-2 gap-6">
+                        {{-- 1. Pengumuman Teks Berjalan (Beranda) --}}
+                        <div class="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <div class="flex items-center gap-3 border-b border-slate-200 pb-4">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="settings[announcement_active]" value="1" class="sr-only peer" {{ (old('settings.announcement_active', $settings['announcement_active']->value ?? '0') == '1') ? 'checked' : '' }}>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                                <div>
+                                    <span class="text-sm font-bold text-slate-800 block">Teks Berjalan Beranda Utama</span>
+                                    <p class="text-[11px] text-slate-500 mt-0.5 leading-tight">Muncul sebagai <b>Teks Biru Berjalan</b> di bawah header pada halaman awal.</p>
+                                </div>
+                            </div>
+                            <div class="pt-2">
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Teks Pengumuman</label>
+                                <textarea name="settings[announcement_text]" rows="4" class="form-input w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-inner bg-white resize-none transition-all" placeholder="Gunakan tombol Enter (Baris Baru) untuk memisahkan pengumuman.">{{ old('settings.announcement_text', $settings['announcement_text']->value ?? '') }}</textarea>
+                                <p class="text-xs text-slate-500 mt-2 flex items-start gap-1.5 bg-blue-50/50 p-2.5 rounded-lg border border-blue-100">
+                                    <i data-lucide="info" class="w-4 h-4 text-blue-500 shrink-0 mt-0.5"></i>
+                                    <span><b>Tips:</b> Untuk menampilkan lebih dari satu pengumuman sekaligus secara bersambung, pisahkan setiap pengumuman dengan menekan tombol <b>Enter (Baris Baru)</b>. Sistem akan otomatis menyisipkan simbol pemisah di antara kalimat.</span>
+                                </p>
                             </div>
                         </div>
-                        <div class="pt-2">
-                            <label class="block text-sm font-medium text-slate-700 mb-2">Teks Pengumuman</label>
-                            <textarea name="settings[announcement_text]" rows="4" class="form-input w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-inner bg-white resize-none transition-all" placeholder="Ketik teks peringatan atau info penting di sini...">{{ old('settings.announcement_text', $settings['announcement_text']->value ?? '') }}</textarea>
-                            <p class="text-xs text-slate-500 mt-2 flex items-start gap-1.5 bg-blue-50/50 p-2.5 rounded-lg border border-blue-100">
-                                <i data-lucide="info" class="w-4 h-4 text-blue-500 shrink-0 mt-0.5"></i>
-                                <span><b>Tips:</b> Untuk menampilkan lebih dari satu pengumuman sekaligus secara bersambung, pisahkan setiap pengumuman dengan menekan tombol <b>Enter (Baris Baru)</b>. Sistem akan otomatis menyisipkan simbol pemisah di antara kalimat.</span>
-                            </p>
+
+                        {{-- 2. Banner Darurat (Halaman Pendaftaran) --}}
+                        <div class="space-y-4 bg-slate-50 p-5 rounded-xl border border-slate-100">
+                            <div class="flex items-center gap-3 border-b border-slate-200 pb-4">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" name="settings[emergency_banner_active]" value="1" class="sr-only peer" {{ (old('settings.emergency_banner_active', $settings['emergency_banner_active']->value ?? '0') == '1') ? 'checked' : '' }}>
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                </label>
+                                <div>
+                                    <span class="text-sm font-bold text-slate-800 block">Banner Darurat Pendaftaran</span>
+                                    <p class="text-[11px] text-slate-500 mt-0.5 leading-tight">Muncul di posisi <b>Puncak Teratas</b> pada Halaman Form Pendaftaran.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="pt-2 space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Teks Peringatan Darurat</label>
+                                    <textarea name="settings[emergency_banner_text]" rows="2" class="form-input w-full p-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-inner bg-white resize-none transition-all" placeholder="Misal: 🚨 Pendaftaran Tinggal 2 Hari Lagi!">{{ old('settings.emergency_banner_text', $settings['emergency_banner_text']->value ?? '') }}</textarea>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-slate-700 mb-2">Warna Latar Banner</label>
+                                    @php $currentEmergencyColor = old('settings.emergency_banner_color', $settings['emergency_banner_color']->value ?? 'amber'); @endphp
+                                    <div class="flex gap-4">
+                                        <label class="cursor-pointer relative">
+                                            <input type="radio" name="settings[emergency_banner_color]" value="amber" class="peer sr-only" {{ $currentEmergencyColor === 'amber' ? 'checked' : '' }}>
+                                            <div class="w-10 h-10 rounded-full bg-amber-500 shadow-sm border-2 border-transparent peer-checked:border-slate-800 transition-all flex items-center justify-center">
+                                                <i data-lucide="check" class="w-5 h-5 text-white opacity-0 peer-checked:opacity-100"></i>
+                                            </div>
+                                            <span class="text-[11px] font-semibold text-slate-600 block text-center mt-1">Kuning</span>
+                                        </label>
+                                        <label class="cursor-pointer relative">
+                                            <input type="radio" name="settings[emergency_banner_color]" value="red" class="peer sr-only" {{ $currentEmergencyColor === 'red' ? 'checked' : '' }}>
+                                            <div class="w-10 h-10 rounded-full bg-red-500 shadow-sm border-2 border-transparent peer-checked:border-slate-800 transition-all flex items-center justify-center">
+                                                <i data-lucide="check" class="w-5 h-5 text-white opacity-0 peer-checked:opacity-100"></i>
+                                            </div>
+                                            <span class="text-[11px] font-semibold text-slate-600 block text-center mt-1">Merah</span>
+                                        </label>
+                                        <label class="cursor-pointer relative">
+                                            <input type="radio" name="settings[emergency_banner_color]" value="blue" class="peer sr-only" {{ $currentEmergencyColor === 'blue' ? 'checked' : '' }}>
+                                            <div class="w-10 h-10 rounded-full bg-blue-600 shadow-sm border-2 border-transparent peer-checked:border-slate-800 transition-all flex items-center justify-center">
+                                                <i data-lucide="check" class="w-5 h-5 text-white opacity-0 peer-checked:opacity-100"></i>
+                                            </div>
+                                            <span class="text-[11px] font-semibold text-slate-600 block text-center mt-1">Biru</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

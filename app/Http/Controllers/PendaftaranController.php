@@ -9,7 +9,10 @@ use App\Models\Kecamatan;
 use App\Models\Pendaftaran;
 use App\Models\Periode;
 use App\Models\Program;
+use App\Models\HistoriPenerima;
 use App\Services\RegistrationService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class PendaftaranController extends Controller
 {
@@ -119,5 +122,55 @@ class PendaftaranController extends Controller
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    public function downloadSertifikat($id)
+    {
+        $pendaftaran = Pendaftaran::with(['program', 'periode'])->findOrFail($id);
+
+        if (!in_array($pendaftaran->status, ['lulus', 'sk_terbit'])) {
+            abort(403, 'Surat Keterangan hanya tersedia bagi pendaftar yang Lolos/Ditetapkan.');
+        }
+
+        $validationUrl = route('pendaftaran.validasi.sertifikat', $pendaftaran->nomor_pendaftaran);
+        
+        // Generate QR code in SVG format (base64) to avoid ext-imagick dependency
+        $qrCode = base64_encode(QrCode::format('svg')->size(150)->generate($validationUrl));
+
+        $pdf = Pdf::loadView('pendaftaran.sertifikat_pdf', compact('pendaftaran', 'qrCode'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('Bukti_Lulus_Beasiswa_' . $pendaftaran->nomor_pendaftaran . '.pdf');
+    }
+
+    public function validasiSertifikat($nomor_pendaftaran)
+    {
+        $pendaftaran = Pendaftaran::with(['program', 'periode'])
+            ->where('nomor_pendaftaran', $nomor_pendaftaran)
+            ->firstOrFail();
+
+        return view('pendaftaran.validasi_sertifikat', compact('pendaftaran'));
+    }
+
+    public function downloadSertifikatHistori($id)
+    {
+        $pendaftaran = HistoriPenerima::findOrFail($id);
+
+        $validationUrl = route('pendaftaran.validasi.histori', $pendaftaran->nomor_pendaftaran);
+        
+        $qrCode = base64_encode(QrCode::format('svg')->size(150)->generate($validationUrl));
+
+        $pdf = Pdf::loadView('pendaftaran.sertifikat_pdf', compact('pendaftaran', 'qrCode'))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream('Bukti_Lulus_Beasiswa_' . $pendaftaran->nomor_pendaftaran . '.pdf');
+    }
+
+    public function validasiSertifikatHistori($nomor_pendaftaran)
+    {
+        $pendaftaran = HistoriPenerima::where('nomor_pendaftaran', $nomor_pendaftaran)
+            ->firstOrFail();
+
+        return view('pendaftaran.validasi_sertifikat', compact('pendaftaran'));
     }
 }

@@ -288,7 +288,7 @@
             <div class="bg-slate-50 rounded-xl p-4 text-center">
                 <i data-lucide="info" class="w-5 h-5 text-primary mx-auto mb-2"></i>
                 <p class="text-xs font-semibold text-slate-700 mb-1">Butuh bantuan?</p>
-                <p class="text-[11px] text-slate-400">Hubungi admin Dispora Blitar</p>
+                <p class="text-[11px] text-slate-400">Hubungi Admin Dispora Blitar</p>
             </div>
         </div>
     </aside>
@@ -569,7 +569,7 @@
                                 <h5 class="font-bold text-slate-700 mb-1.5 flex items-center gap-2">
                                     <i data-lucide="monitor" class="w-4 h-4 text-slate-500"></i> Tip Perangkat
                                 </h5>
-                                <p class="text-xs text-slate-600 leading-relaxed">Sangat disarankan mengelola pendaftaran menggunakan <strong>Komputer/Laptop</strong>. Layar yang lebih besar memudahkan pengecekan berkas dan pengisian nilai, sehingga meminimalisir risiko salah klik.</p>
+                                <p class="text-xs text-slate-600 leading-relaxed">Sangat disarankan mengelola pendaftaran menggunakan <strong>Komputer/Laptop</strong>. Layar yang lebih besar memudahkan pengecekan berkas, sehingga meminimalisir risiko salah klik.</p>
                             </div>
                         </div>
                     </div>
