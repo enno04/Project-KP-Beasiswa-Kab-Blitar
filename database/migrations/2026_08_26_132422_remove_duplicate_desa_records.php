@@ -11,10 +11,10 @@ return new class extends Migration
     public function up(): void
     {
         // Temukan semua desa yang namanya sama persis dengan nama kecamatannya
-        $desas = DB::table('desas')
-            ->join('kecamatans', 'desas.kecamatan_id', '=', 'kecamatans.id')
-            ->whereRaw('LOWER(desas.nama_desa) = LOWER(kecamatans.nama_kecamatan)')
-            ->select('desas.id')
+        $desas = DB::table('desa')
+            ->join('kecamatan', 'desa.kecamatan_id', '=', 'kecamatan.id')
+            ->whereRaw('LOWER(desa.nama_desa) = LOWER(kecamatan.nama_kecamatan)')
+            ->select('desa.id')
             ->get();
 
         $duplicateIds = $desas->pluck('id')->toArray();
@@ -24,7 +24,7 @@ return new class extends Migration
             DB::table('users')->whereIn('desa_id', $duplicateIds)->delete();
             
             // Hapus desa duplikat tersebut
-            DB::table('desas')->whereIn('id', $duplicateIds)->delete();
+            DB::table('desa')->whereIn('id', $duplicateIds)->delete();
         }
     }
 
