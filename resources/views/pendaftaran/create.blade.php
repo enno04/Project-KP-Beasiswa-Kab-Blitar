@@ -246,6 +246,7 @@
                                         class="text-red-500">*</span></label>
                                 <input type="text" name="program_studi" value="{{ old('program_studi') }}"
                                     maxlength="255"
+                                    placeholder="Contoh: Teknik Informatika"
                                     class="w-full px-4 py-3 rounded-xl border text-sm focus:ring-2 focus:ring-primary outline-none"
                                     required>
                             </div>

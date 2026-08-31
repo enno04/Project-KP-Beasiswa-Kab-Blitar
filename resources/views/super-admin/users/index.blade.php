@@ -7,6 +7,16 @@
         </x-slot:actions>
     </x-page-header>
 
+    {{-- Panduan --}}
+    <div class="bg-sky-50 border border-sky-100 text-sky-700 rounded-xl p-4 mb-6 flex gap-3 text-sm leading-relaxed shadow-sm">
+        <i data-lucide="info" class="w-5 h-5 shrink-0 text-sky-500 mt-0.5"></i>
+        <div>
+            <strong class="font-semibold text-sky-900 block mb-1">Panduan Menambahkan Hak Akses Admin:</strong>
+            Sebelum membuat akun pengguna untuk instansi (OPD, Kecamatan, atau Desa), pastikan data master wilayah atau instansi tersebut sudah terdaftar di sistem. 
+            Sebagai contoh, jika Anda ingin menambahkan admin OPD, pastikan OPD tersebut sudah didaftarkan di menu <b>Master Referensi > OPD</b>. Setelah terdaftar, barulah Anda bisa memberikan *username* dan hak akses admin untuk OPD tersebut melalui tombol <b>Tambah User</b> di sini.
+        </div>
+    </div>
+
     {{-- Table --}}
     <x-data-table :items="$users" empty-icon="users" empty-title="Belum Ada Pengguna" empty-text="Belum ada user terdaftar dalam sistem.">
         <x-slot:filter>
